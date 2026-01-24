@@ -10,8 +10,41 @@ type ListProjectTasksResponse =
 type CreateTaskReq =
     paths["/api/v1/projects/{projectId}/tasks"]["post"]["requestBody"]["content"]["application/json"];
 
+type GetProjectResponse =
+    paths["/api/v1/projects/{id}"]["get"]["responses"]["200"]["content"]["application/json"];
+
+type UpdateProjectReq =
+    paths["/api/v1/projects/{id}"]["patch"]["requestBody"]["content"]["application/json"];
+
+export type CreateProjectReq =
+    paths["/api/v1/projects"]["post"]["requestBody"]["content"]["application/json"];
+
 export function listProjects(): Promise<ListProjectsResponse> {
     return apiFetch<ListProjectsResponse>("/v1/projects");
+}
+
+export function getProject(id: number): Promise<GetProjectResponse> {
+    return apiFetch<GetProjectResponse>(`/v1/projects/${id}`);
+}
+
+export function createProject(body: CreateProjectReq): Promise<GetProjectResponse> {
+    return apiFetch<GetProjectResponse>("/v1/projects", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+
+export function updateProject(id: number, body: UpdateProjectReq): Promise<GetProjectResponse> {
+    return apiFetch<GetProjectResponse>(`/v1/projects/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
+
+export function deleteProject(id: number): Promise<void> {
+    return apiFetch<void>(`/v1/projects/${id}`, {
+        method: "DELETE",
+    });
 }
 
 export function listProjectTasks(projectId: number): Promise<ListProjectTasksResponse> {
