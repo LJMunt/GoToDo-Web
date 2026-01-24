@@ -7,9 +7,12 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
     if (state.status === "loading") {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-orange-100">
-                <div className="rounded-full border border-orange-500/30 px-4 py-2 text-sm text-orange-200">
-                    Loading your workspace…
+            <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] text-slate-400">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500/20 border-t-orange-500" />
+                    <div className="text-sm font-medium tracking-wide">
+                        Preparing your workspace…
+                    </div>
                 </div>
             </div>
         );

@@ -86,7 +86,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="group relative w-full overflow-hidden rounded-2xl bg-orange-500 px-4 py-4 text-sm font-bold text-black shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 cursor-pointer"
+                            className="group relative w-full overflow-hidden rounded-2xl bg-white px-4 py-4 text-sm font-bold text-black shadow-xl shadow-black/20 transition-all hover:scale-[1.02] hover:bg-orange-50 active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 cursor-pointer"
                         >
                             <div className="relative z-10 flex items-center justify-center gap-2">
                                 {isSubmitting ? (

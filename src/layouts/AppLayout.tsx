@@ -34,11 +34,11 @@ export default function AppLayout() {
         <div className="min-h-screen bg-[#0a0a0a] text-slate-50 selection:bg-orange-500/30">
             <header className="sticky top-0 z-30 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-                    <Link to="/" className="flex items-center gap-2 group">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-black shadow-[0_0_15px_rgba(249,115,22,0.4)] group-hover:scale-110 transition-transform">
-                            <span className="text-lg font-bold">G</span>
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-orange-500 shadow-sm transition-all group-hover:border-orange-500/50 group-hover:bg-orange-500/5 group-hover:scale-105">
+                            <span className="text-xl font-black italic">G</span>
                         </div>
-                        <span className="text-xl font-bold tracking-tight bg-linear-to-br from-white to-slate-400 bg-clip-text text-transparent">
+                        <span className="text-xl font-bold tracking-tight text-white group-hover:text-orange-50 transition-colors">
                             GoTodo
                         </span>
                     </Link>
@@ -47,9 +47,9 @@ export default function AppLayout() {
                         <div ref={menuRef} className="relative">
                             <button
                                 onClick={() => setMenuOpen((open) => !open)}
-                                className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/8 hover:border-white/15 active:scale-95 cursor-pointer"
+                                className="group flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/8 hover:border-white/15 active:scale-95 cursor-pointer"
                             >
-                                <div className="h-6 w-6 rounded-full bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center text-[10px] text-white font-bold uppercase">
+                                <div className="h-7 w-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-slate-400 font-bold uppercase transition-colors group-hover:border-orange-500/50 group-hover:text-orange-500">
                                     {user.email.substring(0, 2)}
                                 </div>
                                 <span className="truncate max-w-37.5">{user.email}</span>

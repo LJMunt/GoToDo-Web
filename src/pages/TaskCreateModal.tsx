@@ -1,26 +1,22 @@
 import { useEffect, useState } from "react";
-import { deleteTask, getTask, getTaskTags, setTaskTags, updateTask } from "../api/tasks";
+import { createTask } from "../api/projects";
+import { setTaskTags } from "../api/tasks";
 import { listTags } from "../api/tags";
 import type { components } from "../api/schema";
 
-type Task = components["schemas"]["Task"];
 type Tag = components["schemas"]["Tag"];
 
-export function TaskEditModal({
-    taskId,
+export function TaskCreateModal({
+    projectId,
     onClose,
-    onUpdated,
-    onDeleted,
+    onCreated,
 }: {
-    taskId: number;
+    projectId: number;
     onClose: () => void;
-    onUpdated: () => void;
-    onDeleted: () => void;
+    onCreated: () => void;
 }) {
-    const [task, setTask] = useState<Task | null>(null);
-    const [tags, setTags] = useState<Tag[]>([]);
     const [allTags, setAllTags] = useState<Tag[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [tags, setTags] = useState<Tag[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
@@ -29,69 +25,52 @@ export function TaskEditModal({
     const [dueDate, setDueDate] = useState("");
     const [newTag, setNewTag] = useState("");
 
-    useEffect(() => {
-        async function load() {
-            setLoading(true);
-            try {
-                const [taskData, taskTags, userTags] = await Promise.all([
-                    getTask(taskId),
-                    getTaskTags(taskId),
-                    listTags(),
-                ]);
-                setTask(taskData);
-                setTags(taskTags);
-                setAllTags(userTags);
+    const [isRecurring, setIsRecurring] = useState(false);
+    const [repeatEvery, setRepeatEvery] = useState(1);
+    const [repeatUnit, setRepeatUnit] = useState<"day" | "week" | "month">("day");
 
-                setTitle(taskData.title);
-                setDescription(taskData.description ?? "");
-                if (taskData.due_at) {
-                    const d = new Date(taskData.due_at);
-                    const offset = d.getTimezoneOffset() * 60000;
-                    const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 16);
-                    setDueDate(localISOTime);
-                }
+    useEffect(() => {
+        async function loadTags() {
+            try {
+                const userTags = await listTags();
+                setAllTags(userTags);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load task");
-            } finally {
-                setLoading(false);
+                console.error("Failed to load tags", err);
             }
         }
-        void load();
-    }, [taskId]);
+        void loadTags();
+    }, []);
 
     async function handleSave() {
-        if (!task) return;
+        if (!title.trim()) {
+            setError("Title is required");
+            return;
+        }
+        if (isRecurring && !dueDate) {
+            setError("Due date is required for recurring tasks");
+            return;
+        }
         setSaving(true);
         setError(null);
         try {
-            await updateTask(taskId, {
+            const task = await createTask(projectId, {
                 title,
                 description: description || null,
                 due_at: dueDate ? new Date(dueDate).toISOString() : null,
+                repeat_every: isRecurring ? repeatEvery : null,
+                repeat_unit: isRecurring ? repeatUnit : null,
             });
 
-            const tagNames = tags.filter(t => t.id === 0).map(t => t.name);
-            const tagIds = tags.filter(t => t.id > 0).map(t => t.id);
-            await setTaskTags(taskId, tagNames.length > 0 ? tagNames : undefined, tagIds);
+            if (tags.length > 0) {
+                const tagNames = tags.filter(t => t.id === 0).map(t => t.name);
+                const tagIds = tags.filter(t => t.id > 0).map(t => t.id);
+                await setTaskTags(task.id, tagNames.length > 0 ? tagNames : undefined, tagIds);
+            }
 
-            onUpdated();
+            onCreated();
             onClose();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to save task");
-        } finally {
-            setSaving(false);
-        }
-    }
-
-    async function handleDelete() {
-        if (!window.confirm("Are you sure you want to delete this task?")) return;
-        setSaving(true);
-        try {
-            await deleteTask(taskId);
-            onDeleted();
-            onClose();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to delete task");
+            setError(err instanceof Error ? err.message : "Failed to create task");
         } finally {
             setSaving(false);
         }
@@ -104,7 +83,13 @@ export function TaskEditModal({
             setNewTag("");
             return;
         }
-        setTags([...tags, { id: 0, user_id: 0, name, created_at: "" }]);
+        // Try to find if tag exists in allTags
+        const existing = allTags.find(t => t.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+            setTags([...tags, existing]);
+        } else {
+            setTags([...tags, { id: 0, user_id: 0, name, created_at: "" }]);
+        }
         setNewTag("");
     }
 
@@ -112,33 +97,16 @@ export function TaskEditModal({
         setTags(tags.filter(t => t.name !== tagName));
     }
 
-    if (loading) {
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                <div className="w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#161616] p-8 text-center">
-                    <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
-                    <p className="mt-4 text-slate-400 font-medium">Loading task details...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!task) return null;
-
-    const isRecurring = task.repeat_every != null;
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
             <div className="w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#121212] shadow-2xl animate-in zoom-in-95 duration-300">
                 <div className="p-8">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h2 className="text-2xl font-bold text-white">Edit Task</h2>
-                            {isRecurring && (
-                                <p className="text-xs font-bold uppercase tracking-widest text-orange-500/70 mt-1">
-                                    Recurring Template
-                                </p>
-                            )}
+                            <h2 className="text-2xl font-bold text-white">Create New Task</h2>
+                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">
+                                Adding to project
+                            </p>
                         </div>
                         <button
                             onClick={onClose}
@@ -162,6 +130,7 @@ export function TaskEditModal({
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Task title"
+                                autoFocus
                             />
                         </div>
 
@@ -175,17 +144,15 @@ export function TaskEditModal({
                             />
                         </div>
 
-                        {!isRecurring && (
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Due Date</label>
-                                <input
-                                    type="datetime-local"
-                                    className="w-full rounded-2xl border border-white/10 bg-white/3 px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
-                                    value={dueDate}
-                                    onChange={(e) => setDueDate(e.target.value)}
-                                />
-                            </div>
-                        )}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Due Date</label>
+                            <input
+                                type="datetime-local"
+                                className="w-full rounded-2xl border border-white/10 bg-white/3 px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                            />
+                        </div>
 
                         <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Tags</label>
@@ -206,9 +173,9 @@ export function TaskEditModal({
                                     onChange={(e) => setNewTag(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && addTag(newTag)}
                                     placeholder="Add tag..."
-                                    list="all-tags-list"
+                                    list="create-tags-list"
                                 />
-                                <datalist id="all-tags-list">
+                                <datalist id="create-tags-list">
                                     {allTags.map(t => (
                                         <option key={t.id} value={t.name} />
                                     ))}
@@ -221,18 +188,62 @@ export function TaskEditModal({
                                 </button>
                             </div>
                         </div>
+
+                        {/* Recurring Task Section */}
+                        {isRecurring && (
+                            <div className="pt-6 border-t border-white/5 animate-in slide-in-from-top-4 duration-500 fade-in">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Repeat Every</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                className="w-full rounded-2xl border border-white/10 bg-white/3 px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                                value={repeatEvery}
+                                                onChange={(e) => setRepeatEvery(Math.max(1, parseInt(e.target.value) || 1))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Frequency</label>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 appearance-none cursor-pointer"
+                                                value={repeatUnit}
+                                                onChange={(e) => setRepeatUnit(e.target.value as any)}
+                                            >
+                                                <option value="day">Day(s)</option>
+                                                <option value="week">Week(s)</option>
+                                                <option value="month">Month(s)</option>
+                                            </select>
+                                            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="flex items-center justify-between bg-white/2 p-8 border-t border-white/5">
-                    <button
-                        onClick={handleDelete}
-                        disabled={saving}
-                        className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
-                    >
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        Delete Task
-                    </button>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`flex h-5 w-5 items-center justify-center rounded-lg border-2 transition-all ${isRecurring ? "border-orange-500 bg-orange-500/10 text-orange-500" : "border-white/10 group-hover:border-white/30"}`}>
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={isRecurring}
+                                onChange={(e) => setIsRecurring(e.target.checked)}
+                            />
+                            {isRecurring && <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                        <span className={`text-sm font-bold transition-colors ${isRecurring ? "text-orange-500/80" : "text-slate-500 group-hover:text-slate-400"}`}>
+                            Recurring Task
+                        </span>
+                    </label>
+
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
@@ -247,7 +258,7 @@ export function TaskEditModal({
                         >
                             {saving ? (
                                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            ) : "Save Changes"}
+                            ) : "Create Task"}
                         </button>
                     </div>
                 </div>
