@@ -1,6 +1,10 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../features/auth/AuthContext";
 
 export default function AppLayout() {
+    const { state, logout } = useAuth();
+    const nav = useNavigate();
+
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100">
             <header className="border-b border-slate-800">
@@ -9,12 +13,21 @@ export default function AppLayout() {
                         GoTodo
                     </Link>
 
-                    <Link
-                        to="/login"
-                        className="text-sm text-slate-300 hover:text-slate-100"
-                    >
-                        Login
-                    </Link>
+                    {state.status === "authenticated" ? (
+                        <button
+                            onClick={() => {
+                                logout();
+                                nav("/login", { replace: true });
+                            }}
+                            className="text-sm text-slate-300 hover:text-slate-100"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <Link to="/login" className="text-sm text-slate-300 hover:text-slate-100">
+                            Login
+                        </Link>
+                    )}
                 </div>
             </header>
 

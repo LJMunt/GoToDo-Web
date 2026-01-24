@@ -7,6 +7,31 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
+## API configuration
+
+The frontend reads the API base URL in this order:
+
+1) `window.__CONFIG__.API_BASE` (runtime, written by Docker entrypoint)
+2) `VITE_API_BASE` (build-time env)
+3) `/api` (default)
+
+### Local development
+
+Use `.env.local` with one of:
+
+- `VITE_API_PROXY_TARGET=http://localhost:8081` to proxy `/api/*` through Vite
+- `VITE_API_BASE=http://localhost:8081` to call the API directly (requires CORS)
+
+See `.env.example` for defaults.
+
+### Docker runtime
+
+The Docker entrypoint writes `window.__CONFIG__.API_BASE` using the `API_BASE` env var, so you can point the frontend at different backends without rebuilding:
+
+```bash
+API_BASE=/api docker run ...
+```
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
