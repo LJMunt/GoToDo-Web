@@ -1,4 +1,4 @@
-import { runtimeConfig } from "../config";
+import { runtimeConfig } from "../config.ts";
 
 const API_BASE = runtimeConfig.apiBase;
 
