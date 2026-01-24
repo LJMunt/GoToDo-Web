@@ -115,9 +115,11 @@ export function TaskEditModal({
     if (loading) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                <div className="w-full max-w-lg rounded-4xl border border-white/10 bg-[#161616] p-8 text-center">
-                    <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
-                    <p className="mt-4 text-slate-400 font-medium">Loading task details...</p>
+                <div className="w-full max-w-lg rounded-4xl border border-white/10 bg-[#161616] p-12 text-center shadow-2xl">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black shadow-[0_0_25px_rgba(249,115,22,0.4)] animate-wiggle mb-6">
+                        <span className="text-2xl font-black italic">G</span>
+                    </div>
+                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500 animate-pulse">Loading task details...</p>
                 </div>
             </div>
         );

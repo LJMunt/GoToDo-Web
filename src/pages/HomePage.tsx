@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAgenda } from "../api/agenda";
 import { listProjectTasks, listProjects } from "../api/projects";
@@ -95,11 +95,14 @@ export default function HomePage() {
 
     const [completingKeys, setCompletingKeys] = useState<Set<string>>(new Set());
     const [expandedAgendaItems, setExpandedAgendaItems] = useState<Set<string>>(new Set());
+    const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
     const [showCompletedAgenda, setShowCompletedAgenda] = useState(false);
     const [showCompletedProjectTasks, setShowCompletedProjectTasks] = useState(false);
     const [completedAgendaHistory, setCompletedAgendaHistory] = useState<AgendaItem[]>([]);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [extraCompletedItems, setExtraCompletedItems] = useState<AgendaItem[]>([]);
+    const [isLoadingExtra, setIsLoadingExtra] = useState(false);
 
     useEffect(() => {
         async function loadAgenda() {
@@ -174,20 +177,101 @@ export default function HomePage() {
 
     const mergedAgenda = useMemo(() => {
         const map = new Map<string, AgendaItem>();
-        [...sortedAgenda, ...completedAgendaHistory].forEach((item) => {
+        [...sortedAgenda, ...extraCompletedItems, ...completedAgendaHistory].forEach((item) => {
             const key = agendaKey(item);
             const existing = map.get(key);
             if (existing && isAgendaCompleted(existing)) return;
             map.set(key, item);
         });
         return Array.from(map.values());
-    }, [completedAgendaHistory, sortedAgenda]);
+    }, [completedAgendaHistory, sortedAgenda, extraCompletedItems]);
 
     const projectNameMap = useMemo(() => {
         const map = new Map<number, string>();
         projects.forEach((project) => map.set(project.id, project.name));
         return map;
     }, [projects]);
+
+    const fetchExtraCompletedItems = useCallback(async () => {
+        if (!showCompletedAgenda || projects.length === 0) {
+            setExtraCompletedItems([]);
+            return;
+        }
+
+        setIsLoadingExtra(true);
+        try {
+            // Fetch all tasks for all projects to find recurring ones and completed single tasks
+            const tasksByProject = await Promise.all(projects.map(p => listProjectTasks(p.id)));
+
+            const recurringTasks: { task: Task; projectId: number }[] = [];
+            const completedSingleTasks: AgendaItem[] = [];
+            const dayStart = new Date(agendaDay.startISO);
+            const dayEnd = new Date(agendaDay.endISO);
+
+            tasksByProject.forEach((pTasks, idx) => {
+                const pId = projects[idx].id;
+                pTasks.forEach(t => {
+                    if (t.repeat_every != null) {
+                        recurringTasks.push({ task: t, projectId: pId });
+                    } else if (t.completed_at && t.due_at) {
+                        const due = new Date(t.due_at);
+                        if (due >= dayStart && due <= dayEnd) {
+                            completedSingleTasks.push({
+                                kind: "task",
+                                task_id: t.id,
+                                project_id: pId,
+                                title: t.title,
+                                description: t.description,
+                                due_at: t.due_at,
+                                completed_at: t.completed_at
+                            } as any);
+                        }
+                    }
+                });
+            });
+
+            // Fetch occurrences for recurring tasks for this specific day
+            const occurrencesResults = await Promise.all(
+                recurringTasks.map(rt =>
+                    listTaskOccurrences(rt.task.id, { from: agendaDay.startISO, to: agendaDay.endISO })
+                        .then(occs => ({ rt, occs }))
+                        .catch(() => ({ rt, occs: [] }))
+                )
+            );
+
+            const completedOccurrences: AgendaItem[] = [];
+            occurrencesResults.forEach(({ rt, occs }) => {
+                occs.forEach(occ => {
+                    if (occ.completed_at) {
+                        completedOccurrences.push({
+                            kind: "occurrence",
+                            task_id: rt.task.id,
+                            occurrence_id: occ.id,
+                            project_id: rt.projectId,
+                            title: rt.task.title,
+                            description: rt.task.description,
+                            due_at: occ.due_at,
+                            completed_at: occ.completed_at
+                        } as any);
+                    }
+                });
+            });
+
+            setExtraCompletedItems([...completedSingleTasks, ...completedOccurrences]);
+        } catch (err) {
+            console.error("Failed to fetch extra completed items", err);
+        } finally {
+            setIsLoadingExtra(false);
+        }
+    }, [showCompletedAgenda, projects, agendaDay]);
+
+    useEffect(() => {
+        if (showCompletedAgenda) {
+            void fetchExtraCompletedItems();
+        } else {
+            setExtraCompletedItems([]);
+        }
+    }, [showCompletedAgenda, fetchExtraCompletedItems]);
 
     async function refreshAgendaAndTasks() {
         try {
@@ -197,6 +281,10 @@ export default function HomePage() {
             ]);
             setAgendaItems(agendaData);
             if (selectedProjectId) setTasks(taskData as Task[]);
+
+            if (showCompletedAgenda) {
+                void fetchExtraCompletedItems();
+            }
         } catch (err) {
             console.warn("Refresh failed", err);
         }
@@ -205,6 +293,12 @@ export default function HomePage() {
     async function handleToggleAgenda(item: AgendaItem) {
         const key = agendaKey(item);
         const completed = isAgendaCompleted(item);
+        const willVanish = !completed && !showCompletedAgenda;
+
+        if (willVanish) {
+            setRemovingKeys((prev) => new Set(prev).add(key));
+        }
+
         setCompletingKeys((prev) => new Set(prev).add(key));
         try {
             if (item.kind === "occurrence" && item.occurrence_id != null) {
@@ -212,15 +306,33 @@ export default function HomePage() {
             } else {
                 await setTaskCompletion(item.task_id, !completed);
             }
+
+            if (willVanish) {
+                // Keep the item visible for the duration of the vanishing animation
+                await new Promise((resolve) => setTimeout(resolve, 600));
+            }
+
             await refreshAgendaAndTasks();
         } catch (err) {
             console.error("Unable to update completion", err);
+            setRemovingKeys((prev) => {
+                const next = new Set(prev);
+                next.delete(key);
+                return next;
+            });
         } finally {
             setCompletingKeys((prev) => {
                 const next = new Set(prev);
                 next.delete(key);
                 return next;
             });
+            if (willVanish) {
+                setRemovingKeys((prev) => {
+                    const next = new Set(prev);
+                    next.delete(key);
+                    return next;
+                });
+            }
         }
 
         setCompletedAgendaHistory((prev) => {
@@ -238,30 +350,53 @@ export default function HomePage() {
         const key = `project-task-${task.id}`;
         const completed = isTaskCompleted(task);
         if (task.repeat_every != null) return;
+        
+        const willVanish = !completed && !showCompletedProjectTasks;
+        if (willVanish) {
+            setRemovingKeys((prev) => new Set(prev).add(key));
+        }
+
         setCompletingKeys((prev) => new Set(prev).add(key));
         try {
             await setTaskCompletion(task.id, !completed);
+            
+            if (willVanish) {
+                await new Promise((resolve) => setTimeout(resolve, 600));
+            }
+
             await refreshAgendaAndTasks();
         } catch (err) {
             console.error("Unable to update task", err);
+            setRemovingKeys((prev) => {
+                const next = new Set(prev);
+                next.delete(key);
+                return next;
+            });
         } finally {
             setCompletingKeys((prev) => {
                 const next = new Set(prev);
                 next.delete(key);
                 return next;
             });
+            if (willVanish) {
+                setRemovingKeys((prev) => {
+                    const next = new Set(prev);
+                    next.delete(key);
+                    return next;
+                });
+            }
         }
     }
 
     if (!user) return null;
 
     const filteredAgenda = mergedAgenda.filter(
-        (item) => showCompletedAgenda || !isAgendaCompleted(item)
+        (item) => showCompletedAgenda || !isAgendaCompleted(item) || removingKeys.has(agendaKey(item))
     );
 
     const filteredTasks = tasks.filter((task) => {
         if (task.repeat_every != null) return true; // always show recurring templates so their occurrences can be viewed
-        return showCompletedProjectTasks || !isTaskCompleted(task);
+        return showCompletedProjectTasks || !isTaskCompleted(task) || removingKeys.has(`project-task-${task.id}`);
     });
 
     async function handleToggleOccurrence(taskId: number, occurrence: components["schemas"]["Occurrence"]) {
@@ -427,9 +562,14 @@ export default function HomePage() {
                                 <h1 className="text-4xl font-bold tracking-tight text-white lg:text-5xl">
                                     Your Agenda
                                 </h1>
-                                <p className="mt-2 text-slate-400">
-                                    {agendaDay.label} • {filteredAgenda.length} items
-                                </p>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <p className="text-slate-400">
+                                        {agendaDay.label} • {filteredAgenda.length} items
+                                    </p>
+                                    {isLoadingExtra && (
+                                        <svg className="h-3 w-3 animate-spin text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-3">
@@ -493,13 +633,15 @@ export default function HomePage() {
                                     const projectName = projectNameMap.get(item.project_id) ?? "Project";
                                     const key = agendaKey(item);
                                     const isCompleting = completingKeys.has(key);
+                                    const isVanishing = removingKeys.has(key);
                                     const completed = isAgendaCompleted(item);
                                     const isExpanded = expandedAgendaItems.has(key);
+                                    const showCompletedVisuals = completed || isVanishing;
 
                                     return (
                                         <div
                                             key={key}
-                                            className={`group relative flex items-start gap-6 rounded-3xl border border-white/5 bg-white/2 p-5 transition-all hover:bg-white/4 hover:border-white/10 ${completed ? "opacity-40 grayscale-[0.5]" : ""}`}
+                                            className={`group relative flex items-start gap-6 rounded-3xl border border-white/5 bg-white/2 p-5 transition-all hover:bg-white/4 hover:border-white/10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""} ${isVanishing ? "animate-vanish" : ""}`}
                                         >
                                             <div className="relative flex-shrink-0 mt-1">
                                                 <button
@@ -507,17 +649,13 @@ export default function HomePage() {
                                                     disabled={isCompleting}
                                                     className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
                                                         isCompleting
-                                                            ? "border-orange-500/50"
-                                                            : completed
+                                                            ? "border-orange-500/50 animate-wiggle"
+                                                            : showCompletedVisuals
                                                                 ? "border-orange-500 bg-orange-500/10 text-orange-500"
                                                                 : "border-white/10 text-transparent hover:border-orange-500/40 hover:text-orange-500/40"
                                                     }`}
                                                 >
-                                                    {isCompleting ? (
-                                                        <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                    ) : (
-                                                        <svg className={`h-6 w-6 ${completed ? "animate-in zoom-in-75 duration-300" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                    )}
+                                                    <svg className={`h-6 w-6 ${(showCompletedVisuals && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                 </button>
                                             </div>
 
@@ -633,13 +771,15 @@ export default function HomePage() {
                                     .map((task) => {
                                         const key = `project-task-${task.id}`;
                                         const isCompleting = completingKeys.has(key);
+                                        const isVanishing = removingKeys.has(key);
                                         const isRecurring = task.repeat_every != null;
                                         const completed = isTaskCompleted(task);
                                         const isExpanded = expandedRecurring.has(task.id);
+                                        const showCompletedVisuals = completed || isVanishing;
 
                                         return (
-                                            <div key={task.id} className="space-y-3">
-                                                <div className={`group relative flex items-center gap-6 rounded-3xl border border-white/5 bg-white/2 p-5 transition-all hover:bg-white/4 hover:border-white/10 ${completed ? "opacity-40 grayscale-[0.5]" : ""}`}>
+                                            <div key={task.id} className={`space-y-3 ${isVanishing ? "animate-vanish" : ""}`}>
+                                                <div className={`group relative flex items-center gap-6 rounded-3xl border border-white/5 bg-white/2 p-5 transition-all hover:bg-white/4 hover:border-white/10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""}`}>
                                                     <div className="flex-shrink-0">
                                                         {isRecurring ? (
                                                             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 text-orange-500/70">
@@ -651,17 +791,13 @@ export default function HomePage() {
                                                                 disabled={isCompleting}
                                                                 className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
                                                                     isCompleting
-                                                                        ? "border-orange-500/50"
-                                                                        : completed
+                                                                        ? "border-orange-500/50 animate-wiggle"
+                                                                        : showCompletedVisuals
                                                                             ? "border-orange-500 bg-orange-500/10 text-orange-500"
                                                                             : "border-white/10 text-transparent hover:border-orange-500/40 hover:text-orange-500/40"
                                                                 }`}
                                                             >
-                                                                {isCompleting ? (
-                                                                    <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                                ) : (
-                                                                    <svg className={`h-6 w-6 ${completed ? "animate-in zoom-in-75 duration-300" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                                )}
+                                                                <svg className={`h-6 w-6 ${(showCompletedVisuals && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                             </button>
                                                         )}
                                                     </div>
@@ -809,17 +945,13 @@ function OccurrenceList({
                                 disabled={isCompleting}
                                 className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
                                     isCompleting
-                                        ? "border-orange-500/50"
+                                        ? "border-orange-500/50 animate-wiggle"
                                         : completed
                                             ? "border-orange-500 bg-orange-500/10 text-orange-500"
                                             : "border-white/10 text-transparent hover:border-orange-500/40 hover:text-orange-500/40"
                                 }`}
                             >
-                                {isCompleting ? (
-                                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                ) : (
-                                    <svg className={`h-5 w-5 ${completed ? "animate-in zoom-in-75 duration-300" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                )}
+                                <svg className={`h-5 w-5 ${(completed && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                             </button>
                             <div>
                                 <p className={`text-base font-medium ${completed ? "text-slate-500 line-through" : "text-slate-200"}`}>
