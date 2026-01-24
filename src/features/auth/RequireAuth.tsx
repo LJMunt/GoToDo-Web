@@ -7,8 +7,10 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
     if (state.status === "loading") {
         return (
-            <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
-                <div className="text-slate-400">Loading…</div>
+            <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-orange-100">
+                <div className="rounded-full border border-orange-500/30 px-4 py-2 text-sm text-orange-200">
+                    Loading your workspace…
+                </div>
             </div>
         );
     }

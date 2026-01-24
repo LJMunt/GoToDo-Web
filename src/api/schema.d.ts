@@ -908,7 +908,8 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        tags: string[];
+                        tags?: string[];
+                        tag_ids?: number[];
                     };
                 };
             };
@@ -2320,6 +2321,7 @@ export interface components {
             /** Format: int64 */
             project_id: number;
             title: string;
+            description?: string | null;
             /** Format: date-time */
             due_at: string;
         };

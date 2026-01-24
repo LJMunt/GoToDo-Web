@@ -151,6 +151,8 @@ components:
           format: int64
         title:
           type: string
+        description:
+          oneOf: [{type: string}, {type: "null"}]
         due_at:
           type: string
           format: date-time
@@ -781,8 +783,11 @@ paths:
                   type: array
                   items:
                     type: string
-              required:
-                - tags
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
       responses:
         "200":
           description: Tags updated
