@@ -30,7 +30,7 @@ export default function SignupPage() {
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-slate-50 flex items-center justify-center px-6 selection:bg-orange-500/30">
-            <div className="w-full max-w-[420px] animate-in fade-in zoom-in duration-700">
+            <div className="w-full max-w-105 animate-in fade-in zoom-in duration-700">
                 <div className="flex flex-col items-center text-center mb-10">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black shadow-[0_0_25px_rgba(249,115,22,0.4)] mb-6">
                         <span className="text-2xl font-black italic">G</span>
@@ -43,7 +43,7 @@ export default function SignupPage() {
                     </p>
                 </div>
 
-                <div className="rounded-[2rem] border border-white/8 bg-white/2 p-8 shadow-2xl shadow-black ring-1 ring-white/10 backdrop-blur-sm">
+                <div className="rounded-4xl border border-white/8 bg-white/2 p-8 shadow-2xl shadow-black ring-1 ring-white/10 backdrop-blur-sm">
                     {error && (
                         <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-medium animate-in shake duration-500">
                             {error}

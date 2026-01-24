@@ -478,7 +478,7 @@ export default function HomePage() {
                             )}
 
                             {!agendaLoading && !agendaError && filteredAgenda.length === 0 && (
-                                <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-white/10 bg-white/1 py-24 text-center">
+                                <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-white/10 bg-white/1 py-24 text-center">
                                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/3 text-slate-500">
                                         <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                     </div>
@@ -616,7 +616,7 @@ export default function HomePage() {
                         )}
 
                         {!tasksLoading && !tasksError && filteredTasks.length === 0 && (
-                            <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-white/10 bg-white/1 py-24 text-center">
+                            <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-white/10 bg-white/1 py-24 text-center">
                                 <h3 className="text-xl font-semibold text-slate-200">No tasks found</h3>
                                 <p className="mt-2 text-slate-500">This project is currently empty. Start by adding a task.</p>
                             </div>
