@@ -1,10 +1,10 @@
-function App() {
+export default function App() {
     return (
-        <div>
-            <h1>GoTodo Web</h1>
-            <p>If you can see this, React works.</p>
+        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-100">
+            <div className="rounded-xl bg-slate-800 p-8 shadow">
+                <h1 className="text-3xl font-bold">GoTodo</h1>
+                <p className="text-slate-400">Tailwind is working ✅</p>
+            </div>
         </div>
     );
 }
-
-export default App;
