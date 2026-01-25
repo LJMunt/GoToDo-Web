@@ -1,6 +1,6 @@
-# Todexia Web
+# GoToDo Web
 
-Todexia is a modern task management application. This repository contains the web frontend built with React, TypeScript, and Vite.
+GoToDo is a modern task management application. This repository contains the web frontend built with React, TypeScript, and Vite.
 
 ## 🚀 Getting Started
 
@@ -68,13 +68,58 @@ API_BASE=https://api.todexia.app docker run ...
 
 ### Docker Compose
 
-The easiest way to run the frontend is using Docker Compose:
+To run the complete GoToDo stack (Frontend, Backend, and Database) using pre-built images:
 
-```bash
-docker compose up --build
+1. Create a `docker-compose.yaml` file with the following content:
+
+```yaml
+services:
+  gotodo-web:
+    image: ghcr.io/ljmunt/gotodo-web:latest
+    ports:
+      - "8080:80"
+    environment:
+      - API_HOST=gotodo
+      - API_PORT=8081
+      - API_BASE=/api
+    depends_on:
+      - gotodo
+    restart: unless-stopped
+
+  gotodo:
+    image: ghcr.io/ljmunt/gotodo:latest
+    environment:
+      - DATABASE_URL=postgres://gotodo:gotodo@db:5432/gotodo
+      - PORT=8081
+      - JWT_SECRET=your_secret_here
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gotodo
+      POSTGRES_USER: gotodo
+      POSTGRES_PASSWORD: gotodo
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gotodo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
 ```
 
-The frontend will be available at `http://localhost:8080`.
+2. Run the application:
+
+```bash
+docker compose up -d
+```
 
 ### Connecting to a local backend
 If your backend is running on your host machine (not in Docker), the container needs to know how to reach it. 
