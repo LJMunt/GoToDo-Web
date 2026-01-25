@@ -3,10 +3,48 @@ import { apiFetch } from "./http";
 
 type ListTagsRes =
     paths["/api/v1/tags"]["get"]["responses"]["200"]["content"]["application/json"];
-type CreateTagReq =
-    paths["/api/v1/tags"]["post"]["requestBody"]["content"]["application/json"];
-type UpdateTagReq =
-    paths["/api/v1/tags/{tagId}"]["patch"]["requestBody"]["content"]["application/json"];
+type CreateTagReq = {
+    name: string;
+    color?:
+        | "slate"
+        | "gray"
+        | "red"
+        | "orange"
+        | "amber"
+        | "yellow"
+        | "lime"
+        | "green"
+        | "emerald"
+        | "teal"
+        | "cyan"
+        | "sky"
+        | "blue"
+        | "indigo"
+        | "violet"
+        | "purple"
+        | "pink";
+};
+type UpdateTagReq = {
+    name?: string;
+    color?:
+        | "slate"
+        | "gray"
+        | "red"
+        | "orange"
+        | "amber"
+        | "yellow"
+        | "lime"
+        | "green"
+        | "emerald"
+        | "teal"
+        | "cyan"
+        | "sky"
+        | "blue"
+        | "indigo"
+        | "violet"
+        | "purple"
+        | "pink";
+};
 
 export function listTags(): Promise<ListTagsRes> {
     return apiFetch<ListTagsRes>("/v1/tags");

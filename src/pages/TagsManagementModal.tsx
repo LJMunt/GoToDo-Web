@@ -4,6 +4,53 @@ import type { components } from "../api/schema";
 
 type Tag = components["schemas"]["Tag"];
 
+const allowedColors = [
+    "slate", "gray", "red", "orange", "amber", "yellow", "lime", "green",
+    "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "pink"
+] as const;
+
+type Color = typeof allowedColors[number];
+
+const tagColorClasses: Record<string, string> = {
+    slate: "bg-slate-500/10 text-slate-500/80 ring-slate-500/20",
+    gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
+    red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
+    orange: "bg-orange-500/10 text-orange-500/80 ring-orange-500/20",
+    amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
+    yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
+    lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
+    green: "bg-green-500/10 text-green-500/80 ring-green-500/20",
+    emerald: "bg-emerald-500/10 text-emerald-500/80 ring-emerald-500/20",
+    teal: "bg-teal-500/10 text-teal-500/80 ring-teal-500/20",
+    cyan: "bg-cyan-500/10 text-cyan-500/80 ring-cyan-500/20",
+    sky: "bg-sky-500/10 text-sky-500/80 ring-sky-500/20",
+    blue: "bg-blue-500/10 text-blue-500/80 ring-blue-500/20",
+    indigo: "bg-indigo-500/10 text-indigo-500/80 ring-indigo-500/20",
+    violet: "bg-violet-500/10 text-violet-500/80 ring-violet-500/20",
+    purple: "bg-purple-500/10 text-purple-500/80 ring-purple-500/20",
+    pink: "bg-pink-500/10 text-pink-500/80 ring-pink-500/20",
+};
+
+const tagBgClasses: Record<string, string> = {
+    slate: "bg-slate-500",
+    gray: "bg-gray-500",
+    red: "bg-red-500",
+    orange: "bg-orange-500",
+    amber: "bg-amber-500",
+    yellow: "bg-yellow-500",
+    lime: "bg-lime-500",
+    green: "bg-green-500",
+    emerald: "bg-emerald-500",
+    teal: "bg-teal-500",
+    cyan: "bg-cyan-500",
+    sky: "bg-sky-500",
+    blue: "bg-blue-500",
+    indigo: "bg-indigo-500",
+    violet: "bg-violet-500",
+    purple: "bg-purple-500",
+    pink: "bg-pink-500",
+};
+
 export function TagsManagementModal({
     onClose,
     onTagsUpdated,
@@ -16,6 +63,7 @@ export function TagsManagementModal({
     const [error, setError] = useState<string | null>(null);
     const [editingTagId, setEditingTagId] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
+    const [editColor, setEditColor] = useState<Color>("slate");
     const [newName, setNewName] = useState("");
     const [saving, setSaving] = useState(false);
 
@@ -34,17 +82,17 @@ export function TagsManagementModal({
         void load();
     }, []);
 
-    async function handleRename(tagId: number) {
+    async function handleUpdate(tagId: number) {
         if (!editName.trim()) return;
         setSaving(true);
         setError(null);
         try {
-            await updateTag(tagId, { name: editName.trim() });
-            setTags(tags.map(t => t.id === tagId ? { ...t, name: editName.trim() } : t));
+            const updated = await updateTag(tagId, { name: editName.trim(), color: editColor });
+            setTags(tags.map(t => t.id === tagId ? updated : t));
             setEditingTagId(null);
             onTagsUpdated();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to rename tag");
+            setError(err instanceof Error ? err.message : "Failed to update tag");
         } finally {
             setSaving(false);
         }
@@ -138,45 +186,59 @@ export function TagsManagementModal({
                                     tags.map(tag => (
                                         <div key={tag.id} className="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/2 p-4 transition-all hover:bg-white/4 group">
                                             {editingTagId === tag.id ? (
-                                                <div className="flex flex-1 items-center gap-2">
-                                                    <input
-                                                        autoFocus
-                                                        className="flex-1 rounded-xl border border-white/10 bg-white/3 px-3 py-1.5 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
-                                                        value={editName}
-                                                        onChange={(e) => setEditName(e.target.value)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === "Enter") handleRename(tag.id);
-                                                            if (e.key === "Escape") setEditingTagId(null);
-                                                        }}
-                                                    />
-                                                    <button
-                                                        disabled={saving}
-                                                        onClick={() => handleRename(tag.id)}
-                                                        className="p-1.5 text-orange-500 hover:bg-orange-500/10 rounded-lg transition-colors"
-                                                    >
-                                                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setEditingTagId(null)}
-                                                        className="p-1.5 text-slate-500 hover:bg-white/10 rounded-lg transition-colors"
-                                                    >
-                                                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                                    </button>
+                                                <div className="flex flex-1 flex-col gap-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            autoFocus
+                                                            className="flex-1 rounded-xl border border-white/10 bg-white/3 px-3 py-1.5 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                                            value={editName}
+                                                            onChange={(e) => setEditName(e.target.value)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === "Enter") handleUpdate(tag.id);
+                                                                if (e.key === "Escape") setEditingTagId(null);
+                                                            }}
+                                                        />
+                                                        <button
+                                                            disabled={saving}
+                                                            onClick={() => handleUpdate(tag.id)}
+                                                            className="p-1.5 text-orange-500 hover:bg-orange-500/10 rounded-lg transition-colors"
+                                                        >
+                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingTagId(null)}
+                                                            className="p-1.5 text-slate-500 hover:bg-white/10 rounded-lg transition-colors"
+                                                        >
+                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {allowedColors.map(color => (
+                                                            <button
+                                                                key={color}
+                                                                onClick={() => setEditColor(color)}
+                                                                className={`h-6 w-6 rounded-full border-2 transition-all ${editColor === color ? "border-white scale-110 shadow-lg" : "border-transparent hover:scale-105"} ${tagBgClasses[color]}`}
+                                                                title={color}
+                                                            />
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <>
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-2 w-2 rounded-full bg-orange-500/40" />
-                                                        <span className="font-medium text-slate-200">{tag.name}</span>
+                                                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${tagColorClasses[tag.color] || tagColorClasses.slate}`}>
+                                                            {tag.name}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             onClick={() => {
                                                                 setEditingTagId(tag.id);
                                                                 setEditName(tag.name);
+                                                                setEditColor(tag.color as Color);
                                                             }}
                                                             className="p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                            title="Rename tag"
+                                                            title="Edit tag"
                                                         >
                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                         </button>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAgenda } from "../api/agenda";
 import { listProjectTasks, listProjects } from "../api/projects";
-import { listTaskOccurrences, setOccurrenceCompletion, setTaskCompletion } from "../api/tasks";
+import { listTaskOccurrences, setOccurrenceCompletion, setTaskCompletion, getTaskTags } from "../api/tasks";
 import type { components } from "../api/schema";
 import { useAuth } from "../features/auth/AuthContext";
 import { TaskEditModal } from "./TaskEditModal";
@@ -14,6 +14,7 @@ import { TagsManagementModal } from "./TagsManagementModal";
 type AgendaItem = components["schemas"]["AgendaItem"];
 type Project = components["schemas"]["Project"];
 type Task = components["schemas"]["Task"];
+type Tag = components["schemas"]["Tag"];
 
 const formatter = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -54,6 +55,45 @@ function formatDue(value: string | null | undefined) {
     if (!value) return "No due date";
     const date = new Date(value);
     return `${formatter.format(date)} · ${timeFormatter.format(date)}`;
+}
+
+const tagColorClasses: Record<string, string> = {
+    slate: "bg-slate-500/10 text-slate-500/80 ring-slate-500/20",
+    gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
+    red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
+    orange: "bg-orange-500/10 text-orange-500/80 ring-orange-500/20",
+    amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
+    yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
+    lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
+    green: "bg-green-500/10 text-green-500/80 ring-green-500/20",
+    emerald: "bg-emerald-500/10 text-emerald-500/80 ring-emerald-500/20",
+    teal: "bg-teal-500/10 text-teal-500/80 ring-teal-500/20",
+    cyan: "bg-cyan-500/10 text-cyan-500/80 ring-cyan-500/20",
+    sky: "bg-sky-500/10 text-sky-500/80 ring-sky-500/20",
+    blue: "bg-blue-500/10 text-blue-500/80 ring-blue-500/20",
+    indigo: "bg-indigo-500/10 text-indigo-500/80 ring-indigo-500/20",
+    violet: "bg-violet-500/10 text-violet-500/80 ring-violet-500/20",
+    purple: "bg-purple-500/10 text-purple-500/80 ring-purple-500/20",
+    pink: "bg-pink-500/10 text-pink-500/80 ring-pink-500/20",
+};
+
+function TaskTags({ tags }: { tags?: Tag[] }) {
+    if (!tags || tags.length === 0) return null;
+    return (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+            {tags.map(tag => {
+                const colorClass = tagColorClasses[tag.color] || tagColorClasses.slate;
+                return (
+                    <span
+                        key={tag.id}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${colorClass}`}
+                    >
+                        {tag.name}
+                    </span>
+                );
+            })}
+        </div>
+    );
 }
 
 function isAgendaCompleted(item: AgendaItem): boolean {
@@ -103,6 +143,7 @@ export default function HomePage() {
     const [showCompletedProjectTasks, setShowCompletedProjectTasks] = useState(false);
     const [completedAgendaHistory, setCompletedAgendaHistory] = useState<AgendaItem[]>([]);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+    const [tagsByTaskId, setTagsByTaskId] = useState<Record<number, Tag[]>>({});
     const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showProjectCreateModal, setShowProjectCreateModal] = useState(false);
@@ -118,6 +159,7 @@ export default function HomePage() {
         try {
             const data = await getAgenda({ from: agendaDay.startISO, to: agendaDay.endISO });
             setAgendaItems(data);
+            void loadTagsForTasks(data.map(item => item.task_id));
         } catch (err) {
             setAgendaError(err instanceof Error ? err.message : "Failed to load agenda");
         } finally {
@@ -146,6 +188,26 @@ export default function HomePage() {
         void loadProjects();
     }, [loadProjects]);
 
+    const loadTagsForTasks = useCallback(async (taskIds: number[], force = false) => {
+        const uniqueIds = [...new Set(taskIds)].filter(id => force || !tagsByTaskId[id]);
+        if (uniqueIds.length === 0) return;
+
+        try {
+            const results = await Promise.all(
+                uniqueIds.map(id => getTaskTags(id).then(tags => ({ id, tags })))
+            );
+            setTagsByTaskId(prev => {
+                const next = { ...prev };
+                results.forEach(({ id, tags }) => {
+                    next[id] = tags;
+                });
+                return next;
+            });
+        } catch (err) {
+            console.error("Failed to load task tags", err);
+        }
+    }, [tagsByTaskId]);
+
     const loadTasks = useCallback(async () => {
         if (selectedProjectId === null) return;
         setTasksLoading(true);
@@ -153,6 +215,7 @@ export default function HomePage() {
         try {
             const data = await listProjectTasks(selectedProjectId);
             setTasks(data);
+            void loadTagsForTasks(data.map(t => t.id));
         } catch (err) {
             setTasksError(err instanceof Error ? err.message : "Failed to load tasks");
         } finally {
@@ -266,6 +329,7 @@ export default function HomePage() {
             });
 
             setExtraCompletedItems([...completedSingleTasks, ...completedOccurrences]);
+            void loadTagsForTasks([...completedSingleTasks, ...completedOccurrences].map(item => item.task_id));
         } catch (err) {
             console.error("Failed to fetch extra completed items", err);
         } finally {
@@ -289,6 +353,12 @@ export default function HomePage() {
             ]);
             setAgendaItems(agendaData);
             if (selectedProjectId) setTasks(taskData as Task[]);
+
+            const allTaskIds = [
+                ...agendaData.map(item => item.task_id),
+                ...(selectedProjectId ? (taskData as Task[]).map(t => t.id) : []),
+            ];
+            void loadTagsForTasks(allTaskIds, true);
 
             if (showCompletedAgenda) {
                 void fetchExtraCompletedItems();
@@ -706,6 +776,7 @@ export default function HomePage() {
                                                 <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-slate-500 line-through" : "text-white group-hover:text-orange-50"}`}>
                                                     {item.title}
                                                 </h3>
+                                                <TaskTags tags={tagsByTaskId[item.task_id]} />
                                                 {item.description && isExpanded && (
                                                     <p className={`mt-1.5 text-sm leading-relaxed animate-in slide-in-from-top-2 fade-in duration-300 transition-all ${completed ? "text-slate-600 line-through" : "text-slate-400 group-hover:text-slate-300"}`}>
                                                         {item.description}
@@ -862,6 +933,7 @@ export default function HomePage() {
                                                         <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-slate-500 line-through" : "text-white group-hover:text-orange-50"}`}>
                                                             {task.title}
                                                         </h3>
+                                                        <TaskTags tags={tagsByTaskId[task.id]} />
                                                         {task.description && (
                                                             <p className={`mt-1 text-sm leading-relaxed transition-all ${completed ? "text-slate-600 line-through" : "text-slate-400 group-hover:text-slate-300"}`}>
                                                                 {task.description}
@@ -915,7 +987,12 @@ export default function HomePage() {
                 <TaskEditModal
                     taskId={editingTaskId}
                     onClose={() => setEditingTaskId(null)}
-                    onUpdated={refreshAgendaAndTasks}
+                    onUpdated={(updatedTask) => {
+                        void refreshAgendaAndTasks();
+                        if (updatedTask) {
+                            void loadTagsForTasks([updatedTask.id], true);
+                        }
+                    }}
                     onDeleted={refreshAgendaAndTasks}
                 />
             )}
@@ -924,7 +1001,12 @@ export default function HomePage() {
                 <TaskCreateModal
                     projectId={selectedProjectId}
                     onClose={() => setShowCreateModal(false)}
-                    onCreated={refreshAgendaAndTasks}
+                    onCreated={(newTask) => {
+                        void refreshAgendaAndTasks();
+                        if (newTask) {
+                            void loadTagsForTasks([newTask.id], true);
+                        }
+                    }}
                 />
             )}
 

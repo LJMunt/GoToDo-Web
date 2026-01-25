@@ -6,6 +6,26 @@ import type { components } from "../api/schema";
 
 type Tag = components["schemas"]["Tag"];
 
+const tagColorClasses: Record<string, string> = {
+    slate: "bg-slate-500/10 text-slate-500/80 ring-slate-500/20",
+    gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
+    red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
+    orange: "bg-orange-500/10 text-orange-500/80 ring-orange-500/20",
+    amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
+    yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
+    lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
+    green: "bg-green-500/10 text-green-500/80 ring-green-500/20",
+    emerald: "bg-emerald-500/10 text-emerald-500/80 ring-emerald-500/20",
+    teal: "bg-teal-500/10 text-teal-500/80 ring-teal-500/20",
+    cyan: "bg-cyan-500/10 text-cyan-500/80 ring-cyan-500/20",
+    sky: "bg-sky-500/10 text-sky-500/80 ring-sky-500/20",
+    blue: "bg-blue-500/10 text-blue-500/80 ring-blue-500/20",
+    indigo: "bg-indigo-500/10 text-indigo-500/80 ring-indigo-500/20",
+    violet: "bg-violet-500/10 text-violet-500/80 ring-violet-500/20",
+    purple: "bg-purple-500/10 text-purple-500/80 ring-purple-500/20",
+    pink: "bg-pink-500/10 text-pink-500/80 ring-pink-500/20",
+};
+
 export function TaskCreateModal({
     projectId,
     onClose,
@@ -13,7 +33,7 @@ export function TaskCreateModal({
 }: {
     projectId: number;
     onClose: () => void;
-    onCreated: () => void;
+    onCreated: (task?: components["schemas"]["Task"]) => void;
 }) {
     const [allTags, setAllTags] = useState<Tag[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
@@ -74,7 +94,7 @@ export function TaskCreateModal({
                 await setTaskTags(task.id, [], allTagIds);
             }
 
-            onCreated();
+            onCreated(task);
             onClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to create task");
@@ -95,7 +115,7 @@ export function TaskCreateModal({
         if (existing) {
             setTags([...tags, existing]);
         } else {
-            setTags([...tags, { id: 0, user_id: 0, name, created_at: "" }]);
+            setTags([...tags, { id: 0, user_id: 0, name, color: "slate", created_at: "" }]);
         }
         setNewTag("");
     }
@@ -164,21 +184,29 @@ export function TaskCreateModal({
                         <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Tags</label>
                             <div className="flex flex-wrap gap-2 mb-3">
-                                {tags.map(tag => (
-                                    <span key={tag.name} className="flex items-center gap-1.5 rounded-lg bg-orange-500/10 px-2.5 py-1 text-xs font-bold text-orange-500 ring-1 ring-orange-500/20">
-                                        {tag.name}
-                                        <button onClick={() => removeTag(tag.name)} className="hover:text-orange-400">
-                                            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                        </button>
-                                    </span>
-                                ))}
+                                {tags.map(tag => {
+                                    const colorClass = tagColorClasses[tag.color] || tagColorClasses.slate;
+                                    return (
+                                        <span key={tag.name} className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold ring-1 ${colorClass}`}>
+                                            {tag.name}
+                                            <button onClick={() => removeTag(tag.name)} className="hover:opacity-70 transition-opacity">
+                                                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </button>
+                                        </span>
+                                    );
+                                })}
                             </div>
                             <div className="flex gap-2">
                                 <input
                                     className="flex-1 rounded-xl border border-white/10 bg-white/3 px-4 py-2 text-sm text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
                                     value={newTag}
                                     onChange={(e) => setNewTag(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && addTag(newTag)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            addTag(newTag);
+                                        }
+                                    }}
                                     placeholder="Add tag..."
                                     list="create-tags-list"
                                 />

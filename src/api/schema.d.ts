@@ -2298,6 +2298,25 @@ export interface components {
             /** Format: int64 */
             user_id: number;
             name: string;
+            /** @enum {string} */
+            color:
+                | "slate"
+                | "gray"
+                | "red"
+                | "orange"
+                | "amber"
+                | "yellow"
+                | "lime"
+                | "green"
+                | "emerald"
+                | "teal"
+                | "cyan"
+                | "sky"
+                | "blue"
+                | "indigo"
+                | "violet"
+                | "purple"
+                | "pink";
             /** Format: date-time */
             created_at: string;
         };
