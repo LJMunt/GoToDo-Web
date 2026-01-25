@@ -13,6 +13,26 @@
   --color-brand-800: #9a3412;
   --color-brand-900: #7c2d12;
   --color-brand-950: #431407;
+
+  --animate-pop: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --animate-vanish: vanish 0.6s ease-in-out forwards;
+  --animate-wiggle: wiggle 0.3s ease-in-out infinite;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-5deg) scale(1.1); }
+  50% { transform: rotate(5deg) scale(1.1); }
+}
+
+@keyframes vanish {
+  0% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(40px) scale(0.95); pointer-events: none; }
 }
 
 :root {

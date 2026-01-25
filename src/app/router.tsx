@@ -13,7 +13,10 @@ export const router = createBrowserRouter([
                 <AppLayout />
             </RequireAuth>
         ),
-        children: [{ index: true, element: <HomePage /> }],
+        children: [
+            { index: true, element: <HomePage /> },
+            { path: "projects/:projectId", element: <HomePage /> },
+        ],
     },
     { path: "/login", element: <LoginPage /> },
     { path: "/signup", element: <SignupPage /> },
