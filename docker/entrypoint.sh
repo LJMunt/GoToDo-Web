@@ -2,9 +2,9 @@
 set -eu
 
 # Defaults (safe + sensible)
-: "${API_HOST:=api}"
-: "${API_PORT:=8081}"
-: "${API_BASE:=/api}"
+export API_HOST="${API_HOST:-api}"
+export API_PORT="${API_PORT:-8081}"
+export API_BASE="${API_BASE:-/api}"
 
 echo "Using API_HOST=${API_HOST}"
 echo "Using API_PORT=${API_PORT}"

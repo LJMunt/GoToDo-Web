@@ -53,8 +53,8 @@ export function listTaskOccurrences(taskId: number, query: ListOccurrencesQuery 
 type TaskTagsRes =
     paths["/api/v1/tasks/{taskId}/tags"]["get"]["responses"]["200"]["content"]["application/json"];
 
-export function getTaskTags(taskId: number): Promise<components["schemas"]["Tag"][]> {
-    return apiFetch<components["schemas"]["Tag"][]>(`/v1/tasks/${taskId}/tags`);
+export function getTaskTags(taskId: number): Promise<TaskTagsRes> {
+    return apiFetch<TaskTagsRes>(`/v1/tasks/${taskId}/tags`);
 }
 
 type SetTaskTagsReq =

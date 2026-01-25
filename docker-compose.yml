@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - API_HOST=host.docker.internal
+      - API_PORT=8081
+      - API_BASE=/api
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # Example backend service (if you have one)
+  # api:
+  #   image: gotodo-api:latest
+  #   ports:
+  #     - "8081:8081"

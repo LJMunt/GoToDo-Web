@@ -66,6 +66,23 @@ The Docker entrypoint writes `window.__CONFIG__.API_BASE` using the `API_BASE` e
 API_BASE=https://api.todexia.app docker run ...
 ```
 
+### Docker Compose
+
+The easiest way to run the frontend is using Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The frontend will be available at `http://localhost:8080`.
+
+### Connecting to a local backend
+If your backend is running on your host machine (not in Docker), the container needs to know how to reach it. 
+
+1.  **Use `host.docker.internal`**: In `docker-compose.yml`, the `API_HOST` is set to `host.docker.internal`.
+2.  **Linux Users**: The `extra_hosts` mapping `host.docker.internal:host-gateway` is already included in `docker-compose.yml` to make this work on Linux.
+3.  **Ensure your API listens on all interfaces**: If your backend is bound only to `127.0.0.1`, the Docker container won't be able to reach it even with the correct hostname. Make sure it listens on `0.0.0.0`.
+
 ## 🛠️ Tech Stack
 
 - **Framework:** React 19
