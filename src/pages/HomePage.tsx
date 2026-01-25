@@ -9,6 +9,7 @@ import { TaskEditModal } from "./TaskEditModal";
 import { TaskCreateModal } from "./TaskCreateModal";
 import { ProjectEditModal } from "./ProjectEditModal";
 import { ProjectCreateModal } from "./ProjectCreateModal";
+import { TagsManagementModal } from "./TagsManagementModal";
 
 type AgendaItem = components["schemas"]["AgendaItem"];
 type Project = components["schemas"]["Project"];
@@ -105,27 +106,28 @@ export default function HomePage() {
     const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showProjectCreateModal, setShowProjectCreateModal] = useState(false);
+    const [showTagsModal, setShowTagsModal] = useState(false);
     const [extraCompletedItems, setExtraCompletedItems] = useState<AgendaItem[]>([]);
     const [isLoadingExtra, setIsLoadingExtra] = useState(false);
 
-    useEffect(() => {
-        async function loadAgenda() {
-            setAgendaLoading(true);
-            setAgendaError(null);
-            setAgendaItems([]);
-            setCompletedAgendaHistory([]);
-            try {
-                const data = await getAgenda({ from: agendaDay.startISO, to: agendaDay.endISO });
-                setAgendaItems(data);
-            } catch (err) {
-                setAgendaError(err instanceof Error ? err.message : "Failed to load agenda");
-            } finally {
-                setAgendaLoading(false);
-            }
+    const loadAgenda = useCallback(async () => {
+        setAgendaLoading(true);
+        setAgendaError(null);
+        setAgendaItems([]);
+        setCompletedAgendaHistory([]);
+        try {
+            const data = await getAgenda({ from: agendaDay.startISO, to: agendaDay.endISO });
+            setAgendaItems(data);
+        } catch (err) {
+            setAgendaError(err instanceof Error ? err.message : "Failed to load agenda");
+        } finally {
+            setAgendaLoading(false);
         }
-
-        void loadAgenda();
     }, [agendaDay.endISO, agendaDay.startISO]);
+
+    useEffect(() => {
+        void loadAgenda();
+    }, [loadAgenda]);
 
     const loadProjects = useCallback(async () => {
         setProjectsLoading(true);
@@ -144,25 +146,23 @@ export default function HomePage() {
         void loadProjects();
     }, [loadProjects]);
 
-    useEffect(() => {
-        if (!selectedProjectId) return;
-
-        async function loadTasks() {
-            if (selectedProjectId === null) return;
-            setTasksLoading(true);
-            setTasksError(null);
-            try {
-                const data = await listProjectTasks(selectedProjectId);
-                setTasks(data);
-            } catch (err) {
-                setTasksError(err instanceof Error ? err.message : "Failed to load tasks");
-            } finally {
-                setTasksLoading(false);
-            }
+    const loadTasks = useCallback(async () => {
+        if (selectedProjectId === null) return;
+        setTasksLoading(true);
+        setTasksError(null);
+        try {
+            const data = await listProjectTasks(selectedProjectId);
+            setTasks(data);
+        } catch (err) {
+            setTasksError(err instanceof Error ? err.message : "Failed to load tasks");
+        } finally {
+            setTasksLoading(false);
         }
-
-        void loadTasks();
     }, [selectedProjectId]);
+
+    useEffect(() => {
+        void loadTasks();
+    }, [loadTasks]);
 
     const sortedAgenda = useMemo(
         () =>
@@ -626,6 +626,13 @@ export default function HomePage() {
                                     />
                                     <span className="select-none">Show completed</span>
                                 </label>
+                                <button
+                                    onClick={() => setShowTagsModal(true)}
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                                    title="Manage Tags"
+                                >
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                                </button>
                             </div>
                         </div>
 
@@ -734,24 +741,24 @@ export default function HomePage() {
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                            <div>
+                        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                            <div className="flex-grow min-w-0">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                                         Project
                                     </span>
                                 </div>
-                                <h1 className="mt-1 text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                                <h1 className="mt-1 truncate text-4xl font-bold tracking-tight text-white lg:text-5xl" title={currentProject?.name ?? "Project"}>
                                     {currentProject?.name ?? "Project"}
                                 </h1>
                                 {currentProject?.description && (
-                                    <p className="mt-3 text-lg text-slate-400 max-w-2xl animate-in slide-in-from-top-2 duration-500">
+                                    <p className="mt-3 line-clamp-2 text-lg text-slate-400 max-w-2xl animate-in slide-in-from-top-2 duration-500" title={currentProject.description}>
                                         {currentProject.description}
                                     </p>
                                 )}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex flex-none items-center gap-3 md:mt-1">
                                 <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-sm text-slate-300 transition-all hover:bg-white/10 active:scale-95">
                                     <input
                                         type="checkbox"
@@ -767,6 +774,13 @@ export default function HomePage() {
                                 >
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     Create Task
+                                </button>
+                                <button
+                                    onClick={() => setShowTagsModal(true)}
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                                    title="Manage Tags"
+                                >
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                                 </button>
                             </div>
                         </div>
@@ -930,6 +944,19 @@ export default function HomePage() {
                 <ProjectCreateModal
                     onClose={() => setShowProjectCreateModal(false)}
                     onCreated={loadProjects}
+                />
+            )}
+
+            {showTagsModal && (
+                <TagsManagementModal
+                    onClose={() => setShowTagsModal(false)}
+                    onTagsUpdated={() => {
+                        if (selectedProjectId) {
+                            void loadTasks();
+                        } else {
+                            void loadAgenda();
+                        }
+                    }}
                 />
             )}
         </div>

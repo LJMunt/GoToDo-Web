@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { deleteTask, getTask, getTaskTags, setTaskTags, updateTask } from "../api/tasks";
-import { listTags } from "../api/tags";
+import { createTag, listTags } from "../api/tags";
 import type { components } from "../api/schema";
 
 type Task = components["schemas"]["Task"];
@@ -70,9 +70,16 @@ export function TaskEditModal({
                 due_at: dueDate ? new Date(dueDate).toISOString() : null,
             });
 
-            const tagNames = tags.filter(t => t.id === 0).map(t => t.name);
-            const tagIds = tags.filter(t => t.id > 0).map(t => t.id);
-            await setTaskTags(taskId, tagNames.length > 0 ? tagNames : undefined, tagIds);
+            const newTagObjects = tags.filter(t => t.id === 0);
+            const existingTagIds = tags.filter(t => t.id > 0).map(t => t.id);
+
+            const createdTags = await Promise.all(
+                newTagObjects.map(t => createTag({ name: t.name }))
+            );
+            const newTagIds = createdTags.map(t => t.id);
+
+            const allTagIds = [...existingTagIds, ...newTagIds];
+            await setTaskTags(taskId, [], allTagIds);
 
             onUpdated();
             onClose();
@@ -104,7 +111,13 @@ export function TaskEditModal({
             setNewTag("");
             return;
         }
-        setTags([...tags, { id: 0, user_id: 0, name, created_at: "" }]);
+
+        const existingTag = allTags.find(t => t.name.toLowerCase() === name.toLowerCase());
+        if (existingTag) {
+            setTags([...tags, existingTag]);
+        } else {
+            setTags([...tags, { id: 0, user_id: 0, name, created_at: "" }]);
+        }
         setNewTag("");
     }
 

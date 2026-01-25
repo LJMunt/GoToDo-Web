@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createTask } from "../api/projects";
 import { setTaskTags } from "../api/tasks";
-import { listTags } from "../api/tags";
+import { createTag, listTags } from "../api/tags";
 import type { components } from "../api/schema";
 
 type Tag = components["schemas"]["Tag"];
@@ -62,9 +62,16 @@ export function TaskCreateModal({
             });
 
             if (tags.length > 0) {
-                const tagNames = tags.filter(t => t.id === 0).map(t => t.name);
-                const tagIds = tags.filter(t => t.id > 0).map(t => t.id);
-                await setTaskTags(task.id, tagNames.length > 0 ? tagNames : undefined, tagIds);
+                const newTagObjects = tags.filter(t => t.id === 0);
+                const existingTagIds = tags.filter(t => t.id > 0).map(t => t.id);
+
+                const createdTags = await Promise.all(
+                    newTagObjects.map(t => createTag({ name: t.name }))
+                );
+                const newTagIds = createdTags.map(t => t.id);
+
+                const allTagIds = [...existingTagIds, ...newTagIds];
+                await setTaskTags(task.id, [], allTagIds);
             }
 
             onCreated();
