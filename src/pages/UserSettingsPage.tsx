@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../features/auth/AuthContext";
+import { useTheme } from "../features/theme/ThemeContext";
 import { changePassword } from "../api/auth";
 import { updateMe } from "../api/users";
 
 export default function UserSettingsPage() {
     const { state, refresh } = useAuth();
+    const { setTheme } = useTheme();
     const user = state.status === "authenticated" ? state.user : null;
 
     const [currentPassword, setCurrentPassword] = useState("");
@@ -36,6 +38,9 @@ export default function UserSettingsPage() {
     async function updateSetting(key: string, value: any) {
         setSettingsError("");
         setUpdatingSettings(true);
+        if (key === "theme") {
+            setTheme(value);
+        }
         try {
             await updateMe({
                 settings: {
@@ -55,10 +60,10 @@ export default function UserSettingsPage() {
         <div className="max-w-2xl mx-auto space-y-12">
             <section>
                 <h2 className="text-2xl font-bold mb-6">User Settings</h2>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
+                <div className="bg-surface-5 border border-surface-10 rounded-2xl p-6 space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Email</label>
-                        <div className="text-slate-200 bg-white/5 px-4 py-2 rounded-lg border border-white/5">
+                        <label className="block text-sm font-medium text-text-muted mb-2">Email</label>
+                        <div className="text-text-200 bg-surface-5 px-4 py-2 rounded-lg border border-surface-5">
                             {user.email}
                         </div>
                     </div>
@@ -66,18 +71,18 @@ export default function UserSettingsPage() {
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Preferences</h3>
                         
-                        <div className="flex items-center justify-between p-4 bg-white/3 rounded-xl border border-white/5">
+                        <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-surface-5">
                             <div>
-                                <div className="font-medium">System Theme</div>
-                                <div className="text-xs text-slate-500 text-balance">
-                                    Automatically switch between light and dark themes based on your system settings. (Actual themes coming later)
+                                <div className="font-medium">App Theme</div>
+                                <div className="text-xs text-text-muted text-balance">
+                                    Switch between light, dark, or follow your system settings.
                                 </div>
                             </div>
                             <select
                                 value={settings.theme || "system"}
                                 onChange={(e) => updateSetting("theme", e.target.value)}
                                 disabled={updatingSettings}
-                                className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                className="bg-bg-1a border border-surface-10 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                             >
                                 <option value="system">System</option>
                                 <option value="light">Light</option>
@@ -85,10 +90,10 @@ export default function UserSettingsPage() {
                             </select>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-white/3 rounded-xl border border-white/5">
+                        <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-surface-5">
                             <div>
                                 <div className="font-medium">Show Completed Default</div>
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs text-text-muted">
                                     Show completed tasks by default in your lists.
                                 </div>
                             </div>
@@ -96,7 +101,7 @@ export default function UserSettingsPage() {
                                 onClick={() => updateSetting("showCompletedDefault", !settings.showCompletedDefault)}
                                 disabled={updatingSettings}
                                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                                    settings.showCompletedDefault ? "bg-orange-500" : "bg-white/10"
+                                    settings.showCompletedDefault ? "bg-brand-500" : "bg-surface-10"
                                 }`}
                             >
                                 <span
@@ -113,33 +118,33 @@ export default function UserSettingsPage() {
 
             <section>
                 <h2 className="text-2xl font-bold mb-6">Change Password</h2>
-                <form onSubmit={handlePasswordChange} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                <form onSubmit={handlePasswordChange} className="bg-surface-5 border border-surface-10 rounded-2xl p-6 space-y-4">
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-slate-400">Current Password</label>
+                        <label className="block text-sm font-medium text-text-muted">Current Password</label>
                         <input
                             type="password"
                             required
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
-                            className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+                            className="w-full bg-bg-1a border border-surface-10 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-slate-400">New Password</label>
+                        <label className="block text-sm font-medium text-text-muted">New Password</label>
                         <input
                             type="password"
                             required
                             minLength={8}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+                            className="w-full bg-bg-1a border border-surface-10 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
                         />
                     </div>
                     {passwordError && <div className="text-red-400 text-sm">{passwordError}</div>}
                     {passwordSuccess && <div className="text-green-400 text-sm">Password changed successfully!</div>}
                     <button
                         type="submit"
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl transition-all active:scale-[0.98]"
+                        className="w-full bg-brand-500 hover:bg-brand-600 text-on-brand font-bold py-2.5 rounded-xl transition-all active:scale-[0.98]"
                     >
                         Update Password
                     </button>

@@ -7,10 +7,10 @@ type Task = components["schemas"]["Task"];
 type Tag = components["schemas"]["Tag"];
 
 const tagColorClasses: Record<string, string> = {
-    slate: "bg-slate-500/10 text-slate-500/80 ring-slate-500/20",
+    slate: "bg-slate-500/10 text-text-muted/80 ring-slate-500/20",
     gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
     red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
-    orange: "bg-orange-500/10 text-orange-500/80 ring-orange-500/20",
+    orange: "bg-brand-500/10 text-brand-500/80 ring-brand-500/20",
     amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
     yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
     lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
@@ -153,11 +153,11 @@ export function TaskEditModal({
     if (loading) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                <div className="w-full max-w-lg rounded-4xl border border-white/10 bg-[#161616] p-12 text-center shadow-2xl">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black shadow-[0_0_25px_rgba(249,115,22,0.4)] animate-wiggle mb-6">
+                <div className="w-full max-w-lg rounded-4xl border border-surface-10 bg-bg-16 p-12 text-center shadow-2xl">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-on-brand shadow-brand-500/40 shadow-lg animate-wiggle mb-6">
                         <span className="text-2xl font-black italic">G</span>
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500 animate-pulse">Loading task details...</p>
+                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-text-muted animate-pulse">Loading task details...</p>
                 </div>
             </div>
         );
@@ -169,20 +169,20 @@ export function TaskEditModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
-            <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-white/10 bg-[#121212] shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300">
                 <div className="p-8">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h2 className="text-2xl font-bold text-white">Edit Task</h2>
+                            <h2 className="text-2xl font-bold text-text-base">Edit Task</h2>
                             {isRecurring && (
-                                <p className="text-xs font-bold uppercase tracking-widest text-orange-500/70 mt-1">
+                                <p className="text-xs font-bold uppercase tracking-widest text-brand-500/70 mt-1">
                                     Recurring Template
                                 </p>
                             )}
                         </div>
                         <button
                             onClick={onClose}
-                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all"
                         >
                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
@@ -196,9 +196,9 @@ export function TaskEditModal({
 
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Title</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Title</label>
                             <input
-                                className="w-full rounded-2xl border border-white/10 bg-white/3 px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Task title"
@@ -206,9 +206,9 @@ export function TaskEditModal({
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Description</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Description</label>
                             <textarea
-                                className="w-full h-32 rounded-2xl border border-white/10 bg-white/3 px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 resize-none"
+                                className="w-full h-32 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 resize-none"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Add a description..."
@@ -217,10 +217,10 @@ export function TaskEditModal({
 
                         {!isRecurring && (
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Due Date</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Due Date</label>
                                 <input
                                     type="datetime-local"
-                                    className="w-full rounded-2xl border border-white/10 bg-white/3 px-4 py-3 text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                    className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50"
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
                                 />
@@ -228,7 +228,7 @@ export function TaskEditModal({
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Tags</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Tags</label>
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {tags.map(tag => {
                                     const colorClass = tagColorClasses[tag.color] || tagColorClasses.slate;
@@ -244,7 +244,7 @@ export function TaskEditModal({
                             </div>
                             <div className="flex gap-2">
                                 <input
-                                    className="flex-1 rounded-xl border border-white/10 bg-white/3 px-4 py-2 text-sm text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                    className="flex-1 rounded-xl border border-surface-10 bg-surface-3 px-4 py-2 text-sm text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50"
                                     value={newTag}
                                     onChange={(e) => setNewTag(e.target.value)}
                                     onKeyDown={(e) => {
@@ -263,7 +263,7 @@ export function TaskEditModal({
                                 </datalist>
                                 <button
                                     onClick={() => addTag(newTag)}
-                                    className="rounded-xl bg-white/5 px-4 py-2 text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-all"
+                                    className="rounded-xl bg-surface-5 px-4 py-2 text-sm font-bold text-text-300 hover:bg-surface-10 hover:text-text-base transition-all"
                                 >
                                     Add
                                 </button>
@@ -272,7 +272,7 @@ export function TaskEditModal({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between bg-white/2 p-8 border-t border-white/5">
+                <div className="flex items-center justify-between bg-surface-3 p-8 border-t border-surface-5">
                     <button
                         onClick={handleDelete}
                         disabled={saving}
@@ -284,14 +284,14 @@ export function TaskEditModal({
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
-                            className="rounded-2xl px-6 py-3 text-sm font-bold text-slate-400 hover:bg-white/5 hover:text-white transition-all"
+                            className="rounded-2xl px-6 py-3 text-sm font-bold text-text-muted hover:bg-surface-5 hover:text-text-base transition-all"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex items-center gap-2 rounded-2xl bg-white px-8 py-3 text-sm font-bold text-black shadow-lg shadow-black/20 hover:bg-orange-50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                            className="flex items-center gap-2 rounded-2xl bg-brand-500 px-8 py-3 text-sm font-bold text-on-brand shadow-lg shadow-brand-500/10 hover:bg-brand-600 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
                         >
                             {saving ? (
                                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

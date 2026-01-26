@@ -58,10 +58,10 @@ function formatDue(value: string | null | undefined) {
 }
 
 const tagColorClasses: Record<string, string> = {
-    slate: "bg-slate-500/10 text-slate-500/80 ring-slate-500/20",
+    slate: "bg-slate-500/10 text-text-muted/80 ring-slate-500/20",
     gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
     red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
-    orange: "bg-orange-500/10 text-orange-500/80 ring-orange-500/20",
+    orange: "bg-brand-500/10 text-brand-500/80 ring-brand-500/20",
     amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
     yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
     lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
@@ -540,7 +540,7 @@ export default function HomePage() {
         <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
             <aside className="space-y-8">
                 <div>
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                         Navigation
                     </h2>
                     <div className="mt-4 space-y-1">
@@ -548,14 +548,14 @@ export default function HomePage() {
                             onClick={() => nav("/")}
                             className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all relative group/nav ${
                                 selectedProjectId === null
-                                    ? "bg-white/8 text-white font-bold ring-1 ring-white/10"
-                                    : "text-slate-400 hover:bg-white/5 hover:text-slate-100"
+                                    ? "bg-surface-8 text-text-base font-bold ring-1 ring-surface-10"
+                                    : "text-text-muted hover:bg-surface-5 hover:text-text-base"
                             }`}
                         >
                             {selectedProjectId === null && (
-                                <div className="absolute left-0 h-5 w-1 rounded-r-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]" />
+                                <div className="absolute left-0 h-5 w-1 rounded-r-full bg-brand-500 shadow-brand-500/80 shadow-md" />
                             )}
-                            <svg className={`h-5 w-5 transition-colors ${selectedProjectId === null ? "text-orange-500" : "group-hover/nav:text-slate-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            <svg className={`h-5 w-5 transition-colors ${selectedProjectId === null ? "text-brand-500" : "group-hover/nav:text-text-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             <span className="text-sm">Today's Agenda</span>
                         </button>
                     </div>
@@ -564,17 +564,17 @@ export default function HomePage() {
                 <div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
                                 Projects
                             </h2>
                             <button
                                 onClick={() => setShowProjectCreateModal(true)}
-                                className="flex h-5 w-5 items-center justify-center rounded-lg bg-white/5 text-slate-500 transition-all hover:bg-white/10 hover:text-orange-500 cursor-pointer"
+                                className="flex h-5 w-5 items-center justify-center rounded-lg bg-surface-5 text-text-muted transition-all hover:bg-surface-10 hover:text-brand-500 cursor-pointer"
                             >
                                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
                         </div>
-                        <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-white/10">
+                        <span className="rounded-full bg-surface-5 px-2 py-0.5 text-[10px] font-bold text-text-muted ring-1 ring-surface-10">
                             {projects.length}
                         </span>
                     </div>
@@ -582,8 +582,8 @@ export default function HomePage() {
                     <div className="mt-4 space-y-1">
                         {projectsLoading && (
                             <div className="space-y-3 px-4 py-2">
-                                <div className="h-3 w-3/4 animate-pulse rounded bg-white/5" />
-                                <div className="h-3 w-1/2 animate-pulse rounded bg-white/5" />
+                                <div className="h-3 w-3/4 animate-pulse rounded bg-surface-5" />
+                                <div className="h-3 w-1/2 animate-pulse rounded bg-surface-5" />
                             </div>
                         )}
 
@@ -594,7 +594,7 @@ export default function HomePage() {
                         )}
 
                         {!projectsLoading && !projectsError && projects.length === 0 && (
-                            <div className="px-4 py-3 text-sm text-slate-500 italic">
+                            <div className="px-4 py-3 text-sm text-text-muted italic">
                                 No projects yet.
                             </div>
                         )}
@@ -609,14 +609,14 @@ export default function HomePage() {
                                         onClick={() => nav(`/projects/${project.id}`)}
                                         className={`group flex w-full flex-col rounded-xl px-4 py-3 text-left transition-all ${
                                             isActive
-                                                ? "bg-white/8 ring-1 ring-white/20"
-                                                : "text-slate-400 hover:bg-white/4 hover:text-slate-100"
+                                                ? "bg-surface-8 ring-1 ring-white/20"
+                                                : "text-text-muted hover:bg-surface-5 hover:text-text-base"
                                         }`}
                                     >
                                         <div className="flex items-center justify-between w-full">
                                             <div className="flex items-center gap-3">
-                                                <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${isActive ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" : "bg-slate-700 group-hover:bg-slate-500"}`} />
-                                                <span className={`text-sm font-semibold tracking-tight ${isActive ? "text-white" : ""}`}>
+                                                <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${isActive ? "bg-brand-500 shadow-brand-500/60 shadow-sm" : "bg-surface-15 group-hover:bg-text-muted"}`} />
+                                                <span className={`text-sm font-semibold tracking-tight ${isActive ? "text-text-base" : ""}`}>
                                                     {project.name}
                                                 </span>
                                             </div>
@@ -625,13 +625,13 @@ export default function HomePage() {
                                                     e.stopPropagation();
                                                     setEditingProjectId(project.id);
                                                 }}
-                                                className="flex h-6 w-6 items-center justify-center rounded-lg text-white/20 transition-all hover:bg-white/10 hover:text-white group-hover:opacity-100 opacity-0 cursor-pointer"
+                                                className="flex h-6 w-6 items-center justify-center rounded-lg text-text-base/20 transition-all hover:bg-surface-10 hover:text-text-base group-hover:opacity-100 opacity-0 cursor-pointer"
                                             >
                                                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                         </div>
                                         {project.description && (
-                                            <p className="mt-1 ml-4.5 line-clamp-1 text-[11px] text-slate-500 group-hover:text-slate-400">
+                                            <p className="mt-1 ml-4.5 line-clamp-1 text-[11px] text-text-muted group-hover:text-text-muted">
                                                 {project.description}
                                             </p>
                                         )}
@@ -647,15 +647,15 @@ export default function HomePage() {
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                             <div>
-                                <h1 className="text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                                <h1 className="text-4xl font-bold tracking-tight text-text-base lg:text-5xl">
                                     Your Agenda
                                 </h1>
                                 <div className="mt-2 flex items-center gap-2">
-                                    <p className="text-slate-400">
+                                    <p className="text-text-muted">
                                         {agendaDay.label} • {filteredAgenda.length} items
                                     </p>
                                     {isLoadingExtra && (
-                                        <svg className="h-3 w-3 animate-spin text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        <svg className="h-3 w-3 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     )}
                                 </div>
                             </div>
@@ -668,28 +668,28 @@ export default function HomePage() {
                                         onChange={(e) => {
                                             if (e.target.value) setAgendaDate(new Date(`${e.target.value}T00:00:00`));
                                         }}
-                                        className="rounded-xl border border-white/10 bg-white/3 px-4 py-2 text-sm text-slate-200 outline-none transition-all group-hover:border-white/20 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
+                                        className="rounded-xl border border-surface-10 bg-surface-3 px-4 py-2 text-sm text-text-200 outline-none transition-all group-hover:border-surface-15 focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50"
                                     />
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => setAgendaDate(new Date())}
-                                    className="rounded-xl bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition-all hover:bg-white/10 hover:text-white active:scale-95"
+                                    className="rounded-xl bg-surface-5 px-4 py-2 text-sm font-medium text-text-300 transition-all hover:bg-surface-10 hover:text-text-base active:scale-95"
                                 >
                                     Today
                                 </button>
-                                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-sm text-slate-300 transition-all hover:bg-white/10 active:scale-95">
+                                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-sm text-text-300 transition-all hover:bg-surface-10 active:scale-95">
                                     <input
                                         type="checkbox"
                                         checked={showCompletedAgenda}
                                         onChange={(e) => setShowCompletedAgenda(e.target.checked)}
-                                        className="h-4 w-4 rounded border-white/20 bg-transparent text-orange-500/70 focus:ring-0 focus:ring-offset-0"
+                                        className="h-4 w-4 rounded border-surface-15 bg-transparent text-brand-500/70 focus:ring-0 focus:ring-offset-0"
                                     />
                                     <span className="select-none">Show completed</span>
                                 </label>
                                 <button
                                     onClick={() => setShowTagsModal(true)}
-                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-5 text-text-muted transition-all hover:bg-surface-10 hover:text-text-base active:scale-95 cursor-pointer"
                                     title="Manage Tags"
                                 >
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
@@ -701,7 +701,7 @@ export default function HomePage() {
                             {agendaLoading && (
                                 <div className="space-y-4">
                                     {[1, 2, 3].map((i) => (
-                                        <div key={i} className="h-24 animate-pulse rounded-3xl bg-white/3" />
+                                        <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
                                     ))}
                                 </div>
                             )}
@@ -713,12 +713,12 @@ export default function HomePage() {
                             )}
 
                             {!agendaLoading && !agendaError && filteredAgenda.length === 0 && (
-                                <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-white/10 bg-white/1 py-24 text-center">
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/3 text-slate-500">
+                                <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-surface-10 bg-surface-3 py-24 text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-3 text-text-muted">
                                         <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                     </div>
-                                    <h3 className="mt-6 text-xl font-semibold text-slate-200">All caught up!</h3>
-                                    <p className="mt-2 text-slate-500 max-w-xs mx-auto">Your agenda for today is empty. Time to relax or plan ahead.</p>
+                                    <h3 className="mt-6 text-xl font-semibold text-text-200">All caught up!</h3>
+                                    <p className="mt-2 text-text-muted max-w-xs mx-auto">Your agenda for today is empty. Time to relax or plan ahead.</p>
                                 </div>
                             )}
 
@@ -735,7 +735,7 @@ export default function HomePage() {
                                     return (
                                         <div
                                             key={key}
-                                            className={`group relative flex items-start gap-6 rounded-3xl border border-white/5 bg-white/2 p-5 transition-all hover:bg-white/4 hover:border-white/10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""} ${isVanishing ? "animate-vanish" : ""}`}
+                                            className={`group relative flex items-start gap-6 rounded-3xl border border-surface-5 bg-surface-3 p-5 transition-all hover:bg-surface-5 hover:border-surface-10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""} ${isVanishing ? "animate-vanish" : ""}`}
                                         >
                                             <div className="relative flex-shrink-0 mt-1">
                                                 <button
@@ -743,10 +743,10 @@ export default function HomePage() {
                                                     disabled={isCompleting}
                                                     className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
                                                         isCompleting
-                                                            ? "border-orange-500/50 animate-wiggle"
+                                                            ? "border-brand-500/50 animate-wiggle"
                                                             : showCompletedVisuals
-                                                                ? "border-orange-500 bg-orange-500/10 text-orange-500"
-                                                                : "border-white/10 text-transparent hover:border-orange-500/40 hover:text-orange-500/40"
+                                                                ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                                                                : "border-surface-10 text-transparent hover:border-brand-500/40 hover:text-brand-500/40"
                                                     }`}
                                                 >
                                                     <svg className={`h-6 w-6 ${(showCompletedVisuals && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -755,28 +755,28 @@ export default function HomePage() {
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5">
-                                                    <span className={`text-[10px] font-black uppercase tracking-[0.15em] transition-opacity duration-300 ${item.kind === "occurrence" ? "text-orange-500/70" : "text-blue-500/40 opacity-0 group-hover:opacity-100"}`}>
+                                                    <span className={`text-[10px] font-black uppercase tracking-[0.15em] transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500/70" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
                                                         {item.kind === "occurrence" ? "Recurring" : "Task"}
                                                     </span>
-                                                    <span className={`h-1 w-1 rounded-full bg-white/10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
-                                                    <span className="truncate text-xs font-bold text-slate-500">
+                                                    <span className={`h-1 w-1 rounded-full bg-surface-10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
+                                                    <span className="truncate text-xs font-bold text-text-muted">
                                                         {projectName}
                                                     </span>
                                                 </div>
-                                                <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-slate-500 line-through" : "text-white group-hover:text-orange-50"}`}>
+                                                <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-text-muted line-through" : "text-text-base group-hover:text-brand-600"}`}>
                                                     {item.title}
                                                 </h3>
                                                 <TaskTags tags={tagsByTaskId[item.task_id]} />
                                             </div>
 
                                             <div className="flex flex-col items-end gap-2 flex-shrink-0 mt-1">
-                                                <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-400 group-hover:bg-white/8 group-hover:text-slate-300">
+                                                <div className="flex items-center gap-2 rounded-xl bg-surface-5 px-3 py-1.5 text-xs font-bold text-text-muted group-hover:bg-surface-8 group-hover:text-text-300">
                                                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                                     {formatTime(item.due_at)}
                                                 </div>
                                                 <button
                                                     onClick={() => setEditingTaskId(item.task_id)}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-slate-500/30 transition-all hover:bg-white/10 hover:text-white active:scale-90"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-5 text-text-muted/30 transition-all hover:bg-surface-10 hover:text-text-base active:scale-90"
                                                 >
                                                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                 </button>
@@ -791,40 +791,40 @@ export default function HomePage() {
                         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                             <div className="flex-grow min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
                                         Project
                                     </span>
                                 </div>
-                                <h1 className="mt-1 truncate text-4xl font-bold tracking-tight text-white lg:text-5xl" title={currentProject?.name ?? "Project"}>
+                                <h1 className="mt-1 truncate text-4xl font-bold tracking-tight text-text-base lg:text-5xl" title={currentProject?.name ?? "Project"}>
                                     {currentProject?.name ?? "Project"}
                                 </h1>
                                 {currentProject?.description && (
-                                    <p className="mt-3 line-clamp-2 text-lg text-slate-400 max-w-2xl animate-in slide-in-from-top-2 duration-500" title={currentProject.description}>
+                                    <p className="mt-3 line-clamp-2 text-lg text-text-muted max-w-2xl animate-in slide-in-from-top-2 duration-500" title={currentProject.description}>
                                         {currentProject.description}
                                     </p>
                                 )}
                             </div>
 
                             <div className="flex flex-none items-center gap-3 md:mt-1">
-                                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-sm text-slate-300 transition-all hover:bg-white/10 active:scale-95">
+                                <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-sm text-text-300 transition-all hover:bg-surface-10 active:scale-95">
                                     <input
                                         type="checkbox"
                                         checked={showCompletedProjectTasks}
                                         onChange={(e) => setShowCompletedProjectTasks(e.target.checked)}
-                                        className="h-4 w-4 rounded border-white/20 bg-transparent text-orange-500/70 focus:ring-0 focus:ring-offset-0"
+                                        className="h-4 w-4 rounded border-surface-15 bg-transparent text-brand-500/70 focus:ring-0 focus:ring-offset-0"
                                     />
                                     <span className="select-none">Show completed</span>
                                 </label>
                                 <button
                                     onClick={() => setShowCreateModal(true)}
-                                    className="flex items-center gap-2 rounded-xl bg-linear-to-br from-orange-400 to-orange-600 px-6 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] active:scale-[0.98] cursor-pointer animate-in fade-in zoom-in duration-500"
+                                    className="flex items-center gap-2 rounded-xl bg-linear-to-br from-brand-400 to-brand-600 px-6 py-2.5 text-sm font-bold text-text-base shadow-brand-500/40 shadow-lg transition-all hover:scale-[1.02] hover:shadow-brand-500/60 shadow-xl active:scale-[0.98] cursor-pointer animate-in fade-in zoom-in duration-500"
                                 >
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     Create Task
                                 </button>
                                 <button
                                     onClick={() => setShowTagsModal(true)}
-                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 transition-all hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-5 text-text-muted transition-all hover:bg-surface-10 hover:text-text-base active:scale-95 cursor-pointer"
                                     title="Manage Tags"
                                 >
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
@@ -835,7 +835,7 @@ export default function HomePage() {
                         {tasksLoading && (
                             <div className="space-y-4">
                                 {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-24 animate-pulse rounded-3xl bg-white/3" />
+                                    <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
                                 ))}
                             </div>
                         )}
@@ -847,9 +847,9 @@ export default function HomePage() {
                         )}
 
                         {!tasksLoading && !tasksError && filteredTasks.length === 0 && (
-                            <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-white/10 bg-white/1 py-24 text-center">
-                                <h3 className="text-xl font-semibold text-slate-200">No tasks found</h3>
-                                <p className="mt-2 text-slate-500">This project is currently empty. Start by adding a task.</p>
+                            <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-surface-10 bg-surface-3 py-24 text-center">
+                                <h3 className="text-xl font-semibold text-text-200">No tasks found</h3>
+                                <p className="mt-2 text-text-muted">This project is currently empty. Start by adding a task.</p>
                             </div>
                         )}
 
@@ -872,10 +872,10 @@ export default function HomePage() {
 
                                         return (
                                             <div key={task.id} className={`space-y-3 ${isVanishing ? "animate-vanish" : ""}`}>
-                                                <div className={`group relative flex items-center gap-6 rounded-3xl border border-white/5 bg-white/2 p-5 transition-all hover:bg-white/4 hover:border-white/10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""}`}>
+                                                <div className={`group relative flex items-center gap-6 rounded-3xl border border-surface-5 bg-surface-3 p-5 transition-all hover:bg-surface-5 hover:border-surface-10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""}`}>
                                                     <div className="flex-shrink-0">
                                                         {isRecurring ? (
-                                                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/5 border border-white/10 text-orange-500/70">
+                                                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-5 border border-surface-10 text-brand-500/70">
                                                                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
                                                             </div>
                                                         ) : (
@@ -884,10 +884,10 @@ export default function HomePage() {
                                                                 disabled={isCompleting}
                                                                 className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
                                                                     isCompleting
-                                                                        ? "border-orange-500/50 animate-wiggle"
+                                                                        ? "border-brand-500/50 animate-wiggle"
                                                                         : showCompletedVisuals
-                                                                            ? "border-orange-500 bg-orange-500/10 text-orange-500"
-                                                                            : "border-white/10 text-transparent hover:border-orange-500/40 hover:text-orange-500/40"
+                                                                            ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                                                                            : "border-surface-10 text-transparent hover:border-brand-500/40 hover:text-brand-500/40"
                                                                 }`}
                                                             >
                                                                 <svg className={`h-6 w-6 ${(showCompletedVisuals && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -897,25 +897,25 @@ export default function HomePage() {
 
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2.5">
-                                                            <span className={`text-[10px] font-black uppercase tracking-[0.15em] transition-opacity duration-300 ${isRecurring ? "text-orange-500/70" : "text-blue-500/40 opacity-0 group-hover:opacity-100"}`}>
+                                                            <span className={`text-[10px] font-black uppercase tracking-[0.15em] transition-opacity duration-300 ${isRecurring ? "text-brand-500/70" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
                                                                 {isRecurring ? "Recurring Template" : "Single Task"}
                                                             </span>
                                                             {isRecurring && task.repeat_every && (
-                                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                                                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
                                                                     Every {task.repeat_every} {task.repeat_unit}
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-slate-500 line-through" : "text-white group-hover:text-orange-50"}`}>
+                                                        <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-text-muted line-through" : "text-text-base group-hover:text-brand-600"}`}>
                                                             {task.title}
                                                         </h3>
                                                         <TaskTags tags={tagsByTaskId[task.id]} />
                                                         {task.description && (
-                                                            <p className={`mt-1 text-sm leading-relaxed transition-all ${completed ? "text-slate-600 line-through" : "text-slate-400 group-hover:text-slate-300"}`}>
+                                                            <p className={`mt-1 text-sm leading-relaxed transition-all ${completed ? "text-text-muted/60 line-through" : "text-text-muted group-hover:text-text-300"}`}>
                                                                 {task.description}
                                                             </p>
                                                         )}
-                                                        <p className="mt-2 text-sm text-slate-400">
+                                                        <p className="mt-2 text-sm text-text-muted">
                                                             {formatDue(task.due_at ?? undefined)}
                                                         </p>
                                                     </div>
@@ -924,7 +924,7 @@ export default function HomePage() {
                                                         {isRecurring && (
                                                             <button
                                                                 onClick={() => toggleRecurringExpansion(task)}
-                                                                className={`flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 transition-all hover:bg-white/10 hover:text-white ${isExpanded ? "bg-white/10 text-white ring-1 ring-white/10" : ""}`}
+                                                                className={`flex items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-xs font-bold text-text-300 transition-all hover:bg-surface-10 hover:text-text-base ${isExpanded ? "bg-surface-10 text-text-base ring-1 ring-surface-10" : ""}`}
                                                             >
                                                                 Occurrences
                                                                 <svg className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -932,7 +932,7 @@ export default function HomePage() {
                                                         )}
                                                         <button
                                                             onClick={() => setEditingTaskId(task.id)}
-                                                            className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-slate-500/30 transition-all hover:bg-white/10 hover:text-white active:scale-90"
+                                                            className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-5 text-text-muted/30 transition-all hover:bg-surface-10 hover:text-text-base active:scale-90"
                                                         >
                                                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                         </button>
@@ -940,7 +940,7 @@ export default function HomePage() {
                                                 </div>
 
                                                 {isRecurring && isExpanded && (
-                                                    <div className="ml-12 border-l-2 border-white/5 pl-8 py-2 animate-in slide-in-from-top-4 fade-in duration-500">
+                                                    <div className="ml-12 border-l-2 border-surface-5 pl-8 py-2 animate-in slide-in-from-top-4 fade-in duration-500">
                                                         <OccurrenceList
                                                             taskId={task.id}
                                                             description={task.description}
@@ -1042,7 +1042,7 @@ function OccurrenceList({
         return (
             <div className="space-y-3">
                 {[1, 2].map((i) => (
-                    <div key={i} className="h-16 animate-pulse rounded-2xl bg-white/3" />
+                    <div key={i} className="h-16 animate-pulse rounded-2xl bg-surface-3" />
                 ))}
             </div>
         );
@@ -1058,7 +1058,7 @@ function OccurrenceList({
 
     if (!state?.loading && items.length === 0) {
         return (
-            <div className="py-4 text-sm text-slate-500 italic">
+            <div className="py-4 text-sm text-text-muted italic">
                 No occurrences found for this template.
             </div>
         );
@@ -1073,7 +1073,7 @@ function OccurrenceList({
                 return (
                     <div
                         key={occurrence.id}
-                        className={`group flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/2 p-4 transition-all hover:bg-white/4 ${completed ? "opacity-50" : ""}`}
+                        className={`group flex items-center justify-between gap-4 rounded-2xl border border-surface-5 bg-surface-3 p-4 transition-all hover:bg-surface-5 ${completed ? "opacity-50" : ""}`}
                     >
                         <div className="flex items-center gap-4">
                             <button
@@ -1081,30 +1081,30 @@ function OccurrenceList({
                                 disabled={isCompleting}
                                 className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
                                     isCompleting
-                                        ? "border-orange-500/50 animate-wiggle"
+                                        ? "border-brand-500/50 animate-wiggle"
                                         : completed
-                                            ? "border-orange-500 bg-orange-500/10 text-orange-500"
-                                            : "border-white/10 text-transparent hover:border-orange-500/40 hover:text-orange-500/40"
+                                            ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                                            : "border-surface-10 text-transparent hover:border-brand-500/40 hover:text-brand-500/40"
                                 }`}
                             >
                                 <svg className={`h-5 w-5 ${(completed && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                             </button>
                             <div>
-                                <p className={`text-base font-medium ${completed ? "text-slate-500 line-through" : "text-slate-200"}`}>
+                                <p className={`text-base font-medium ${completed ? "text-text-muted line-through" : "text-text-200"}`}>
                                     {formatDue(occurrence.due_at)}
                                 </p>
                                 {description && (
-                                    <p className={`mt-0.5 text-sm transition-all ${completed ? "text-slate-600 line-through" : "text-slate-400"}`}>
+                                    <p className={`mt-0.5 text-sm transition-all ${completed ? "text-text-muted/60 line-through" : "text-text-muted"}`}>
                                         {description}
                                     </p>
                                 )}
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-text-muted/60">
                                     Occurrence #{occurrence.id}
                                 </p>
                             </div>
                         </div>
                         {completed && (
-                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-orange-500/60">
+                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-500/60">
                                 Completed
                             </span>
                         )}

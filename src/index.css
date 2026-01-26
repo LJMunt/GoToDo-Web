@@ -2,17 +2,33 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #fff7ed;
-  --color-brand-100: #ffedd5;
-  --color-brand-200: #fed7aa;
-  --color-brand-300: #fdba74;
-  --color-brand-400: #fb923c;
-  --color-brand-500: #f97316;
-  --color-brand-600: #ea580c;
-  --color-brand-700: #c2410c;
-  --color-brand-800: #9a3412;
-  --color-brand-900: #7c2d12;
-  --color-brand-950: #431407;
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+  --color-on-brand: var(--on-brand);
+
+  --color-surface-3: var(--surface-3);
+  --color-surface-5: var(--surface-5);
+  --color-surface-8: var(--surface-8);
+  --color-surface-10: var(--surface-10);
+  --color-surface-15: var(--surface-15);
+
+  --color-bg-base: var(--bg-base);
+  --color-bg-16: var(--bg-16);
+  --color-bg-1a: var(--bg-1a);
+
+  --color-text-base: var(--text-base);
+  --color-text-muted: var(--text-muted);
+  --color-text-200: var(--text-200);
+  --color-text-300: var(--text-300);
 
   --animate-pop: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --animate-vanish: vanish 0.6s ease-in-out forwards;
@@ -36,12 +52,68 @@
 }
 
 :root {
-    color-scheme: dark;
+    --bg-base: #0a0a0a;
+    --text-base: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-200: #e2e8f0;
+    --text-300: #cbd5e1;
+    
+    --brand-50: #fff7ed;
+    --brand-100: #ffedd5;
+    --brand-200: #fed7aa;
+    --brand-300: #fdba74;
+    --brand-400: #fb923c;
+    --brand-500: #f97316;
+    --brand-600: #ea580c;
+    --brand-700: #c2410c;
+    --brand-800: #9a3412;
+    --brand-900: #7c2d12;
+    --brand-950: #431407;
+    --on-brand: #000000;
+
+    --surface-5: rgba(255, 255, 255, 0.05);
+    --surface-3: rgba(255, 255, 255, 0.03);
+    --surface-8: rgba(255, 255, 255, 0.08);
+    --surface-10: rgba(255, 255, 255, 0.1);
+    --surface-15: rgba(255, 255, 255, 0.15);
+    
+    --bg-16: #161616;
+    --bg-1a: #1a1a1a;
+}
+
+.light {
+    --bg-base: #ffffff;
+    --text-base: #0f172a;
+    --text-muted: #475569;
+    --text-200: #1e293b;
+    --text-300: #334155;
+
+    --brand-50: #eff6ff;
+    --brand-100: #dbeafe;
+    --brand-200: #bfdbfe;
+    --brand-300: #93c5fd;
+    --brand-400: #60a5fa;
+    --brand-500: #3b82f6;
+    --brand-600: #2563eb;
+    --brand-700: #1d4ed8;
+    --brand-800: #1e40af;
+    --brand-900: #1e3a8a;
+    --brand-950: #172554;
+    --on-brand: #ffffff;
+
+    --surface-5: rgba(15, 23, 42, 0.05);
+    --surface-3: rgba(15, 23, 42, 0.03);
+    --surface-8: rgba(15, 23, 42, 0.08);
+    --surface-10: rgba(15, 23, 42, 0.1);
+    --surface-15: rgba(15, 23, 42, 0.15);
+    
+    --bg-16: #f1f5f9;
+    --bg-1a: #f8fafc;
 }
 
 body {
-    background: #0a0a0a;
-    color: #f8fafc;
+    background: var(--bg-base);
+    color: var(--text-base);
     font-family: "Inter", "Space Grotesk", system-ui, sans-serif;
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
