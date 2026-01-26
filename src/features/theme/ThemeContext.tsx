@@ -17,6 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Initialize theme from user settings when authenticated
     useEffect(() => {
         if (state.status === "authenticated" && state.user.settings?.theme) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setThemeState(state.user.settings.theme as Theme);
         }
     }, [state]);
@@ -59,6 +60,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- exporting hook from the context module is intentional.
 export function useTheme() {
     const context = useContext(ThemeContext);
     if (context === undefined) {

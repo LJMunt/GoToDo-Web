@@ -248,7 +248,7 @@ export function TaskCreateModal({
                                             <select
                                                 className="w-full rounded-2xl border border-surface-10 bg-bg-1a px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 appearance-none cursor-pointer"
                                                 value={repeatUnit}
-                                                onChange={(e) => setRepeatUnit(e.target.value as any)}
+                                                onChange={(e) => setRepeatUnit(e.target.value as never)}
                                             >
                                                 <option value="day">Day(s)</option>
                                                 <option value="week">Week(s)</option>

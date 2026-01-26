@@ -50,7 +50,7 @@ export async function changePassword(body: PasswordChangeReq): Promise<void> {
             method: "POST",
             body: JSON.stringify(body),
         });
-    } catch (err: any) {
+    } catch (err: never) {
         // Only map "invalid credentials" which the backend returns for wrong current password
         if (err.message.toLowerCase().includes("invalid credentials")) {
             throw new Error("Incorrect current password");

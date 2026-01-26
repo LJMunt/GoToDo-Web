@@ -15,12 +15,13 @@ export async function updateMe(body: UpdateMeReq): Promise<MeRes> {
     const token = getToken();
     if (!token) throw new Error("not authenticated");
 
+    // eslint-disable-next-line no-useless-catch
     try {
         return await apiFetch<MeRes>("/v1/users/me", {
             method: "PATCH",
             body: JSON.stringify(body),
         });
-    } catch (err: any) {
+    } catch (err: never) {
         // If updating profile fails with auth error, surface it clearly
         throw err;
     }
