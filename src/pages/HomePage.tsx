@@ -138,8 +138,15 @@ export default function HomePage() {
 
     const [completingKeys, setCompletingKeys] = useState<Set<string>>(new Set());
     const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
-    const [showCompletedAgenda, setShowCompletedAgenda] = useState(false);
-    const [showCompletedProjectTasks, setShowCompletedProjectTasks] = useState(false);
+    const [showCompletedAgenda, setShowCompletedAgenda] = useState(user?.settings?.showCompletedDefault ?? false);
+    const [showCompletedProjectTasks, setShowCompletedProjectTasks] = useState(user?.settings?.showCompletedDefault ?? false);
+
+    useEffect(() => {
+        if (user) {
+            setShowCompletedAgenda(user.settings?.showCompletedDefault ?? false);
+            setShowCompletedProjectTasks(user.settings?.showCompletedDefault ?? false);
+        }
+    }, [user?.settings?.showCompletedDefault]);
     const [completedAgendaHistory, setCompletedAgendaHistory] = useState<AgendaItem[]>([]);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
     const [tagsByTaskId, setTagsByTaskId] = useState<Record<number, Tag[]>>({});
