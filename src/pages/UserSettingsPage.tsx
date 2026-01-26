@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../features/auth/AuthContext";
-import { useTheme } from "../features/theme/ThemeContext";
+import { useTheme, type Theme } from "../features/theme/ThemeContext";
 import { changePassword } from "../api/auth";
 import { updateMe } from "../api/users";
+import type { components } from "../api/schema";
+
+type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 
 export default function UserSettingsPage() {
     const { state, refresh } = useAuth();
@@ -17,6 +20,10 @@ export default function UserSettingsPage() {
     const [updatingSettings, setUpdatingSettings] = useState(false);
     const [settingsError, setSettingsError] = useState("");
 
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const [newEmail, setNewEmail] = useState("");
+    const [emailError, setEmailError] = useState("");
+
     if (!user) return null;
 
     const settings = user.settings || { theme: "system", showCompletedDefault: false };
@@ -30,27 +37,53 @@ export default function UserSettingsPage() {
             setPasswordSuccess(true);
             setCurrentPassword("");
             setNewPassword("");
-        } catch (err: any) {
-            setPasswordError(err.message || "Failed to change password");
+        } catch (err: unknown) {
+            setPasswordError(err instanceof Error ? err.message : "Failed to change password");
         }
     }
 
-    async function updateSetting(key: string, value: any) {
+    async function updateSetting(key: string, value: string | boolean) {
         setSettingsError("");
         setUpdatingSettings(true);
         if (key === "theme") {
-            setTheme(value);
+            setTheme(value as Theme);
         }
         try {
             await updateMe({
                 settings: {
                     ...settings,
                     [key]: value,
-                },
+                } as UserSettings,
             });
             await refresh();
-        } catch (err: any) {
-            setSettingsError(err.message || "Failed to update settings");
+        } catch (err: unknown) {
+            setSettingsError(err instanceof Error ? err.message : "Failed to update settings");
+        } finally {
+            setUpdatingSettings(false);
+        }
+    }
+
+    async function handleEmailUpdate() {
+        if (!isEditingEmail) {
+            setNewEmail(user?.email || "");
+            setIsEditingEmail(true);
+            setEmailError("");
+            return;
+        }
+
+        if (newEmail === user?.email) {
+            setIsEditingEmail(false);
+            return;
+        }
+
+        setUpdatingSettings(true);
+        setEmailError("");
+        try {
+            await updateMe({ email: newEmail });
+            await refresh();
+            setIsEditingEmail(false);
+        } catch (err: unknown) {
+            setEmailError(err instanceof Error ? err.message : "Failed to update email");
         } finally {
             setUpdatingSettings(false);
         }
@@ -63,9 +96,30 @@ export default function UserSettingsPage() {
                 <div className="bg-surface-5 border border-surface-10 rounded-2xl p-6 space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-text-muted mb-2">Email</label>
-                        <div className="text-text-200 bg-surface-5 px-4 py-2 rounded-lg border border-surface-5">
-                            {user.email}
+                        <div className="flex gap-2">
+                            {isEditingEmail ? (
+                                <input
+                                    type="email"
+                                    value={newEmail}
+                                    onChange={(e) => setNewEmail(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && handleEmailUpdate()}
+                                    className="flex-1 bg-bg-1a border border-surface-10 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
+                                    autoFocus
+                                />
+                            ) : (
+                                <div className="flex-1 text-text-200 bg-surface-5 px-4 py-2 rounded-lg border border-surface-5">
+                                    {user.email}
+                                </div>
+                            )}
+                            <button
+                                onClick={handleEmailUpdate}
+                                disabled={updatingSettings}
+                                className="px-4 py-2 bg-surface-10 hover:bg-surface-20 text-text-200 rounded-lg transition-colors font-medium min-w-[80px]"
+                            >
+                                {isEditingEmail ? "Save" : "Edit"}
+                            </button>
                         </div>
+                        {emailError && <div className="text-red-400 text-sm mt-1">{emailError}</div>}
                     </div>
 
                     <div className="space-y-4">
