@@ -21,7 +21,7 @@ export async function updateMe(body: UpdateMeReq): Promise<MeRes> {
             method: "PATCH",
             body: JSON.stringify(body),
         });
-    } catch (err: never) {
+    } catch (err: unknown) {
         // If updating profile fails with auth error, surface it clearly
         throw err;
     }
