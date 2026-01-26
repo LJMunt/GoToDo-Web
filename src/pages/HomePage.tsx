@@ -301,7 +301,7 @@ export default function HomePage() {
                                 description: t.description,
                                 due_at: t.due_at,
                                 completed_at: t.completed_at
-                            } as any);
+                            } as AgendaItem);
                         }
                     }
                 });
@@ -329,7 +329,7 @@ export default function HomePage() {
                             description: rt.task.description,
                             due_at: occ.due_at,
                             completed_at: occ.completed_at
-                        } as any);
+                        } as AgendaItem);
                     }
                 });
             });

@@ -4,7 +4,7 @@ import { apiFetch, getToken } from "./http";
 type MeRes =
     paths["/api/v1/users/me"]["get"]["responses"]["200"]["content"]["application/json"];
 
-type UpdateMeReq =
+export type UpdateMeReq =
     paths["/api/v1/users/me"]["patch"]["requestBody"]["content"]["application/json"];
 
 export function getMe(): Promise<MeRes> {
