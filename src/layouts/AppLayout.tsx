@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 
 export default function AppLayout() {
@@ -8,6 +8,11 @@ export default function AppLayout() {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const user = state.status === "authenticated" ? state.user : null;
+
+    const initials = useMemo(() => {
+        if (!user) return "";
+        return user.email.substring(0, 2);
+    }, [user]);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -50,7 +55,7 @@ export default function AppLayout() {
                                 className="group flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/8 hover:border-white/15 active:scale-95 cursor-pointer"
                             >
                                 <div className="h-7 w-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-slate-400 font-bold uppercase transition-colors group-hover:border-orange-500/50 group-hover:text-orange-500">
-                                    {user.email.substring(0, 2)}
+                                    {initials}
                                 </div>
                                 <span className="truncate max-w-37.5">{user.email}</span>
                                 <svg
@@ -75,13 +80,14 @@ export default function AppLayout() {
                                         Account
                                     </div>
                                     <div className="space-y-0.5">
-                                        <button
+                                        <Link
+                                            to="/settings"
                                             onClick={() => setMenuOpen(false)}
                                             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-white/5 hover:text-white cursor-pointer"
                                         >
                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             User Settings
-                                        </button>
+                                        </Link>
                                         {user.is_admin && (
                                             <button
                                                 onClick={() => setMenuOpen(false)}

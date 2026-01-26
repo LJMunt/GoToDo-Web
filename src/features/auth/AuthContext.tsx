@@ -13,7 +13,7 @@ import type { components } from "../../api/schema";
 type AuthState =
     | { status: "loading" }
     | { status: "anonymous" }
-    | { status: "authenticated"; user: components["schemas"]["User"] };
+    | { status: "authenticated"; user: components["schemas"]["UserMe"] };
 
 type AuthContextValue = {
     state: AuthState;
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setState({ status: "loading" });
         try {
-            const me = await getMe();
+            const me = await getMe() as components["schemas"]["UserMe"];
             setState({ status: "authenticated", user: me });
         } catch {
             // token invalid/expired/etc

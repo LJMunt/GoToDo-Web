@@ -84,22 +84,26 @@ export function TaskEditModal({
         setSaving(true);
         setError(null);
         try {
+            // Create tags that don't exist yet
+            const tagPromises = tags.map(async (t) => {
+                if (t.id === 0) {
+                    return await createTag({ name: t.name, color: t.color });
+                }
+                return t;
+            });
+            const finalTags = await Promise.all(tagPromises);
+            const tagIds = finalTags.map(t => t.id);
+
             await updateTask(taskId, {
                 title,
                 description: description || null,
                 due_at: dueDate ? new Date(dueDate).toISOString() : null,
+                tag_ids: tagIds,
             });
 
-            const newTagObjects = tags.filter(t => t.id === 0);
-            const existingTagIds = tags.filter(t => t.id > 0).map(t => t.id);
-
-            const createdTags = await Promise.all(
-                newTagObjects.map(t => createTag({ name: t.name }))
-            );
-            const newTagIds = createdTags.map(t => t.id);
-
-            const allTagIds = [...existingTagIds, ...newTagIds];
-            await setTaskTags(taskId, [], allTagIds);
+            if (tagIds.length > 0) {
+                await setTaskTags(taskId, tagIds);
+            }
 
             const updatedTask = await getTask(taskId);
             onUpdated(updatedTask);
@@ -137,7 +141,7 @@ export function TaskEditModal({
         if (existingTag) {
             setTags([...tags, existingTag]);
         } else {
-            setTags([...tags, { id: 0, user_id: 0, name, color: "slate", created_at: "" }]);
+            setTags([...tags, { id: 0, name, color: "slate", created_at: "", updated_at: "" }]);
         }
         setNewTag("");
     }

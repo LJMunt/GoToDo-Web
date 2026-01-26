@@ -8,7 +8,7 @@ type ListProjectTasksResponse =
     paths["/api/v1/projects/{projectId}/tasks"]["get"]["responses"]["200"]["content"]["application/json"];
 
 type CreateTaskReq =
-    paths["/api/v1/projects/{projectId}/tasks"]["post"]["requestBody"]["content"]["application/json"];
+    paths["/api/v1/projects/{projectId}/tasks"]["post"]["requestBody"]["content"]["application/json"] & { tag_ids?: number[] };
 
 type GetProjectResponse =
     paths["/api/v1/projects/{id}"]["get"]["responses"]["200"]["content"]["application/json"];
@@ -52,8 +52,12 @@ export function listProjectTasks(projectId: number): Promise<ListProjectTasksRes
 }
 
 export function createTask(projectId: number, body: CreateTaskReq): Promise<components["schemas"]["Task"]> {
+    const finalBody = {
+        ...body,
+        tag_ids: body.tag_ids ?? [],
+    };
     return apiFetch<components["schemas"]["Task"]>(`/v1/projects/${projectId}/tasks`, {
         method: "POST",
-        body: JSON.stringify(body),
+        body: JSON.stringify(finalBody),
     });
 }

@@ -73,25 +73,27 @@ export function TaskCreateModal({
         setSaving(true);
         setError(null);
         try {
+            // Create tags that don't exist yet
+            const tagPromises = tags.map(async (t) => {
+                if (t.id === 0) {
+                    return await createTag({ name: t.name, color: t.color });
+                }
+                return t;
+            });
+            const finalTags = await Promise.all(tagPromises);
+            const tagIds = finalTags.map(t => t.id);
+
             const task = await createTask(projectId, {
                 title,
                 description: description || null,
                 due_at: dueDate ? new Date(dueDate).toISOString() : null,
                 repeat_every: isRecurring ? repeatEvery : null,
                 repeat_unit: isRecurring ? repeatUnit : null,
+                tag_ids: tagIds,
             });
 
-            if (tags.length > 0) {
-                const newTagObjects = tags.filter(t => t.id === 0);
-                const existingTagIds = tags.filter(t => t.id > 0).map(t => t.id);
-
-                const createdTags = await Promise.all(
-                    newTagObjects.map(t => createTag({ name: t.name }))
-                );
-                const newTagIds = createdTags.map(t => t.id);
-
-                const allTagIds = [...existingTagIds, ...newTagIds];
-                await setTaskTags(task.id, [], allTagIds);
+            if (tagIds.length > 0) {
+                await setTaskTags(task.id, tagIds);
             }
 
             onCreated(task);
@@ -115,7 +117,7 @@ export function TaskCreateModal({
         if (existing) {
             setTags([...tags, existing]);
         } else {
-            setTags([...tags, { id: 0, user_id: 0, name, color: "slate", created_at: "" }]);
+            setTags([...tags, { id: 0, name, color: "slate", created_at: "", updated_at: "" }]);
         }
         setNewTag("");
     }

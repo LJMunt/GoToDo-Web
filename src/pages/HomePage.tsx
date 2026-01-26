@@ -137,7 +137,6 @@ export default function HomePage() {
     >({});
 
     const [completingKeys, setCompletingKeys] = useState<Set<string>>(new Set());
-    const [expandedAgendaItems, setExpandedAgendaItems] = useState<Set<string>>(new Set());
     const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
     const [showCompletedAgenda, setShowCompletedAgenda] = useState(false);
     const [showCompletedProjectTasks, setShowCompletedProjectTasks] = useState(false);
@@ -382,7 +381,7 @@ export default function HomePage() {
             if (item.kind === "occurrence" && item.occurrence_id != null) {
                 await setOccurrenceCompletion(item.task_id, item.occurrence_id, !completed);
             } else {
-                await setTaskCompletion(item.task_id, !completed);
+                await setTaskCompletion(item.task_id, !completed, tagsByTaskId[item.task_id] ?? []);
             }
 
             if (willVanish) {
@@ -436,7 +435,7 @@ export default function HomePage() {
 
         setCompletingKeys((prev) => new Set(prev).add(key));
         try {
-            await setTaskCompletion(task.id, !completed);
+            await setTaskCompletion(task.id, !completed, tagsByTaskId[task.id] ?? []);
             
             if (willVanish) {
                 await new Promise((resolve) => setTimeout(resolve, 600));
@@ -536,14 +535,6 @@ export default function HomePage() {
         }
     }
 
-    function toggleAgendaExpansion(key: string) {
-        setExpandedAgendaItems((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) next.delete(key);
-            else next.add(key);
-            return next;
-        });
-    }
 
     return (
         <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
@@ -739,7 +730,6 @@ export default function HomePage() {
                                     const isCompleting = completingKeys.has(key);
                                     const isVanishing = removingKeys.has(key);
                                     const completed = isAgendaCompleted(item);
-                                    const isExpanded = expandedAgendaItems.has(key);
                                     const showCompletedVisuals = completed || isVanishing;
 
                                     return (
@@ -777,20 +767,6 @@ export default function HomePage() {
                                                     {item.title}
                                                 </h3>
                                                 <TaskTags tags={tagsByTaskId[item.task_id]} />
-                                                {item.description && isExpanded && (
-                                                    <p className={`mt-1.5 text-sm leading-relaxed animate-in slide-in-from-top-2 fade-in duration-300 transition-all ${completed ? "text-slate-600 line-through" : "text-slate-400 group-hover:text-slate-300"}`}>
-                                                        {item.description}
-                                                    </p>
-                                                )}
-                                                {item.description && (
-                                                    <button
-                                                        onClick={() => toggleAgendaExpansion(key)}
-                                                        className="mt-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
-                                                    >
-                                                        {isExpanded ? "Hide Description" : "View Description"}
-                                                        <svg className={`h-3 w-3 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                                                    </button>
-                                                )}
                                             </div>
 
                                             <div className="flex flex-col items-end gap-2 flex-shrink-0 mt-1">

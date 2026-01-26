@@ -2,16 +2,22 @@ import type { components, paths } from "./schema";
 import { apiFetch } from "./http";
 
 type UpdateTaskReq =
-    paths["/api/v1/tasks/{id}"]["patch"]["requestBody"]["content"]["application/json"];
+    paths["/api/v1/tasks/{id}"]["patch"]["requestBody"]["content"]["application/json"] & { tag_ids?: number[] };
 
 export function getTask(taskId: number): Promise<components["schemas"]["Task"]> {
     return apiFetch<components["schemas"]["Task"]>(`/v1/tasks/${taskId}`);
 }
 
 export function updateTask(taskId: number, body: UpdateTaskReq) {
+    // Ensure tag_ids is always sent as an array if not provided, 
+    // because the backend seems to require it even for PATCH.
+    const finalBody = {
+        ...body,
+        tag_ids: body.tag_ids ?? [],
+    };
     return apiFetch<void>(`/v1/tasks/${taskId}`, {
         method: "PATCH",
-        body: JSON.stringify(body),
+        body: JSON.stringify(finalBody),
     });
 }
 
@@ -21,8 +27,13 @@ export function deleteTask(taskId: number) {
     });
 }
 
-export function setTaskCompletion(taskId: number, completed: boolean) {
-    return updateTask(taskId, { completed });
+export function setTaskCompletion(taskId: number, completed: boolean, currentTags: components["schemas"]["Tag"][] = []) {
+    // Backend requires tag_ids even for completion updates
+    const tag_ids = currentTags.map(t => t.id).filter(id => id > 0);
+    return updateTask(taskId, { 
+        completed, 
+        tag_ids
+    });
 }
 
 type UpdateOccurrenceReq =
@@ -57,11 +68,9 @@ export function getTaskTags(taskId: number): Promise<TaskTagsRes> {
     return apiFetch<TaskTagsRes>(`/v1/tasks/${taskId}/tags`);
 }
 
-type SetTaskTagsReq =
-    paths["/api/v1/tasks/{taskId}/tags"]["put"]["requestBody"]["content"]["application/json"];
 
-export function setTaskTags(taskId: number, tags?: string[], tagIds?: number[]): Promise<components["schemas"]["Tag"][]> {
-    const body: SetTaskTagsReq = { tags, tag_ids: tagIds };
+export function setTaskTags(taskId: number, tagIds: number[] = []): Promise<components["schemas"]["Tag"][]> {
+    const body = { tag_ids: tagIds };
     return apiFetch<components["schemas"]["Tag"][]>(`/v1/tasks/${taskId}/tags`, {
         method: "PUT",
         body: JSON.stringify(body),

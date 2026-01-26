@@ -229,6 +229,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password-change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change password
+         * @description Changes the authenticated user's password. Requires the current password.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: password */
+                        currentPassword: string;
+                        /** Format: password */
+                        newPassword: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Password changed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Current password incorrect */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "invalid credentials"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me": {
         parameters: {
             query?: never;
@@ -275,10 +345,115 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete my account
+         * @description Deletes the authenticated user's account and all associated data.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        currentPassword: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid credentials */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Admin accounts cannot delete themselves */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update my user profile
+         * @description Partially updates the authenticated user's profile and/or settings.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: email */
+                        email?: string;
+                        settings?: {
+                            /**
+                             * @description UI theme preference.
+                             * @enum {string}
+                             */
+                            theme?: "system" | "light" | "dark";
+                            /** @description Default for showing completed tasks in views. */
+                            showCompletedDefault?: boolean;
+                        };
+                    } | unknown | unknown;
+                };
+            };
+            responses: {
+                /** @description User updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UserMe"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                /** @description Email already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
         trace?: never;
     };
     "/api/v1/projects": {
@@ -908,8 +1083,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        tags?: string[];
-                        tag_ids?: number[];
+                        tags: string[];
                     };
                 };
             };
@@ -1144,6 +1318,11 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
+                        /**
+                         * @default slate
+                         * @enum {string}
+                         */
+                        color?: "slate" | "gray" | "red" | "orange" | "amber" | "yellow" | "lime" | "green" | "emerald" | "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple" | "pink";
                     };
                 };
             };
@@ -1268,8 +1447,13 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name: string;
-                    };
+                        name?: string;
+                        /**
+                         * @description Tag color token.
+                         * @enum {string}
+                         */
+                        color?: "slate" | "gray" | "red" | "orange" | "amber" | "yellow" | "lime" | "green" | "emerald" | "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple" | "pink";
+                    } | unknown | unknown;
                 };
             };
             responses: {
@@ -2256,6 +2440,7 @@ export interface components {
             email: string;
             is_admin: boolean;
             is_active: boolean;
+            last_login: string;
         };
         Project: {
             /** Format: int64 */
@@ -2295,30 +2480,28 @@ export interface components {
         Tag: {
             /** Format: int64 */
             id: number;
-            /** Format: int64 */
-            user_id: number;
             name: string;
             /** @enum {string} */
-            color:
-                | "slate"
-                | "gray"
-                | "red"
-                | "orange"
-                | "amber"
-                | "yellow"
-                | "lime"
-                | "green"
-                | "emerald"
-                | "teal"
-                | "cyan"
-                | "sky"
-                | "blue"
-                | "indigo"
-                | "violet"
-                | "purple"
-                | "pink";
+            color: "slate" | "gray" | "red" | "orange" | "amber" | "yellow" | "lime" | "green" | "emerald" | "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple" | "pink";
             /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        UserMe: {
+            /** Format: int64 */
+            id: number;
+            /** Format: email */
+            email: string;
+            is_admin: boolean;
+            is_active: boolean;
+            /** Format: date-time */
+            last_login: string | null;
+            settings: {
+                /** @enum {string} */
+                theme: "system" | "light" | "dark";
+                showCompletedDefault: boolean;
+            };
         };
         Occurrence: {
             /** Format: int64 */
@@ -2340,7 +2523,6 @@ export interface components {
             /** Format: int64 */
             project_id: number;
             title: string;
-            description?: string | null;
             /** Format: date-time */
             due_at: string;
         };
