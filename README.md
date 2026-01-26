@@ -89,7 +89,7 @@ services:
   gotodo:
     image: ghcr.io/ljmunt/gotodo:latest
     environment:
-      - DATABASE_URL=postgres://gotodo:gotodo@db:5432/gotodo
+      - DATABASE_URL=postgres://gotodo:gotodo@db:5432/gotodo?sslmode=disable
       - PORT=8081
       - JWT_SECRET=your_secret_here
     depends_on:
