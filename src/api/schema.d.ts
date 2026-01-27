@@ -322,7 +322,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"];
+                        "application/json": components["schemas"]["UserMe"];
                     };
                 };
                 401: components["responses"]["Unauthorized"];
@@ -2440,7 +2440,12 @@ export interface components {
             email: string;
             is_admin: boolean;
             is_active: boolean;
-            last_login: string;
+            /** Format: date-time */
+            last_login: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         Project: {
             /** Format: int64 */
@@ -2497,6 +2502,10 @@ export interface components {
             is_active: boolean;
             /** Format: date-time */
             last_login: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
             settings: {
                 /** @enum {string} */
                 theme: "system" | "light" | "dark";

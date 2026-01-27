@@ -38,7 +38,7 @@ export default function AppLayout() {
     return (
         <div className="min-h-screen bg-bg-base text-text-base selection:bg-brand-500/30">
             <header className="sticky top-0 z-30 border-b border-surface-5 bg-bg-base/80 backdrop-blur-md">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+                <div className="flex max-w-full items-center justify-between px-6 py-4">
                     <Link to="/" className="flex items-center gap-3 group">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-5 border border-surface-10 text-brand-500 shadow-sm transition-all group-hover:border-brand-500/50 group-hover:bg-brand-500/5 group-hover:scale-105">
                             <span className="text-xl font-black italic">G</span>
@@ -121,7 +121,7 @@ export default function AppLayout() {
                 </div>
             </header>
 
-            <main className="mx-auto max-w-7xl px-6 py-12">
+            <main className="max-w-full px-6 py-12">
                 <Outlet />
             </main>
         </div>

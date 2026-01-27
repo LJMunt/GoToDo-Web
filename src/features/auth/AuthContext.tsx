@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setState({ status: "loading" });
         try {
-            const me = await getMe() as components["schemas"]["UserMe"];
+            const me = await getMe();
             setState({ status: "authenticated", user: me });
         } catch {
             // token invalid/expired/etc

@@ -9,8 +9,8 @@ export default function AdminLayout() {
     ];
 
     return (
-        <div className="flex flex-col md:flex-row gap-8">
-            <aside className="w-full md:w-64 flex-shrink-0">
+        <div className="flex flex-col md:flex-row gap-4">
+            <aside className="w-full md:w-56 flex-shrink-0">
                 <nav className="flex flex-col gap-1">
                     {navItems.map((item) => (
                         <NavLink
