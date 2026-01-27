@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { listUsers, updateUser, type User } from "../../api/admin";
 import { useAuth } from "../../features/auth/AuthContext";
 
@@ -22,6 +23,7 @@ function SortIcon({ field, currentField, direction }: { field: keyof User, curre
 }
 
 export default function UserManagement() {
+    const navigate = useNavigate();
     const { state: authState } = useAuth();
     const currentUser = authState.status === "authenticated" ? authState.user : null;
     const [users, setUsers] = useState<User[]>([]);
@@ -246,13 +248,22 @@ export default function UserManagement() {
                                                 className="absolute left-4 top-full mt-1 w-48 bg-bg-16 border border-surface-8 rounded-lg shadow-xl z-50 py-1 opacity-100 ring-1 ring-black/5"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <button className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors">
+                                                <button 
+                                                    onClick={() => navigate(`/admin/users/${user.id}/projects`)}
+                                                    className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors"
+                                                >
                                                     Projects
                                                 </button>
-                                                <button className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors">
+                                                <button 
+                                                    onClick={() => navigate(`/admin/users/${user.id}/tasks`)}
+                                                    className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors"
+                                                >
                                                     Tasks
                                                 </button>
-                                                <button className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors">
+                                                <button 
+                                                    onClick={() => navigate(`/admin/users/${user.id}/tags`)}
+                                                    className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors"
+                                                >
                                                     Tags
                                                 </button>
                                             </div>
@@ -378,7 +389,7 @@ export default function UserManagement() {
 
                                 {!editingUser.is_active && currentUser?.id !== editingUser.id && (
                                     <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-medium animate-in fade-in slide-in-from-top-2">
-                                        ⚠️ This will log out the user and prevent them from logging in.
+                                        ⚠️ This will immediately log the user out and block future logins.
                                     </div>
                                 )}
                             </div>

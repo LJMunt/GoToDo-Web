@@ -9,6 +9,7 @@ import UserSettingsPage from "../pages/UserSettingsPage";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import UserManagement from "../pages/admin/UserManagement";
+import UserDataView from "../pages/admin/UserDataView";
 
 export const router = createBrowserRouter([
     {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
                 children: [
                     { index: true, element: <AdminDashboard /> },
                     { path: "users", element: <UserManagement /> },
+                    { path: "users/:userId/:tab", element: <UserDataView /> },
                     { path: "config", element: <div>Configuration</div> },
                     { path: "jobs", element: <div>Jobs</div> },
                 ],
