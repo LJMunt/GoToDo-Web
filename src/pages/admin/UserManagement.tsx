@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { listUsers, type User } from "../../api/admin";
+import { listUsers, updateUser, type User } from "../../api/admin";
+import { useAuth } from "../../features/auth/AuthContext";
 
 function SortIcon({ field, currentField, direction }: { field: keyof User, currentField: keyof User, direction: "asc" | "desc" }) {
     if (field !== currentField) {
@@ -21,6 +22,8 @@ function SortIcon({ field, currentField, direction }: { field: keyof User, curre
 }
 
 export default function UserManagement() {
+    const { state: authState } = useAuth();
+    const currentUser = authState.status === "authenticated" ? authState.user : null;
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -29,6 +32,9 @@ export default function UserManagement() {
     const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
     const [sortField, setSortField] = useState<keyof User>("id");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+    const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -44,12 +50,39 @@ export default function UserManagement() {
         fetchUsers();
     }, []);
 
+    useEffect(() => {
+        const handleClickOutside = () => {
+            if (activeDropdown !== null) {
+                setActiveDropdown(null);
+            }
+        };
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
+    }, [activeDropdown]);
+
     const toggleSort = (field: keyof User) => {
         if (sortField === field) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
         } else {
             setSortField(field);
             setSortDirection("asc");
+        }
+    };
+
+    const handleUpdateStatus = async (user: User, active: boolean) => {
+        if (currentUser?.id === user.id && !active) {
+            alert("You cannot inactivate your own account.");
+            return;
+        }
+        setIsUpdating(true);
+        try {
+            await updateUser(user.id, { is_active: active });
+            setUsers(users.map(u => u.id === user.id ? { ...u, is_active: active } : u));
+            setEditingUser(null);
+        } catch (e) {
+            alert(e instanceof Error ? e.message : "Failed to update user");
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -192,7 +225,39 @@ export default function UserManagement() {
                             {filteredUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-surface-5/50 transition-colors">
                                     <td className="px-4 py-4 font-mono text-xs text-text-muted">#{user.id}</td>
-                                    <td className="px-4 py-4 font-medium text-text-base">{user.email}</td>
+                                    <td className="px-4 py-4 font-medium text-text-base relative">
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveDropdown(activeDropdown === user.id ? null : user.id);
+                                            }}
+                                            className="hover:text-brand-500 transition-colors focus:outline-none"
+                                        >
+                                            {user.email}
+                                            {currentUser?.id === user.id && (
+                                                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
+                                                    You
+                                                </span>
+                                            )}
+                                        </button>
+
+                                        {activeDropdown === user.id && (
+                                            <div 
+                                                className="absolute left-4 top-full mt-1 w-48 bg-bg-16 border border-surface-8 rounded-lg shadow-xl z-50 py-1 opacity-100 ring-1 ring-black/5"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <button className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors">
+                                                    Projects
+                                                </button>
+                                                <button className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors">
+                                                    Tasks
+                                                </button>
+                                                <button className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors">
+                                                    Tags
+                                                </button>
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="px-4 py-4">
                                         {user.is_admin ? (
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-500 border border-purple-500/20">
@@ -205,17 +270,23 @@ export default function UserManagement() {
                                         )}
                                     </td>
                                     <td className="px-4 py-4">
-                                        {user.is_active ? (
-                                            <span className="flex items-center gap-1.5 text-green-500">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                Active
-                                            </span>
-                                        ) : (
-                                            <span className="flex items-center gap-1.5 text-text-muted">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                Inactive
-                                            </span>
-                                        )}
+                                        <button 
+                                            onClick={() => setEditingUser(user)}
+                                            className="group/status focus:outline-none"
+                                            title="Change user status"
+                                        >
+                                            {user.is_active ? (
+                                                <span className="flex items-center gap-1.5 text-green-500 group-hover/status:text-green-400 transition-colors">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                    Active
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1.5 text-text-muted group-hover/status:text-red-400 transition-colors">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                    Inactive
+                                                </span>
+                                            )}
+                                        </button>
                                     </td>
                                     <td className="px-4 py-4 text-text-muted whitespace-nowrap">
                                         {user.last_login ? new Date(user.last_login).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : (
@@ -245,6 +316,92 @@ export default function UserManagement() {
                     </div>
                 )}
             </div>
+            
+            {editingUser && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-md overflow-hidden rounded-3xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-xl font-bold text-text-base">Change User Status</h2>
+                                    <p className="text-sm text-text-muted mt-1">{editingUser.email}</p>
+                                </div>
+                                <button
+                                    onClick={() => setEditingUser(null)}
+                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all"
+                                >
+                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="flex items-center gap-3 p-4 rounded-2xl border border-surface-8 bg-surface-5/30 cursor-pointer hover:bg-surface-5 transition-colors group">
+                                    <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all ${editingUser.is_active ? "border-brand-500 bg-brand-500" : "border-surface-20 group-hover:border-surface-30"}`}>
+                                        <input
+                                            type="radio"
+                                            name="user-status"
+                                            className="hidden"
+                                            checked={editingUser.is_active}
+                                            onChange={() => setEditingUser({ ...editingUser, is_active: true })}
+                                        />
+                                        {editingUser.is_active && <div className="h-2 w-2 rounded-full bg-on-brand" />}
+                                    </div>
+                                    <span className={`font-medium ${editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>Active</span>
+                                </label>
+
+                                <label 
+                                    className={`flex items-center gap-3 p-4 rounded-2xl border border-surface-8 transition-colors group ${
+                                        currentUser?.id === editingUser.id 
+                                            ? "bg-surface-5/10 opacity-50 cursor-not-allowed" 
+                                            : "bg-surface-5/30 cursor-pointer hover:bg-surface-5"
+                                    }`}
+                                >
+                                    <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all ${!editingUser.is_active ? "border-brand-500 bg-brand-500" : "border-surface-20 group-hover:border-surface-30"}`}>
+                                        <input
+                                            type="radio"
+                                            name="user-status"
+                                            className="hidden"
+                                            checked={!editingUser.is_active}
+                                            disabled={currentUser?.id === editingUser.id}
+                                            onChange={() => setEditingUser({ ...editingUser, is_active: false })}
+                                        />
+                                        {!editingUser.is_active && <div className="h-2 w-2 rounded-full bg-on-brand" />}
+                                    </div>
+                                    <span className={`font-medium ${!editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>Inactive</span>
+                                </label>
+
+                                {currentUser?.id === editingUser.id && (
+                                    <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-medium">
+                                        ℹ️ You cannot inactivate your own account.
+                                    </div>
+                                )}
+
+                                {!editingUser.is_active && currentUser?.id !== editingUser.id && (
+                                    <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-medium animate-in fade-in slide-in-from-top-2">
+                                        ⚠️ This will log out the user and prevent them from logging in.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 bg-surface-3 p-6 border-t border-surface-8">
+                            <button
+                                onClick={() => setEditingUser(null)}
+                                className="px-4 py-2 text-sm font-bold text-text-muted hover:text-text-base transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleUpdateStatus(editingUser, editingUser.is_active)}
+                                disabled={isUpdating}
+                                className="rounded-xl bg-brand-500 px-6 py-2 text-sm font-bold text-on-brand shadow-lg shadow-brand-500/10 hover:bg-brand-600 transition-all disabled:opacity-50"
+                            >
+                                {isUpdating ? "Saving..." : "Save Changes"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
