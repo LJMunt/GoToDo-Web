@@ -20,10 +20,30 @@ export async function updateUser(id: number, body: { is_active?: boolean; passwo
     });
 }
 
-export async function listUserProjects(userId: number): Promise<Project[]> {
-    return apiFetch<Project[]>(`/v1/admin/users/${userId}/projects`);
+export async function listUserProjects(userId: number, includeDeleted?: boolean): Promise<Project[]> {
+    const query = includeDeleted ? "?include_deleted=true" : "";
+    return apiFetch<Project[]>(`/v1/admin/users/${userId}/projects${query}`);
 }
 
 export async function listUserProjectTasks(userId: number, projectId: number): Promise<Task[]> {
     return apiFetch<Task[]>(`/v1/admin/users/${userId}/projects/${projectId}/tasks`);
+}
+
+export async function updateUserProject(userId: number, projectId: number, body: { name?: string; description?: string | null }): Promise<Project> {
+    return apiFetch<Project>(`/v1/admin/users/${userId}/projects/${projectId}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
+
+export async function deleteUserProject(userId: number, projectId: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${userId}/projects/${projectId}`, {
+        method: "DELETE",
+    });
+}
+
+export async function restoreUserProject(userId: number, projectId: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${userId}/projects/${projectId}/restore`, {
+        method: "POST",
+    });
 }
