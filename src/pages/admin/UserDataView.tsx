@@ -1,6 +1,25 @@
 import { useParams, NavLink, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getUser, listUserProjects, listUserProjectTasks, updateUserProject, deleteUserProject, restoreUserProject, type User, type Project } from "../../api/admin";
+import { useEffect, useState, useMemo } from "react";
+import { getUser, listUserProjects, listUserProjectTasks, updateUserProject, deleteUserProject, restoreUserProject, listUserTasks, deleteUserTask, restoreUserTask, type User, type Project, type Task } from "../../api/admin";
+
+function SortIcon({ field, currentField, direction }: { field: string, currentField: string, direction: "asc" | "desc" }) {
+    if (field !== currentField) {
+        return (
+            <svg className="w-3 h-3 opacity-0 group-hover:opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+        );
+    }
+    return (
+        <svg className="w-3 h-3 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {direction === "asc" ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            )}
+        </svg>
+    );
+}
 
 export default function UserDataView() {
     const { userId, tab } = useParams<{ userId: string; tab: string }>();
@@ -9,7 +28,18 @@ export default function UserDataView() {
     const [projects, setProjects] = useState<(Project & { is_deleted?: boolean })[]>([]);
     const [taskCounts, setTaskCounts] = useState<Record<number, number>>({});
     const [projectsLoading, setProjectsLoading] = useState(false);
+    
+    const [tasks, setTasks] = useState<(Task & { is_deleted?: boolean })[]>([]);
+    const [tasksLoading, setTasksLoading] = useState(false);
+    const [taskSortField, setTaskSortField] = useState<keyof Task>("id");
+    const [taskSortDirection, setTaskSortDirection] = useState<"asc" | "desc">("asc");
+    const [isDeletingTaskId, setIsDeletingTaskId] = useState<number | null>(null);
+    const [isRestoringTaskId, setIsRestoringTaskId] = useState<number | null>(null);
+
     const [showDeleted, setShowDeleted] = useState(false);
+    const [search, setSearch] = useState("");
+    const [sortField, setSortField] = useState<keyof Project | "tasks">("id");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
     const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
     const [editingField, setEditingField] = useState<"name" | "description" | null>(null);
@@ -84,6 +114,43 @@ export default function UserDataView() {
                 }
             };
             fetchProjects();
+        }
+    }, [tab, userId, showDeleted]);
+
+    useEffect(() => {
+        if (tab === "tasks" && userId) {
+            const fetchTasks = async () => {
+                const id = parseInt(userId);
+                if (isNaN(id)) return;
+
+                setTasksLoading(true);
+                try {
+                    let tasksData: (Task & { is_deleted?: boolean })[] = [];
+                    if (showDeleted) {
+                        const [allTasks, activeTasks] = await Promise.all([
+                            listUserTasks(id, true),
+                            listUserTasks(id, false)
+                        ]);
+                        const activeIds = new Set(activeTasks.map(t => t.id));
+                        tasksData = allTasks.map(t => ({
+                            ...t,
+                            is_deleted: !activeIds.has(t.id)
+                        }));
+                    } else {
+                        const activeTasks = await listUserTasks(id, false);
+                        tasksData = activeTasks.map(t => ({
+                            ...t,
+                            is_deleted: false
+                        }));
+                    }
+                    setTasks(tasksData);
+                } catch (e) {
+                    console.error("Failed to fetch tasks:", e);
+                } finally {
+                    setTasksLoading(false);
+                }
+            };
+            fetchTasks();
         }
     }, [tab, userId, showDeleted]);
 
@@ -172,6 +239,114 @@ export default function UserDataView() {
         }
     };
 
+    const handleDeleteTask = async (taskId: number) => {
+        if (!userId) return;
+        const uId = parseInt(userId);
+        if (isNaN(uId)) return;
+
+        setIsDeletingTaskId(taskId);
+        try {
+            await deleteUserTask(uId, taskId);
+            if (showDeleted) {
+                setTasks(tasks.map(t => t.id === taskId ? { ...t, is_deleted: true } : t));
+            } else {
+                setTasks(tasks.filter(t => t.id !== taskId));
+            }
+        } catch (e) {
+            console.error("Failed to delete task:", e);
+            alert("Failed to delete task: " + (e instanceof Error ? e.message : String(e)));
+        } finally {
+            setIsDeletingTaskId(null);
+        }
+    };
+
+    const handleRestoreTask = async (taskId: number) => {
+        if (!userId) return;
+        const uId = parseInt(userId);
+        if (isNaN(uId)) return;
+
+        setIsRestoringTaskId(taskId);
+        try {
+            await restoreUserTask(uId, taskId);
+            setTasks(tasks.map(t => t.id === taskId ? { ...t, is_deleted: false } : t));
+        } catch (e) {
+            console.error("Failed to restore task:", e);
+            alert("Failed to restore task: " + (e instanceof Error ? e.message : String(e)));
+        } finally {
+            setIsRestoringTaskId(null);
+        }
+    };
+
+    const toggleSort = (field: keyof Project | "tasks") => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
+
+    const toggleTaskSort = (field: keyof Task) => {
+        if (taskSortField === field) {
+            setTaskSortDirection(taskSortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setTaskSortField(field);
+            setTaskSortDirection("asc");
+        }
+    };
+
+    const filteredProjects = useMemo(() => {
+        const filtered = projects.filter(project => {
+            const matchesSearch = 
+                project.name.toLowerCase().includes(search.toLowerCase()) || 
+                (project.description?.toLowerCase() || "").includes(search.toLowerCase()) ||
+                project.id.toString().includes(search);
+            return matchesSearch;
+        });
+
+        return [...filtered].sort((a, b) => {
+            let valA: any;
+            let valB: any;
+
+            if (sortField === "tasks") {
+                valA = taskCounts[a.id] ?? 0;
+                valB = taskCounts[b.id] ?? 0;
+            } else {
+                valA = a[sortField];
+                valB = b[sortField];
+            }
+
+            if (valA === null || valA === undefined) return sortDirection === "asc" ? -1 : 1;
+            if (valB === null || valB === undefined) return sortDirection === "asc" ? 1 : -1;
+
+            if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+            if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [projects, search, sortField, sortDirection, taskCounts]);
+
+    const filteredTasks = useMemo(() => {
+        const filtered = tasks.filter(task => {
+            const matchesSearch = 
+                task.title.toLowerCase().includes(search.toLowerCase()) || 
+                (task.description?.toLowerCase() || "").includes(search.toLowerCase()) ||
+                task.id.toString().includes(search);
+            return matchesSearch;
+        });
+
+        return [...filtered].sort((a, b) => {
+            const valA = a[taskSortField];
+            const valB = b[taskSortField];
+
+            if (valA === null || valA === undefined) return taskSortDirection === "asc" ? -1 : 1;
+            if (valB === null || valB === undefined) return taskSortDirection === "asc" ? 1 : -1;
+
+            if (valA < valB) return taskSortDirection === "asc" ? -1 : 1;
+            if (valA > valB) return taskSortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [tasks, search, taskSortField, taskSortDirection]);
+
     const startEditing = (project: Project, field: "name" | "description") => {
         setEditingProjectId(project.id);
         setEditingField(field);
@@ -224,8 +399,21 @@ export default function UserDataView() {
                 <div className="p-6">
                     {tab === "projects" && (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold text-text-base">Projects</h2>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="relative w-full md:w-80">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search projects..."
+                                        className="w-full bg-surface-3 border border-surface-8 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base placeholder:text-text-muted/50 transition-colors"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
                                 <div className="flex items-center gap-4">
                                     <label className="flex items-center gap-2 cursor-pointer group">
                                         <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${showDeleted ? 'bg-brand-500 border-brand-500' : 'bg-surface-5 border-surface-20 group-hover:border-surface-30'}`}>
@@ -252,23 +440,53 @@ export default function UserDataView() {
                                     <table className="w-full text-left text-sm">
                                         <thead className="bg-surface-5 text-text-muted font-medium border-b border-surface-8">
                                             <tr>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px]">ID</th>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px]">Name</th>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px]">Description</th>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px]">Tasks</th>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px]">Created At</th>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px]">Updated At</th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("id")}>
+                                                    <div className="flex items-center gap-1">
+                                                        ID
+                                                        <SortIcon field="id" currentField={sortField} direction={sortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("name")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Name
+                                                        <SortIcon field="name" currentField={sortField} direction={sortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("description")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Description
+                                                        <SortIcon field="description" currentField={sortField} direction={sortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("tasks")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Tasks
+                                                        <SortIcon field="tasks" currentField={sortField} direction={sortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("created_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Created At
+                                                        <SortIcon field="created_at" currentField={sortField} direction={sortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("updated_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Updated At
+                                                        <SortIcon field="updated_at" currentField={sortField} direction={sortDirection} />
+                                                    </div>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-surface-8">
-                                            {projects.length === 0 && !projectsLoading ? (
+                                            {filteredProjects.length === 0 && !projectsLoading ? (
                                                 <tr>
                                                     <td colSpan={6} className="px-4 py-8 text-center text-text-muted italic">
-                                                        No projects found for this user.
+                                                        {search ? "No projects found matching your search." : "No projects found for this user."}
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                projects.map((project) => (
+                                                filteredProjects.map((project) => (
                                                     <tr key={project.id} className={`transition-colors group ${project.is_deleted ? 'opacity-60 bg-surface-5/30' : 'hover:bg-surface-5/50'}`}>
                                                         <td className="px-4 py-4 font-mono text-xs text-text-muted">
                                                             <div className="flex items-center gap-2">
@@ -475,8 +693,176 @@ export default function UserDataView() {
                     )}
                     {tab === "tasks" && (
                         <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-text-base">Tasks</h2>
-                            <p className="text-sm text-text-muted italic">Data will be added here in a next step.</p>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="relative w-full md:w-80">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search tasks..."
+                                        className="w-full bg-surface-3 border border-surface-8 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base placeholder:text-text-muted/50 transition-colors"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${showDeleted ? 'bg-brand-500 border-brand-500' : 'bg-surface-5 border-surface-20 group-hover:border-surface-30'}`}>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                checked={showDeleted}
+                                                onChange={(e) => setShowDeleted(e.target.checked)}
+                                            />
+                                            {showDeleted && (
+                                                <svg className="w-3 h-3 text-on-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="20 6 9 17 4 12" />
+                                                </svg>
+                                            )}
+                                        </div>
+                                        <span className="text-sm text-text-muted group-hover:text-text-base transition-colors">Show deleted tasks</span>
+                                    </label>
+                                    {tasksLoading && <div className="text-xs text-text-muted animate-pulse">Loading data...</div>}
+                                </div>
+                            </div>
+
+                            <div className="overflow-hidden rounded-xl border border-surface-8 bg-surface-3">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-surface-5 text-text-muted font-medium border-b border-surface-8">
+                                            <tr>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("id")}>
+                                                    <div className="flex items-center gap-1">
+                                                        ID
+                                                        <SortIcon field="id" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("title")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Title
+                                                        <SortIcon field="title" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("description")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Description
+                                                        <SortIcon field="description" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("completed_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Status
+                                                        <SortIcon field="completed_at" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("created_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Created At
+                                                        <SortIcon field="created_at" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("project_id")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Project
+                                                        <SortIcon field="project_id" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-surface-8">
+                                            {filteredTasks.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={7} className="px-4 py-8 text-center text-text-muted">
+                                                        {tasksLoading ? "Loading tasks..." : "No tasks found."}
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredTasks.map((task) => (
+                                                    <tr key={task.id} className={`group hover:bg-surface-5/50 transition-colors ${task.is_deleted ? 'opacity-60 bg-surface-10/20' : ''}`}>
+                                                        <td className="px-4 py-4 font-mono text-xs text-text-muted">#{task.id}</td>
+                                                        <td className="px-4 py-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`font-medium ${task.is_deleted ? 'line-through text-text-muted' : 'text-text-base'}`}>
+                                                                    {task.title}
+                                                                </span>
+                                                                {task.is_deleted && (
+                                                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/10 text-red-500 border border-red-500/20 shrink-0">
+                                                                        Deleted
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted truncate max-w-xs" title={task.description || ""}>
+                                                            {task.description || <span className="opacity-30 italic">No description</span>}
+                                                        </td>
+                                                        <td className="px-4 py-4">
+                                                            {task.completed_at ? (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-xs font-medium border border-green-500/20">
+                                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                    Completed
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-10 text-text-muted text-xs font-medium border border-surface-20">
+                                                                    Pending
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted whitespace-nowrap">
+                                                            {new Date(task.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                        </td>
+                                                        <td className="px-4 py-4">
+                                                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-surface-8 text-text-base text-xs font-medium">
+                                                                #{task.project_id}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-right">
+                                                            <div className="flex justify-end gap-2">
+                                                                {task.is_deleted ? (
+                                                                    <button
+                                                                        onClick={() => handleRestoreTask(task.id)}
+                                                                        disabled={isRestoringTaskId === task.id}
+                                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all disabled:opacity-50"
+                                                                        title="Restore task"
+                                                                    >
+                                                                        {isRestoringTaskId === task.id ? (
+                                                                            <div className="h-4 w-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+                                                                        ) : (
+                                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" />
+                                                                            </svg>
+                                                                        )}
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleDeleteTask(task.id)}
+                                                                        disabled={isDeletingTaskId === task.id}
+                                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                                                                        title="Delete task"
+                                                                    >
+                                                                        {isDeletingTaskId === task.id ? (
+                                                                            <div className="h-4 w-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                                                                        ) : (
+                                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                                <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
+                                                                            </svg>
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     )}
                     {tab === "tags" && (

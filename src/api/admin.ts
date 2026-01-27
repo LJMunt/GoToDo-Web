@@ -47,3 +47,20 @@ export async function restoreUserProject(userId: number, projectId: number): Pro
         method: "POST",
     });
 }
+
+export async function listUserTasks(userId: number, includeDeleted?: boolean): Promise<Task[]> {
+    const query = includeDeleted ? "?include_deleted=true" : "";
+    return apiFetch<Task[]>(`/v1/admin/users/${userId}/tasks${query}`);
+}
+
+export async function deleteUserTask(userId: number, taskId: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${userId}/tasks/${taskId}`, {
+        method: "DELETE",
+    });
+}
+
+export async function restoreUserTask(userId: number, taskId: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${userId}/tasks/${taskId}/restore`, {
+        method: "POST",
+    });
+}
