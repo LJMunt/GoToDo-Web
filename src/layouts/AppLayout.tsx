@@ -89,13 +89,14 @@ export default function AppLayout() {
                                             User Settings
                                         </Link>
                                         {user.is_admin && (
-                                            <button
+                                            <Link
+                                                to="/admin"
                                                 onClick={() => setMenuOpen(false)}
                                                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-300 transition hover:bg-surface-5 hover:text-text-base cursor-pointer"
                                             >
                                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                                 Administration
-                                            </button>
+                                            </Link>
                                         )}
                                         <button
                                             onClick={mailSupport}
