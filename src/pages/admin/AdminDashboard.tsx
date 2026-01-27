@@ -69,10 +69,21 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
 
 export default function AdminDashboard() {
     const version = `v${import.meta.env.APP_VERSION}`;
+    const [backendVersion, setBackendVersion] = useState<string>("loading...");
     const [healthStatus, setHealthStatus] = useState<HealthStatus>("loading");
     const [readyStatus, setReadyStatus] = useState<HealthStatus>("loading");
 
     useEffect(() => {
+        const fetchVersion = async () => {
+            try {
+                const data = await apiFetch<{ version: string }>("/v1/version");
+                setBackendVersion(data.version);
+            } catch (e) {
+                setBackendVersion("error");
+                console.error("Error fetching version:", e);
+            }
+        };
+
         const checkHealth = async () => {
             try {
                 const data = await apiFetch<{ status: string }>("/v1/health");
@@ -95,6 +106,7 @@ export default function AdminDashboard() {
 
         checkHealth();
         checkReady();
+        fetchVersion();
     }, []);
 
     return (
@@ -111,6 +123,12 @@ export default function AdminDashboard() {
                     <span className="text-sm font-medium text-text-200">Web Version</span>
                     <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
                         {version}
+                    </span>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
+                    <span className="text-sm font-medium text-text-200">Backend Version</span>
+                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
+                        {backendVersion}
                     </span>
                 </div>
             </div>
