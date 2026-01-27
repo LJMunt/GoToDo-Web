@@ -4,6 +4,7 @@ import type { components } from "./schema";
 export type User = components["schemas"]["User"];
 export type Project = components["schemas"]["Project"];
 export type Task = components["schemas"]["Task"];
+export type Tag = components["schemas"]["Tag"];
 
 export async function listUsers(): Promise<User[]> {
     return apiFetch<User[]>("/v1/admin/users");
@@ -62,5 +63,15 @@ export async function deleteUserTask(userId: number, taskId: number): Promise<vo
 export async function restoreUserTask(userId: number, taskId: number): Promise<void> {
     await apiFetch(`/v1/admin/users/${userId}/tasks/${taskId}/restore`, {
         method: "POST",
+    });
+}
+
+export async function listUserTags(userId: number): Promise<Tag[]> {
+    return apiFetch<Tag[]>(`/v1/admin/users/${userId}/tags`);
+}
+
+export async function deleteUserTag(userId: number, tagId: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${userId}/tags/${tagId}`, {
+        method: "DELETE",
     });
 }

@@ -1,6 +1,6 @@
 import { useParams, NavLink, Link } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
-import { getUser, listUserProjects, listUserProjectTasks, updateUserProject, deleteUserProject, restoreUserProject, listUserTasks, deleteUserTask, restoreUserTask, type User, type Project, type Task } from "../../api/admin";
+import { getUser, listUserProjects, listUserProjectTasks, updateUserProject, deleteUserProject, restoreUserProject, listUserTasks, deleteUserTask, restoreUserTask, listUserTags, deleteUserTag, type User, type Project, type Task, type Tag } from "../../api/admin";
 
 function SortIcon({ field, currentField, direction }: { field: string, currentField: string, direction: "asc" | "desc" }) {
     if (field !== currentField) {
@@ -21,6 +21,26 @@ function SortIcon({ field, currentField, direction }: { field: string, currentFi
     );
 }
 
+const tagColorClasses: Record<string, string> = {
+    slate: "bg-slate-500/10 text-text-muted/80 ring-slate-500/20",
+    gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
+    red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
+    orange: "bg-brand-500/10 text-brand-500/80 ring-brand-500/20",
+    amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
+    yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
+    lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
+    green: "bg-green-500/10 text-green-500/80 ring-green-500/20",
+    emerald: "bg-emerald-500/10 text-emerald-500/80 ring-emerald-500/20",
+    teal: "bg-teal-500/10 text-teal-500/80 ring-teal-500/20",
+    cyan: "bg-cyan-500/10 text-cyan-500/80 ring-cyan-500/20",
+    sky: "bg-sky-500/10 text-sky-500/80 ring-sky-500/20",
+    blue: "bg-blue-500/10 text-blue-500/80 ring-blue-500/20",
+    indigo: "bg-indigo-500/10 text-indigo-500/80 ring-indigo-500/20",
+    violet: "bg-violet-500/10 text-violet-500/80 ring-violet-500/20",
+    purple: "bg-purple-500/10 text-purple-500/80 ring-purple-500/20",
+    pink: "bg-pink-500/10 text-pink-500/80 ring-pink-500/20",
+};
+
 export default function UserDataView() {
     const { userId, tab } = useParams<{ userId: string; tab: string }>();
     const [user, setUser] = useState<User | null>(null);
@@ -35,6 +55,12 @@ export default function UserDataView() {
     const [taskSortDirection, setTaskSortDirection] = useState<"asc" | "desc">("asc");
     const [isDeletingTaskId, setIsDeletingTaskId] = useState<number | null>(null);
     const [isRestoringTaskId, setIsRestoringTaskId] = useState<number | null>(null);
+
+    const [tags, setTags] = useState<Tag[]>([]);
+    const [tagsLoading, setTagsLoading] = useState(false);
+    const [tagSortField, setTagSortField] = useState<keyof Tag>("id");
+    const [tagSortDirection, setTagSortDirection] = useState<"asc" | "desc">("asc");
+    const [isDeletingTagId, setIsDeletingTagId] = useState<number | null>(null);
 
     const [showDeleted, setShowDeleted] = useState(false);
     const [search, setSearch] = useState("");
@@ -160,6 +186,26 @@ export default function UserDataView() {
         { id: "tags", label: "Tags", path: `/admin/users/${userId}/tags` },
     ];
 
+    useEffect(() => {
+        if (tab === "tags" && userId) {
+            const fetchTags = async () => {
+                const id = parseInt(userId);
+                if (isNaN(id)) return;
+
+                setTagsLoading(true);
+                try {
+                    const data = await listUserTags(id);
+                    setTags(data);
+                } catch (e) {
+                    console.error("Failed to fetch tags:", e);
+                } finally {
+                    setTagsLoading(false);
+                }
+            };
+            fetchTags();
+        }
+    }, [tab, userId]);
+
     const handleUpdateProject = async (projectId: number) => {
         if (!userId) return;
         const uId = parseInt(userId);
@@ -277,6 +323,25 @@ export default function UserDataView() {
         }
     };
 
+    const handleDeleteTag = async (tagId: number) => {
+        if (!userId) return;
+        const uId = parseInt(userId);
+        if (isNaN(uId)) return;
+
+        if (!confirm("Are you sure you want to delete this tag? This action cannot be undone.")) return;
+
+        setIsDeletingTagId(tagId);
+        try {
+            await deleteUserTag(uId, tagId);
+            setTags(tags.filter(t => t.id !== tagId));
+        } catch (e) {
+            console.error("Failed to delete tag:", e);
+            alert("Failed to delete tag: " + (e instanceof Error ? e.message : String(e)));
+        } finally {
+            setIsDeletingTagId(null);
+        }
+    };
+
     const toggleSort = (field: keyof Project | "tasks") => {
         if (sortField === field) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -292,6 +357,15 @@ export default function UserDataView() {
         } else {
             setTaskSortField(field);
             setTaskSortDirection("asc");
+        }
+    };
+
+    const toggleTagSort = (field: keyof Tag) => {
+        if (tagSortField === field) {
+            setTagSortDirection(tagSortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setTagSortField(field);
+            setTagSortDirection("asc");
         }
     };
 
@@ -346,6 +420,28 @@ export default function UserDataView() {
             return 0;
         });
     }, [tasks, search, taskSortField, taskSortDirection]);
+
+    const filteredTags = useMemo(() => {
+        const filtered = tags.filter(tag => {
+            const matchesSearch = 
+                tag.name.toLowerCase().includes(search.toLowerCase()) || 
+                tag.color.toLowerCase().includes(search.toLowerCase()) ||
+                tag.id.toString().includes(search);
+            return matchesSearch;
+        });
+
+        return [...filtered].sort((a, b) => {
+            const valA = a[tagSortField];
+            const valB = b[tagSortField];
+
+            if (valA === null || valA === undefined) return tagSortDirection === "asc" ? -1 : 1;
+            if (valB === null || valB === undefined) return tagSortDirection === "asc" ? 1 : -1;
+
+            if (valA < valB) return tagSortDirection === "asc" ? -1 : 1;
+            if (valA > valB) return tagSortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [tags, search, tagSortField, tagSortDirection]);
 
     const startEditing = (project: Project, field: "name" | "description") => {
         setEditingProjectId(project.id);
@@ -865,10 +961,110 @@ export default function UserDataView() {
                             </div>
                         </div>
                     )}
+
                     {tab === "tags" && (
                         <div className="space-y-4">
-                            <h2 className="text-lg font-semibold text-text-base">Tags</h2>
-                            <p className="text-sm text-text-muted italic">Data will be added here in a next step.</p>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="relative w-full md:w-80">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search tags..."
+                                        className="w-full bg-surface-3 border border-surface-8 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base placeholder:text-text-muted/50 transition-colors"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {tagsLoading && <div className="text-xs text-text-muted animate-pulse">Loading tags...</div>}
+                                </div>
+                            </div>
+
+                            <div className="overflow-hidden rounded-xl border border-surface-8 bg-surface-3">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-surface-5 text-text-muted font-medium border-b border-surface-8">
+                                            <tr>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("id")}>
+                                                    <div className="flex items-center gap-1">
+                                                        ID
+                                                        <SortIcon field="id" currentField={tagSortField} direction={tagSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("name")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Name
+                                                        <SortIcon field="name" currentField={tagSortField} direction={tagSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("color")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Color
+                                                        <SortIcon field="color" currentField={tagSortField} direction={tagSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("created_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Created At
+                                                        <SortIcon field="created_at" currentField={tagSortField} direction={tagSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-surface-8">
+                                            {filteredTags.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={5} className="px-4 py-8 text-center text-text-muted">
+                                                        {tagsLoading ? "Loading tags..." : (search ? "No tags found matching your search." : "No tags found.")}
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredTags.map((tag) => (
+                                                    <tr key={tag.id} className="group hover:bg-surface-5/50 transition-colors">
+                                                        <td className="px-4 py-4 font-mono text-xs text-text-muted">#{tag.id}</td>
+                                                        <td className="px-4 py-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`px-2 py-0.5 rounded text-xs font-medium ring-1 ring-inset ${tagColorClasses[tag.color] || "bg-surface-10 text-text-muted ring-surface-20"}`}>
+                                                                    {tag.name}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted italic">
+                                                            {tag.color}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted whitespace-nowrap">
+                                                            {new Date(tag.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-right">
+                                                            <div className="flex justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => handleDeleteTag(tag.id)}
+                                                                    disabled={isDeletingTagId === tag.id}
+                                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                                                                    title="Delete tag"
+                                                                >
+                                                                    {isDeletingTagId === tag.id ? (
+                                                                        <div className="h-4 w-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                                                                    ) : (
+                                                                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                            <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                                                        </svg>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
