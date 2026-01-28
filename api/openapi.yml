@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: GoTodo API
-  version: 0.3.0
+  version: 0.5.0
   description: |
     Self-hostable task and project management API.
 
@@ -205,6 +205,30 @@ components:
           format: date-time
       required: [kind, task_id, project_id, title, due_at]
 
+    DatabaseMetrics:
+      type: object
+      properties:
+        database_size:
+          type: string
+          description: Database size in human readable format (MB, GB, TB)
+        connections:
+          type: integer
+          description: Number of active connections
+        deadlocks:
+          type: integer
+          description: Number of deadlocks
+        blocks_read:
+          type: integer
+          description: Number of disk blocks read
+        blocks_hit:
+          type: integer
+          description: Number of times disk blocks were found in buffer cache
+        cache_hit_ratio:
+          type: number
+          format: float
+          description: Cache hit ratio percentage
+      required: [database_size, connections, deadlocks, blocks_read, blocks_hit, cache_hit_ratio]
+
   responses:
     Unauthorized:
       description: Unauthorized
@@ -267,6 +291,21 @@ paths:
           description: OK
         "503":
           description: Service Unavailable
+
+  /api/v1/version:
+    get:
+      summary: Version check
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
 
   /api/v1/auth/signup:
     post:
@@ -1336,6 +1375,23 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/admin/metrics:
+    get:
+      summary: Get database metrics (Admin only)
+      responses:
+        "200":
+          description: Database metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseMetrics'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/admin/users:
     get:
       summary: List users (Admin only)
@@ -1473,6 +1529,13 @@ paths:
           format: int64
     get:
       summary: List user projects (Admin only)
+      parameters:
+        - name: include_deleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: List of projects

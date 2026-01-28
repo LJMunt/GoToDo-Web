@@ -38,7 +38,7 @@ export default function AppLayout() {
     return (
         <div className="min-h-screen bg-bg-base text-text-base selection:bg-brand-500/30">
             <header className="sticky top-0 z-30 border-b border-surface-5 bg-bg-base/80 backdrop-blur-md">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+                <div className="flex max-w-full items-center justify-between px-6 py-4">
                     <Link to="/" className="flex items-center gap-3 group">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-5 border border-surface-10 text-brand-500 shadow-sm transition-all group-hover:border-brand-500/50 group-hover:bg-brand-500/5 group-hover:scale-105">
                             <span className="text-xl font-black italic">G</span>
@@ -89,13 +89,14 @@ export default function AppLayout() {
                                             User Settings
                                         </Link>
                                         {user.is_admin && (
-                                            <button
+                                            <Link
+                                                to="/admin"
                                                 onClick={() => setMenuOpen(false)}
                                                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-300 transition hover:bg-surface-5 hover:text-text-base cursor-pointer"
                                             >
                                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                                 Administration
-                                            </button>
+                                            </Link>
                                         )}
                                         <button
                                             onClick={mailSupport}
@@ -120,7 +121,7 @@ export default function AppLayout() {
                 </div>
             </header>
 
-            <main className="mx-auto max-w-7xl px-6 py-12">
+            <main className="max-w-full px-6 py-12">
                 <Outlet />
             </main>
         </div>
