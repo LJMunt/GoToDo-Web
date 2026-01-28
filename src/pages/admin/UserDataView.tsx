@@ -181,9 +181,36 @@ export default function UserDataView() {
     }, [tab, userId, showDeleted]);
 
     const tabs = [
-        { id: "projects", label: "Projects", path: `/admin/users/${userId}/projects` },
-        { id: "tasks", label: "Tasks", path: `/admin/users/${userId}/tasks` },
-        { id: "tags", label: "Tags", path: `/admin/users/${userId}/tags` },
+        {
+            id: "projects",
+            label: "Projects",
+            path: `/admin/users/${userId}/projects`,
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                </svg>
+            )
+        },
+        {
+            id: "tasks",
+            label: "Tasks",
+            path: `/admin/users/${userId}/tasks`,
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+            )
+        },
+        {
+            id: "tags",
+            label: "Tags",
+            path: `/admin/users/${userId}/tags`,
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+            )
+        },
     ];
 
     useEffect(() => {
@@ -472,7 +499,7 @@ export default function UserDataView() {
                                 key={t.id}
                                 to={t.path}
                                 className={({ isActive }) =>
-                                    `py-4 text-sm font-medium transition-colors relative ${
+                                    `py-4 text-sm font-medium transition-all relative flex items-center gap-2 group ${
                                         isActive
                                             ? "text-brand-500"
                                             : "text-text-muted hover:text-text-base"
@@ -481,9 +508,12 @@ export default function UserDataView() {
                             >
                                 {({ isActive }) => (
                                     <>
+                                        <span className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
+                                            {t.icon}
+                                        </span>
                                         {t.label}
                                         {isActive && (
-                                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500 rounded-t-full" />
+                                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500 rounded-t-full shadow-[0_0_8px_rgba(var(--brand-500-rgb),0.5)]" />
                                         )}
                                     </>
                                 )}
@@ -595,7 +625,7 @@ export default function UserDataView() {
                                                                         <button
                                                                             onClick={() => handleRestoreProject(project.id)}
                                                                             disabled={isRestoringProjectId === project.id}
-                                                                            className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-green-500 transition-all p-1 rounded-md hover:bg-green-500/10"
+                                                                            className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-green-500 transition-all p-1 rounded-md hover:bg-green-500/10 cursor-pointer"
                                                                             title="Restore project"
                                                                         >
                                                                             {isRestoringProjectId === project.id ? (
@@ -612,7 +642,7 @@ export default function UserDataView() {
                                                                     <button
                                                                         onClick={() => handleDeleteProject(project.id)}
                                                                         disabled={isDeletingProjectId === project.id}
-                                                                        className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-red-500 transition-all p-1 rounded-md hover:bg-red-500/10"
+                                                                        className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-red-500 transition-all p-1 rounded-md hover:bg-red-500/10 cursor-pointer"
                                                                         title="Delete project"
                                                                     >
                                                                         {isDeletingProjectId === project.id ? (
@@ -923,7 +953,7 @@ export default function UserDataView() {
                                                                     <button
                                                                         onClick={() => handleRestoreTask(task.id)}
                                                                         disabled={isRestoringTaskId === task.id}
-                                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all disabled:opacity-50"
+                                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all disabled:opacity-50 cursor-pointer"
                                                                         title="Restore task"
                                                                     >
                                                                         {isRestoringTaskId === task.id ? (
@@ -938,7 +968,7 @@ export default function UserDataView() {
                                                                     <button
                                                                         onClick={() => handleDeleteTask(task.id)}
                                                                         disabled={isDeletingTaskId === task.id}
-                                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50 cursor-pointer"
                                                                         title="Delete task"
                                                                     >
                                                                         {isDeletingTaskId === task.id ? (
@@ -1045,7 +1075,7 @@ export default function UserDataView() {
                                                                 <button
                                                                     onClick={() => handleDeleteTag(tag.id)}
                                                                     disabled={isDeletingTagId === tag.id}
-                                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50 cursor-pointer"
                                                                     title="Delete tag"
                                                                 >
                                                                     {isDeletingTagId === tag.id ? (

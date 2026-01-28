@@ -138,39 +138,53 @@ export default function UserManagement() {
             </div>
 
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full md:w-96">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                <div className="relative w-full md:w-96 group">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted group-focus-within:text-brand-500 transition-colors">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                     <input
                         type="text"
-                        placeholder="Search users..."
-                        className="w-full bg-surface-3 border border-surface-8 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base placeholder:text-text-muted/50 transition-colors"
+                        placeholder="Search users by email or ID..."
+                        className="w-full bg-surface-3 border border-surface-8 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 focus:ring-4 focus:ring-brand-500/5 text-text-base placeholder:text-text-muted/50 transition-all"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-4 w-full md:w-auto">
-                    <select
-                        className="flex-1 md:flex-none bg-surface-3 border border-surface-8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base appearance-none cursor-pointer hover:border-surface-20 transition-colors"
-                        value={filterAdmin}
-                        onChange={(e) => setFilterAdmin(e.target.value as "all" | "admin" | "user")}
-                    >
-                        <option value="all">All Roles</option>
-                        <option value="admin">Admins</option>
-                        <option value="user">Users</option>
-                    </select>
-                    <select
-                        className="flex-1 md:flex-none bg-surface-3 border border-surface-8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base appearance-none cursor-pointer hover:border-surface-20 transition-colors"
-                        value={filterActive}
-                        onChange={(e) => setFilterActive(e.target.value as "all" | "active" | "inactive")}
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                <div className="flex gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:flex-none">
+                        <select
+                            className="w-full bg-surface-3 border border-surface-8 rounded-xl pl-4 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 focus:ring-4 focus:ring-brand-500/5 text-text-base appearance-none cursor-pointer hover:border-surface-20 transition-all"
+                            value={filterAdmin}
+                            onChange={(e) => setFilterAdmin(e.target.value as "all" | "admin" | "user")}
+                        >
+                            <option value="all">All Roles</option>
+                            <option value="admin">Admins Only</option>
+                            <option value="user">Users Only</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-text-muted">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div className="relative flex-1 md:flex-none">
+                        <select
+                            className="w-full bg-surface-3 border border-surface-8 rounded-xl pl-4 pr-10 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 focus:ring-4 focus:ring-brand-500/5 text-text-base appearance-none cursor-pointer hover:border-surface-20 transition-all"
+                            value={filterActive}
+                            onChange={(e) => setFilterActive(e.target.value as "all" | "active" | "inactive")}
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-text-muted">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -221,53 +235,24 @@ export default function UserManagement() {
                                         <SortIcon field="updated_at" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
+                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-surface-8">
                             {filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-surface-5/50 transition-colors">
+                                <tr key={user.id} className="hover:bg-surface-5/50 transition-colors group/row">
                                     <td className="px-4 py-4 font-mono text-xs text-text-muted">#{user.id}</td>
                                     <td className="px-4 py-4 font-medium text-text-base relative">
-                                        <button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setActiveDropdown(activeDropdown === user.id ? null : user.id);
-                                            }}
-                                            className="hover:text-brand-500 transition-colors focus:outline-none"
-                                        >
+                                        <div className="flex items-center gap-2">
                                             {user.email}
                                             {currentUser?.id === user.id && (
-                                                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
                                                     You
                                                 </span>
                                             )}
-                                        </button>
-
-                                        {activeDropdown === user.id && (
-                                            <div 
-                                                className="absolute left-4 top-full mt-1 w-48 bg-bg-16 border border-surface-8 rounded-lg shadow-xl z-50 py-1 opacity-100 ring-1 ring-black/5"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <button 
-                                                    onClick={() => navigate(`/admin/users/${user.id}/projects`)}
-                                                    className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors"
-                                                >
-                                                    Projects
-                                                </button>
-                                                <button 
-                                                    onClick={() => navigate(`/admin/users/${user.id}/tasks`)}
-                                                    className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors"
-                                                >
-                                                    Tasks
-                                                </button>
-                                                <button 
-                                                    onClick={() => navigate(`/admin/users/${user.id}/tags`)}
-                                                    className="w-full text-left px-4 py-2 text-sm text-text-base hover:bg-surface-5 transition-colors"
-                                                >
-                                                    Tags
-                                                </button>
-                                            </div>
-                                        )}
+                                        </div>
                                     </td>
                                     <td className="px-4 py-4">
                                         {user.is_admin ? (
@@ -283,12 +268,12 @@ export default function UserManagement() {
                                     <td className="px-4 py-4">
                                         <button 
                                             onClick={() => setEditingUser(user)}
-                                            className="group/status focus:outline-none"
+                                            className="group/status focus:outline-none transition-all active:scale-95 cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-surface-10"
                                             title="Change user status"
                                         >
                                             {user.is_active ? (
                                                 <span className="flex items-center gap-1.5 text-green-500 group-hover/status:text-green-400 transition-colors">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
                                                     Active
                                                 </span>
                                             ) : (
@@ -309,6 +294,37 @@ export default function UserManagement() {
                                     </td>
                                     <td className="px-4 py-4 text-text-muted whitespace-nowrap">
                                         {new Date(user.updated_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                    </td>
+                                    <td className="px-4 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => navigate(`/admin/users/${user.id}/projects`)}
+                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer"
+                                                title="View Projects"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/admin/users/${user.id}/tasks`)}
+                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer"
+                                                title="View Tasks"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/admin/users/${user.id}/tags`)}
+                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer"
+                                                title="View Tags"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

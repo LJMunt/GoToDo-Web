@@ -85,7 +85,7 @@ interface MetricCardProps {
 
 function MetricCard({ label, value, description, icon }: MetricCardProps) {
     return (
-        <div className="p-4 rounded-xl border border-surface-8 bg-surface-3 flex flex-col justify-between">
+        <div className="p-4 rounded-xl border border-surface-8 bg-surface-3 flex flex-col justify-between hover:bg-surface-4 transition-colors">
             <div className="flex items-start justify-between">
                 <div>
                     <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
@@ -93,7 +93,7 @@ function MetricCard({ label, value, description, icon }: MetricCardProps) {
                 </div>
                 {icon && <div className="p-2 rounded-lg bg-surface-10 text-text-muted">{icon}</div>}
             </div>
-            {description && <p className="text-xs text-text-muted mt-2">{description}</p>}
+            {description && <p className="text-xs text-text-muted mt-2 leading-relaxed">{description}</p>}
         </div>
     );
 }
@@ -106,8 +106,10 @@ export default function AdminDashboard() {
     const [userCount, setUserCount] = useState<number | "loading" | "error">("loading");
     const [metrics, setMetrics] = useState<DatabaseMetrics | null>(null);
     const [metricsError, setMetricsError] = useState<string | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    useEffect(() => {
+    const fetchData = async () => {
+        setIsRefreshing(true);
         const fetchVersion = async () => {
             try {
                 const data = await apiFetch<{ version: string }>("/v1/version");
@@ -159,57 +161,98 @@ export default function AdminDashboard() {
             }
         };
 
-        checkHealth();
-        checkReady();
-        fetchVersion();
-        fetchUserCount();
-        fetchMetrics();
+        await Promise.allSettled([
+            checkHealth(),
+            checkReady(),
+            fetchVersion(),
+            fetchUserCount(),
+            fetchMetrics(),
+        ]);
+        setIsRefreshing(false);
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-text-base">Admin Dashboard</h1>
-                <p className="text-sm text-text-muted mt-1">System status and overview.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-text-base">Admin Dashboard</h1>
+                    <p className="text-sm text-text-muted mt-1">System status and overview.</p>
+                </div>
+                <button
+                    onClick={fetchData}
+                    disabled={isRefreshing}
+                    className="p-2 rounded-lg bg-surface-5 border border-surface-10 text-text-muted hover:text-text-base hover:bg-surface-8 transition-all disabled:opacity-50 cursor-pointer"
+                    title="Refresh data"
+                >
+                    <svg
+                        className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                    </svg>
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <StatusIndicator label="Backend Health" status={healthStatus} />
-                <StatusIndicator label="DB Ready" status={readyStatus} />
-                <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-                    <span className="text-sm font-medium text-text-200">Web Version</span>
-                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
-                        {version}
-                    </span>
+            <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">System Status</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <StatusIndicator label="Backend Health" status={healthStatus} />
+                    <StatusIndicator label="DB Ready" status={readyStatus} />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-                    <span className="text-sm font-medium text-text-200">Backend Version</span>
-                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
-                        {backendVersion}
-                    </span>
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-                    <span className="text-sm font-medium text-text-200">Users</span>
-                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">
-                        {userCount === "loading" ? "..." : userCount === "error" ? "Error" : userCount}
-                    </span>
+            </div>
+
+            <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">System Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
+                        <span className="text-sm font-medium text-text-200">Web Version</span>
+                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
+                            {version}
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
+                        <span className="text-sm font-medium text-text-200">Backend Version</span>
+                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
+                            {backendVersion}
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
+                        <span className="text-sm font-medium text-text-200">Total Users</span>
+                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">
+                            {userCount === "loading" ? "..." : userCount === "error" ? "Error" : userCount}
+                        </span>
+                    </div>
                 </div>
             </div>
 
             {metricsError && (
-                <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500">
+                <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 flex items-center gap-3">
+                    <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     <p className="text-sm font-medium">Failed to load database metrics: {metricsError}</p>
                 </div>
             )}
 
             {metrics && (
                 <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-text-base">Database Metrics</h2>
+                    <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Database Metrics</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <MetricCard
                             label="Database Size"
                             value={metrics.database_size}
-                            description="Total size of the database"
+                            description="Total size of the database on disk"
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 1.1.9 2 2 2h12a2 2 0 002-2V7M4 7c0-1.1.9-2 2-2h12a2 2 0 012 2M4 7l8 4 8-4M4 11l8 4 8-4" />
@@ -219,7 +262,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label="Active Connections"
                             value={metrics.connections}
-                            description="Number of active DB connections"
+                            description="Number of currently active database connections"
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -240,16 +283,31 @@ export default function AdminDashboard() {
                             label="Deadlocks"
                             value={metrics.deadlocks}
                             description="Total number of transaction conflicts detected"
+                            icon={(
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            )}
                         />
                         <MetricCard
                             label="Blocks Read"
                             value={metrics.blocks_read.toLocaleString()}
                             description="Total number of disk blocks read from storage"
+                            icon={(
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            )}
                         />
                         <MetricCard
                             label="Blocks Hit"
                             value={metrics.blocks_hit.toLocaleString()}
                             description="Total disk blocks found in buffer cache"
+                            icon={(
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                            )}
                         />
                     </div>
                 </div>
