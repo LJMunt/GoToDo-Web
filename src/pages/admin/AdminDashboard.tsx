@@ -228,8 +228,8 @@ export default function AdminDashboard() {
                         />
                         <MetricCard
                             label="Cache Hit Ratio"
-                            value={`${(metrics.cache_hit_ratio * 100).toFixed(2)}%`}
-                            description="Efficiency of the database cache"
+                            value={`${metrics.cache_hit_ratio.toFixed(2)}%`}
+                            description="Percentage of disk blocks found in buffer cache"
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -239,17 +239,17 @@ export default function AdminDashboard() {
                         <MetricCard
                             label="Deadlocks"
                             value={metrics.deadlocks}
-                            description="Conflicts detected in transactions"
+                            description="Total number of transaction conflicts detected"
                         />
                         <MetricCard
                             label="Blocks Read"
                             value={metrics.blocks_read.toLocaleString()}
-                            description="Disk blocks read from storage"
+                            description="Total number of disk blocks read from storage"
                         />
                         <MetricCard
                             label="Blocks Hit"
                             value={metrics.blocks_hit.toLocaleString()}
-                            description="Disk blocks read from cache"
+                            description="Total disk blocks found in buffer cache"
                         />
                     </div>
                 </div>
