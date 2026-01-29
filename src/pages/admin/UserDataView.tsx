@@ -884,6 +884,12 @@ export default function UserDataView() {
                                                         <SortIcon field="completed_at" currentField={taskSortField} direction={taskSortDirection} />
                                                     </div>
                                                 </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("repeat_every")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Repeat
+                                                        <SortIcon field="repeat_every" currentField={taskSortField} direction={taskSortDirection} />
+                                                    </div>
+                                                </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTaskSort("created_at")}>
                                                     <div className="flex items-center gap-1">
                                                         Created At
@@ -902,7 +908,7 @@ export default function UserDataView() {
                                         <tbody className="divide-y divide-surface-8">
                                             {filteredTasks.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={7} className="px-4 py-8 text-center text-text-muted">
+                                                    <td colSpan={8} className="px-4 py-8 text-center text-text-muted">
                                                         {tasksLoading ? "Loading tasks..." : "No tasks found."}
                                                     </td>
                                                 </tr>
@@ -937,6 +943,18 @@ export default function UserDataView() {
                                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-10 text-text-muted text-xs font-medium border border-surface-20">
                                                                     Pending
                                                                 </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted text-xs">
+                                                            {task.repeat_every && task.repeat_unit && task.repeat_unit !== "null" ? (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                                    </svg>
+                                                                    {task.repeat_every} {task.repeat_unit}{task.repeat_every > 1 ? 's' : ''}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="opacity-30">—</span>
                                                             )}
                                                         </td>
                                                         <td className="px-4 py-4 text-text-muted whitespace-nowrap">
