@@ -2,16 +2,18 @@ import { useState } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme, type Theme } from "../features/theme/ThemeContext";
 import { changePassword } from "../api/auth";
-import { updateMe } from "../api/users";
+import { updateMe, deleteMe } from "../api/users";
 import type { components } from "../api/schema";
 import { PasswordRequirements } from "../components/PasswordRequirements";
+import { useNavigate } from "react-router-dom";
 
 type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 
 export default function UserSettingsPage() {
-    const { state, refresh } = useAuth();
+    const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
     const user = state.status === "authenticated" ? state.user : null;
+    const nav = useNavigate();
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -24,6 +26,12 @@ export default function UserSettingsPage() {
     const [isEditingEmail, setIsEditingEmail] = useState(false);
     const [newEmail, setNewEmail] = useState("");
     const [emailError, setEmailError] = useState("");
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deletePassword, setDeletePassword] = useState("");
+    const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
 
     if (!user) return null;
 
@@ -87,6 +95,21 @@ export default function UserSettingsPage() {
             setEmailError(err instanceof Error ? err.message : "Failed to update email");
         } finally {
             setUpdatingSettings(false);
+        }
+    }
+
+    async function handleDeleteAccount(e: React.FormEvent) {
+        e.preventDefault();
+        if (!deleteConfirmed) return;
+        setDeleteError("");
+        setIsDeleting(true);
+        try {
+            await deleteMe(deletePassword);
+            logout();
+            nav("/login", { replace: true });
+        } catch (err: unknown) {
+            setDeleteError(err instanceof Error ? err.message : "Failed to delete account");
+            setIsDeleting(false);
         }
     }
 
@@ -271,9 +294,105 @@ export default function UserSettingsPage() {
                         >
                             Update Password
                         </button>
+                        {!user.is_admin && (
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteModal(true)}
+                                className="w-full sm:w-auto px-10 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-black uppercase tracking-widest py-4 rounded-2xl transition-all active:scale-[0.98] border border-red-500/20 cursor-pointer"
+                            >
+                                Delete my Account
+                            </button>
+                        )}
                     </div>
                 </form>
             </section>
+
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-red-500/20 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-red-500/10">
+                        <div className="p-10">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 className="text-3xl font-bold text-red-500 tracking-tight">Delete Account</h2>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2">
+                                        This action is permanent
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setDeletePassword("");
+                                        setDeleteConfirmed(false);
+                                        setDeleteError("");
+                                    }}
+                                    className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
+                                >
+                                    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+
+                            <p className="text-text-muted mb-8 font-medium leading-relaxed">
+                                Are you absolutely sure? All your projects, tasks, and data will be permanently deleted. This cannot be undone.
+                            </p>
+
+                            <form onSubmit={handleDeleteAccount} className="space-y-8">
+                                <div className="space-y-3">
+                                    <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">Confirm Password</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={deletePassword}
+                                        onChange={(e) => setDeletePassword(e.target.value)}
+                                        className="w-full bg-red-500/5 border border-red-500/10 rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all text-text-base placeholder:text-text-muted/20 font-medium"
+                                        placeholder="Enter your password"
+                                        autoFocus
+                                    />
+                                </div>
+
+                                <label className="flex items-center gap-4 cursor-pointer group">
+                                    <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all ${deleteConfirmed ? "border-red-500 bg-red-500/10 text-red-500" : "border-surface-10 group-hover:border-surface-15"}`}>
+                                        <input
+                                            type="checkbox"
+                                            className="hidden"
+                                            checked={deleteConfirmed}
+                                            onChange={(e) => setDeleteConfirmed(e.target.checked)}
+                                        />
+                                        {deleteConfirmed && <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                                    </div>
+                                    <span className="text-sm font-bold text-text-muted group-hover:text-text-base transition-colors leading-tight">
+                                        I understand that my account and all associated data will be permanently removed.
+                                    </span>
+                                </label>
+
+                                {deleteError && (
+                                    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-bold animate-in shake duration-500">
+                                        {deleteError}
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-4 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeleteModal(false)}
+                                        className="flex-1 rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={!deleteConfirmed || !deletePassword || isDeleting}
+                                        className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-8 py-4 text-sm font-black uppercase tracking-widest text-on-brand shadow-xl shadow-red-500/20 hover:bg-red-600 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                                    >
+                                        {isDeleting ? (
+                                            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        ) : "Delete my Account"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
