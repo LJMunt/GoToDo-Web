@@ -406,8 +406,8 @@ export default function UserDataView() {
         });
 
         return [...filtered].sort((a, b) => {
-            let valA: any;
-            let valB: any;
+            let valA: string | number | null | undefined;
+            let valB: string | number | null | undefined;
 
             if (sortField === "tasks") {
                 valA = taskCounts[a.id] ?? 0;

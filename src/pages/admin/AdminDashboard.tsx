@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../../api/http";
 
 type HealthStatus = "loading" | "healthy" | "unhealthy" | "error";
@@ -26,8 +26,8 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
                     border: "border-green-500/20",
                     text: "text-green-500",
                     icon: (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                         </svg>
                     ),
                 };
@@ -37,7 +37,7 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
                     border: "border-orange-500/20",
                     text: "text-orange-500",
                     icon: (
-                        <span className="font-bold text-xs">!</span>
+                        <span className="font-bold text-[10px]">!</span>
                     ),
                 };
             case "error":
@@ -46,8 +46,8 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
                     border: "border-red-500/20",
                     text: "text-red-500",
                     icon: (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     ),
                 };
@@ -64,13 +64,13 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
     const styles = getStatusStyles();
 
     return (
-        <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-            <span className="text-sm font-medium text-text-200">{label}</span>
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${styles.bg} ${styles.border} ${styles.text}`}>
-                <div className="flex items-center justify-center w-5 h-5 rounded-full border border-current">
+        <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
+            <span className="text-sm font-bold text-text-200 uppercase tracking-widest">{label}</span>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border ${styles.bg} ${styles.border} ${styles.text}`}>
+                <div className="flex items-center justify-center w-4 h-4 rounded-full border border-current">
                     {styles.icon}
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider">{status}</span>
+                <span className="text-[10px] font-black uppercase tracking-tighter">{status}</span>
             </div>
         </div>
     );
@@ -85,15 +85,15 @@ interface MetricCardProps {
 
 function MetricCard({ label, value, description, icon }: MetricCardProps) {
     return (
-        <div className="p-4 rounded-xl border border-surface-8 bg-surface-3 flex flex-col justify-between hover:bg-surface-4 transition-colors">
+        <div className="p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm flex flex-col justify-between hover:bg-surface-4 transition-all hover:scale-[1.01]">
             <div className="flex items-start justify-between">
                 <div>
-                    <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
-                    <div className="text-xl font-bold text-text-base mt-1">{value}</div>
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{label}</span>
+                    <div className="text-2xl font-bold text-text-base mt-2">{value}</div>
                 </div>
-                {icon && <div className="p-2 rounded-lg bg-surface-10 text-text-muted">{icon}</div>}
+                {icon && <div className="p-3 rounded-2xl bg-surface-5 border border-surface-10 text-text-muted">{icon}</div>}
             </div>
-            {description && <p className="text-xs text-text-muted mt-2 leading-relaxed">{description}</p>}
+            {description && <p className="text-xs text-text-muted mt-4 leading-relaxed font-medium opacity-80">{description}</p>}
         </div>
     );
 }
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     const [metricsError, setMetricsError] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsRefreshing(true);
         const fetchVersion = async () => {
             try {
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
 
         const fetchUserCount = async () => {
             try {
-                const data = await apiFetch<any[]>("/v1/admin/users");
+                const data = await apiFetch<unknown[]>("/v1/admin/users");
                 setUserCount(data.length);
             } catch (e) {
                 setUserCount("error");
@@ -169,11 +169,14 @@ export default function AdminDashboard() {
             fetchMetrics(),
         ]);
         setIsRefreshing(false);
-    };
+    }, []);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        const timeout = setTimeout(() => {
+            void fetchData();
+        }, 0);
+        return () => clearTimeout(timeout);
+    }, [fetchData]);
 
     return (
         <div className="space-y-6">
@@ -205,7 +208,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">System Status</h2>
+                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest ml-1">System Status</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <StatusIndicator label="Backend Health" status={healthStatus} />
                     <StatusIndicator label="DB Ready" status={readyStatus} />
@@ -213,23 +216,23 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">System Information</h2>
+                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest ml-1">System Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-                        <span className="text-sm font-medium text-text-200">Web Version</span>
-                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
+                    <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">Web Version</span>
+                        <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-surface-5 text-text-muted border border-surface-10 uppercase tracking-tighter">
                             {version}
                         </span>
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-                        <span className="text-sm font-medium text-text-200">Backend Version</span>
-                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-surface-10 text-text-muted border border-surface-20">
+                    <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">Backend Version</span>
+                        <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-surface-5 text-text-muted border border-surface-10 uppercase tracking-tighter">
                             {backendVersion}
                         </span>
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-surface-8 bg-surface-3">
-                        <span className="text-sm font-medium text-text-200">Total Users</span>
-                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">
+                    <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">Total Users</span>
+                        <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/20 uppercase tracking-tighter">
                             {userCount === "loading" ? "..." : userCount === "error" ? "Error" : userCount}
                         </span>
                     </div>

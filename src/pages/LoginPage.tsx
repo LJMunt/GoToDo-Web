@@ -49,7 +49,7 @@ export default function LoginPage() {
 
                 <div className="rounded-4xl border border-surface-8 bg-surface-3 p-8 shadow-2xl shadow-black ring-1 ring-surface-10 backdrop-blur-sm">
                     {error && (
-                        <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-medium animate-in shake duration-500">
+                        <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-bold animate-in shake duration-500">
                             {error}
                         </div>
                     )}
@@ -58,7 +58,7 @@ export default function LoginPage() {
                         <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Email Address</label>
                             <input
-                                className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/60"
+                                className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="email"
                                 autoComplete="email"
                                 placeholder="name@example.com"
@@ -73,7 +73,7 @@ export default function LoginPage() {
                                 <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Password</label>
                             </div>
                             <input
-                                className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/60"
+                                className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="password"
                                 autoComplete="current-password"
                                 placeholder="••••••••"
@@ -86,7 +86,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="group relative w-full overflow-hidden rounded-2xl bg-brand-500 px-4 py-4 text-sm font-bold text-on-brand shadow-xl shadow-brand-500/10 transition-all hover:scale-[1.02] hover:bg-brand-600 active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 cursor-pointer"
+                            className="group relative w-full overflow-hidden rounded-2xl bg-brand-500 px-4 py-4 text-sm font-black uppercase tracking-widest text-on-brand shadow-xl shadow-brand-500/20 transition-all hover:scale-[1.02] hover:bg-brand-600 active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 cursor-pointer"
                         >
                             <div className="relative z-10 flex items-center justify-center gap-2">
                                 {isSubmitting ? (

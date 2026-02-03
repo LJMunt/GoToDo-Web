@@ -132,39 +132,39 @@ export function TagsManagementModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
-            <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300">
-                <div className="p-8">
-                    <div className="flex items-center justify-between mb-8">
+            <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-surface-15">
+                <div className="p-10">
+                    <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-2xl font-bold text-text-base">Manage Tags</h2>
-                            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-1">
-                                Create, rename or delete your tags
+                            <h2 className="text-3xl font-bold text-text-base tracking-tight">Manage Tags</h2>
+                            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2 ml-0.5">
+                                Organize your workspace
                             </p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all"
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
                         >
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
 
                     {error && (
-                        <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-medium animate-in shake duration-500">
+                        <div className="mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-bold animate-in shake duration-500">
                             {error}
                         </div>
                     )}
 
                     {loading ? (
-                        <div className="py-12 text-center">
-                            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
-                            <p className="mt-4 text-sm text-text-muted">Loading tags...</p>
+                        <div className="py-20 text-center">
+                            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-3 border-brand-500 border-t-transparent" />
+                            <p className="mt-6 text-xs font-bold uppercase tracking-widest text-text-muted animate-pulse">Loading tags...</p>
                         </div>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="flex gap-2">
+                        <div className="space-y-8">
+                            <div className="flex gap-3">
                                 <input
-                                    className="flex-1 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50"
+                                    className="flex-1 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium placeholder:text-text-muted/40"
                                     placeholder="Create new tag..."
                                     value={newName}
                                     onChange={(e) => setNewName(e.target.value)}
@@ -173,24 +173,26 @@ export function TagsManagementModal({
                                 <button
                                     onClick={handleCreate}
                                     disabled={saving || !newName.trim()}
-                                    className="rounded-2xl bg-brand-500 px-6 py-3 text-sm font-bold text-on-brand hover:bg-brand-600 transition-all disabled:opacity-50"
+                                    className="rounded-2xl bg-brand-500 px-8 py-4 text-sm font-black uppercase tracking-widest text-on-brand hover:bg-brand-600 transition-all disabled:opacity-50 shadow-lg shadow-brand-500/20"
                                 >
                                     Create
                                 </button>
                             </div>
 
-                            <div className="max-h-[350px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                            <div className="max-h-[40vh] overflow-y-auto pr-3 space-y-3 custom-scrollbar">
                                 {tags.length === 0 ? (
-                                    <p className="text-center py-8 text-text-muted text-sm italic">No tags created yet.</p>
+                                    <div className="text-center py-12 rounded-3xl border border-dashed border-surface-10 bg-surface-3">
+                                        <p className="text-sm font-medium text-text-muted">No tags created yet.</p>
+                                    </div>
                                 ) : (
                                     tags.map(tag => (
-                                        <div key={tag.id} className="flex items-center justify-between gap-4 rounded-2xl border border-surface-5 bg-surface-3 p-4 transition-all hover:bg-surface-5 group">
+                                        <div key={tag.id} className="flex flex-col gap-4 rounded-3xl border border-surface-8 bg-surface-3 p-5 transition-all hover:bg-surface-5 group ring-1 ring-surface-10 shadow-sm">
                                             {editingTagId === tag.id ? (
-                                                <div className="flex flex-1 flex-col gap-4">
-                                                    <div className="flex items-center gap-2">
+                                                <div className="flex flex-col gap-5">
+                                                    <div className="flex items-center gap-3">
                                                         <input
                                                             autoFocus
-                                                            className="flex-1 rounded-xl border border-surface-10 bg-surface-3 px-3 py-1.5 text-sm text-text-base outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50"
+                                                            className="flex-1 rounded-xl border border-surface-10 bg-surface-3 px-4 py-2.5 text-sm text-text-base outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium"
                                                             value={editName}
                                                             onChange={(e) => setEditName(e.target.value)}
                                                             onKeyDown={(e) => {
@@ -201,56 +203,56 @@ export function TagsManagementModal({
                                                         <button
                                                             disabled={saving}
                                                             onClick={() => handleUpdate(tag.id)}
-                                                            className="p-1.5 text-brand-500 hover:bg-brand-500/10 rounded-lg transition-colors"
+                                                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition-all border border-brand-500/20"
                                                         >
-                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                         </button>
                                                         <button
                                                             onClick={() => setEditingTagId(null)}
-                                                            className="p-1.5 text-text-muted hover:bg-surface-10 rounded-lg transition-colors"
+                                                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
                                                         >
-                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                                         </button>
                                                     </div>
-                                                    <div className="flex flex-wrap gap-2">
+                                                    <div className="flex flex-wrap gap-2.5 px-1">
                                                         {allowedColors.map(color => (
                                                             <button
                                                                 key={color}
                                                                 onClick={() => setEditColor(color)}
-                                                                className={`h-6 w-6 rounded-full border-2 transition-all ${editColor === color ? "border-white scale-110 shadow-lg" : "border-transparent hover:scale-105"} ${tagBgClasses[color]}`}
+                                                                className={`h-7 w-7 rounded-xl border-2 transition-all ${editColor === color ? "border-white scale-110 shadow-lg ring-4 ring-white/10" : "border-transparent hover:scale-105 hover:rotate-6"} ${tagBgClasses[color]}`}
                                                                 title={color}
                                                             />
                                                         ))}
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <>
+                                                <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${tagColorClasses[tag.color] || tagColorClasses.slate}`}>
+                                                        <span className={`rounded-xl px-3 py-1.5 text-[11px] font-black uppercase tracking-tight ring-1 ${tagColorClasses[tag.color] || tagColorClasses.slate}`}>
                                                             {tag.name}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                                                         <button
                                                             onClick={() => {
                                                                 setEditingTagId(tag.id);
                                                                 setEditName(tag.name);
                                                                 setEditColor(tag.color as Color);
                                                             }}
-                                                            className="p-2 text-text-muted hover:text-text-base hover:bg-surface-5 rounded-xl transition-all"
+                                                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-5 text-text-muted hover:text-text-base hover:bg-surface-10 border border-surface-10 transition-all"
                                                             title="Edit tag"
                                                         >
                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(tag.id)}
-                                                            className="p-2 text-text-muted hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all"
+                                                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/5 text-text-muted hover:text-red-400 hover:bg-red-500/10 border border-red-500/10 transition-all"
                                                             title="Delete tag"
                                                         >
                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                                         </button>
                                                     </div>
-                                                </>
+                                                </div>
                                             )}
                                         </div>
                                     ))
@@ -260,10 +262,10 @@ export function TagsManagementModal({
                     )}
                 </div>
 
-                <div className="bg-surface-3 p-8 border-t border-surface-5 flex justify-end">
+                <div className="bg-surface-3 p-10 border-t border-surface-5 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="rounded-2xl bg-surface-5 px-8 py-3 text-sm font-bold text-text-300 hover:bg-surface-10 hover:text-text-base transition-all"
+                        className="rounded-2xl bg-surface-5 px-10 py-4 text-sm font-black uppercase tracking-widest text-text-muted hover:bg-surface-8 hover:text-text-base transition-all border border-surface-10 shadow-sm"
                     >
                         Close
                     </button>
