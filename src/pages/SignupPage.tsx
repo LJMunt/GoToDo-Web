@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../api/auth";
 import { useAuth } from "../features/auth/AuthContext";
+import { PasswordRequirements } from "../components/PasswordRequirements";
 
 export default function SignupPage() {
     const [email, setEmail] = useState("");
@@ -74,8 +75,8 @@ export default function SignupPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                minLength={8}
                             />
+                            <PasswordRequirements password={password} />
                         </div>
 
                         <button

@@ -4,6 +4,7 @@ import { useTheme, type Theme } from "../features/theme/ThemeContext";
 import { changePassword } from "../api/auth";
 import { updateMe } from "../api/users";
 import type { components } from "../api/schema";
+import { PasswordRequirements } from "../components/PasswordRequirements";
 
 type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 
@@ -242,12 +243,12 @@ export default function UserSettingsPage() {
                             <input
                                 type="password"
                                 required
-                                minLength={8}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 className="w-full bg-surface-5 border border-surface-15 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all text-text-base placeholder:text-text-muted/20 font-medium"
                                 placeholder="••••••••"
                             />
+                            <PasswordRequirements password={newPassword} />
                         </div>
                     </div>
                     
