@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme, type Theme } from "../features/theme/ThemeContext";
+import { useConfig } from "../features/config/ConfigContext";
 import { changePassword } from "../api/auth";
 import { updateMe, deleteMe } from "../api/users";
 import type { components } from "../api/schema";
@@ -12,6 +13,7 @@ type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 export default function UserSettingsPage() {
     const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
+    useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const nav = useNavigate();
 

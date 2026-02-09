@@ -3,8 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../api/auth";
 import { useAuth } from "../features/auth/AuthContext";
 import { PasswordRequirements } from "../components/PasswordRequirements";
+import { useConfig } from "../features/config/ConfigContext";
 
 export default function SignupPage() {
+    const { config } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,13 +36,13 @@ export default function SignupPage() {
             <div className="w-full max-w-105 animate-in fade-in zoom-in duration-700">
                 <div className="flex flex-col items-center text-center mb-10">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-on-brand shadow-brand-500/40 shadow-lg mb-6">
-                        <span className="text-2xl font-black italic">G</span>
+                        <span className="text-2xl font-black italic">{config.branding.appLogoInitial}</span>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight bg-linear-to-br from-text-base to-text-muted bg-clip-text text-transparent">
-                        Create account
+                        {config.auth.signupTitle}
                     </h1>
                     <p className="mt-3 text-text-muted font-medium">
-                        Spin up a workspace that belongs to you.
+                        {config.auth.signupSubtitle}
                     </p>
                 </div>
 

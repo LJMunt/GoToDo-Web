@@ -1,9 +1,11 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useConfig } from "../features/config/ConfigContext";
 
 export default function AdminLayout() {
+    const { config } = useConfig();
     const navItems = [
         {
-            label: "Dashboard",
+            label: config.navigation.dashboard,
             to: "/admin",
             end: true,
             icon: (
@@ -13,7 +15,7 @@ export default function AdminLayout() {
             )
         },
         {
-            label: "Users",
+            label: config.navigation.users,
             to: "/admin/users",
             icon: (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,7 +24,7 @@ export default function AdminLayout() {
             )
         },
         {
-            label: "Configuration",
+            label: config.navigation.configuration,
             to: "/admin/config",
             icon: (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,7 +34,7 @@ export default function AdminLayout() {
             )
         },
         {
-            label: "Jobs",
+            label: config.navigation.jobs,
             to: "/admin/jobs",
             icon: (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,7 +49,7 @@ export default function AdminLayout() {
             <aside className="w-full md:w-64 flex-shrink-0">
                 <nav className="flex flex-col gap-1 sticky top-6">
                     <div className="px-4 py-2 mb-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                        Administration
+                        {config.navigation.administration}
                     </div>
                     {navItems.map((item) => (
                         <NavLink

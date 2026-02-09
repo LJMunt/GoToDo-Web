@@ -1,9 +1,11 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "../features/auth/AuthContext";
+import { useConfig } from "../features/config/ConfigContext";
 
 export default function AppLayout() {
     const { state, logout } = useAuth();
+    const { config } = useConfig();
     const nav = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -32,7 +34,7 @@ export default function AppLayout() {
 
     function mailSupport() {
         setMenuOpen(false);
-        window.location.href = "mailto:support@gotodo.local";
+        window.location.href = `mailto:${config.branding.supportEmail}`;
     }
 
     return (
@@ -41,10 +43,10 @@ export default function AppLayout() {
                 <div className="flex max-w-full items-center justify-between px-6 py-4">
                     <Link to="/" className="flex items-center gap-3 group">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-5 border border-surface-10 text-brand-500 shadow-sm transition-all group-hover:border-brand-500/50 group-hover:bg-brand-500/5 group-hover:scale-105">
-                            <span className="text-xl font-black italic">G</span>
+                            <span className="text-xl font-black italic">{config.branding.appLogoInitial}</span>
                         </div>
                         <span className="text-xl font-bold tracking-tight text-text-base group-hover:text-brand-600 transition-colors">
-                            GoTodo
+                            {config.branding.appName}
                         </span>
                     </Link>
 
@@ -77,7 +79,7 @@ export default function AppLayout() {
                             {menuOpen && (
                                 <div className="absolute right-0 mt-3 w-60 overflow-hidden rounded-2xl border border-surface-8 bg-bg-16 p-1.5 shadow-2xl shadow-black ring-1 ring-surface-10 animate-in fade-in zoom-in duration-200">
                                     <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-text-muted">
-                                        Account
+                                        {config.navigation.userSettings.split(' ')[0]}
                                     </div>
                                     <div className="space-y-0.5">
                                         <Link
@@ -86,7 +88,7 @@ export default function AppLayout() {
                                             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-300 transition hover:bg-surface-5 hover:text-text-base cursor-pointer"
                                         >
                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                            User Settings
+                                            {config.navigation.userSettings}
                                         </Link>
                                         {user.is_admin && (
                                             <Link
@@ -95,7 +97,7 @@ export default function AppLayout() {
                                                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-300 transition hover:bg-surface-5 hover:text-text-base cursor-pointer"
                                             >
                                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                                Administration
+                                                {config.navigation.administration}
                                             </Link>
                                         )}
                                         <button
@@ -103,7 +105,7 @@ export default function AppLayout() {
                                             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-300 transition hover:bg-surface-5 hover:text-text-base cursor-pointer"
                                         >
                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14 8.38 8.38 0 0 1 3.8.9L21 3z"/></svg>
-                                            Support
+                                            {config.navigation.support}
                                         </button>
                                         <div className="my-1 border-t border-surface-5" />
                                         <button
@@ -111,7 +113,7 @@ export default function AppLayout() {
                                             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-400 transition hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
                                         >
                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                                            Log out
+                                            {config.navigation.logout}
                                         </button>
                                     </div>
                                 </div>

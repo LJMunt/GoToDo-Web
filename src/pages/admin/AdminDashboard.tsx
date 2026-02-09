@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../../api/http";
+import { useConfig } from "../../features/config/ConfigContext";
 
 type HealthStatus = "loading" | "healthy" | "unhealthy" | "error";
 
@@ -99,6 +100,7 @@ function MetricCard({ label, value, description, icon }: MetricCardProps) {
 }
 
 export default function AdminDashboard() {
+    const { config } = useConfig();
     const version = `v${import.meta.env.APP_VERSION}`;
     const [backendVersion, setBackendVersion] = useState<string>("loading...");
     const [healthStatus, setHealthStatus] = useState<HealthStatus>("loading");
@@ -182,7 +184,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-text-base">Admin Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-text-base">{config.navigation.dashboard}</h1>
                     <p className="text-sm text-text-muted mt-1">System status and overview.</p>
                 </div>
                 <button

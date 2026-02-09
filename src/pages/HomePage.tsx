@@ -5,6 +5,7 @@ import { listProjectTasks, listProjects } from "../api/projects";
 import { listTaskOccurrences, setOccurrenceCompletion, setTaskCompletion, getTaskTags } from "../api/tasks";
 import type { components } from "../api/schema";
 import { useAuth } from "../features/auth/AuthContext";
+import { useConfig } from "../features/config/ConfigContext";
 import { TaskEditModal } from "./TaskEditModal";
 import { TaskCreateModal } from "./TaskCreateModal";
 import { ProjectEditModal } from "./ProjectEditModal";
@@ -108,6 +109,7 @@ function isTaskCompleted(task: Task) {
 
 export default function HomePage() {
     const { state } = useAuth();
+    const { config } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const [agendaDate, setAgendaDate] = useState(() => new Date());
     const agendaDay = useMemo(() => dayRange(agendaDate), [agendaDate]);
@@ -563,7 +565,7 @@ export default function HomePage() {
                                 <div className="absolute left-0 h-6 w-1 rounded-r-full bg-brand-500 shadow-brand-500/80 shadow-md" />
                             )}
                             <svg className={`h-5 w-5 transition-colors ${selectedProjectId === null ? "text-brand-500" : "group-hover/nav:text-text-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            <span className="text-sm">Agenda</span>
+                            <span className="text-sm">{config.navigation.agenda}</span>
                         </button>
                     </div>
                 </div>
@@ -572,7 +574,7 @@ export default function HomePage() {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                                Projects
+                                {config.navigation.projects}
                             </h2>
                             <button
                                 onClick={() => setShowProjectCreateModal(true)}
@@ -655,7 +657,7 @@ export default function HomePage() {
                         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                             <div>
                                 <h1 className="text-4xl font-bold tracking-tight text-text-base lg:text-5xl">
-                                    Your Agenda
+                                    {config.ui.agendaTitle}
                                 </h1>
                                 <div className="mt-2 flex items-center gap-2">
                                     <p className="text-text-muted">
@@ -724,8 +726,8 @@ export default function HomePage() {
                                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-3 text-text-muted">
                                         <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                     </div>
-                                    <h3 className="mt-6 text-xl font-semibold text-text-200">All caught up!</h3>
-                                    <p className="mt-2 text-text-muted max-w-xs mx-auto">Your agenda for today is empty. Time to relax or plan ahead.</p>
+                                    <h3 className="mt-6 text-xl font-semibold text-text-200">{config.ui.agendaEmptyStateTitle}</h3>
+                                    <p className="mt-2 text-text-muted max-w-xs mx-auto">{config.ui.agendaEmptyStateText}</p>
                                 </div>
                             )}
 
