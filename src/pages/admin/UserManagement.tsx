@@ -133,7 +133,7 @@ export default function UserManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-text-base">User Management</h1>
+                <h1 className="text-2xl font-bold text-text-base transition-none!">User Management</h1>
                 <p className="text-sm text-text-muted mt-1">Manage all users in the system.</p>
             </div>
 
@@ -223,18 +223,6 @@ export default function UserManagement() {
                                         <SortIcon field="last_login" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
-                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("created_at")}>
-                                    <div className="flex items-center gap-1">
-                                        Creation Date
-                                        <SortIcon field="created_at" currentField={sortField} direction={sortDirection} />
-                                    </div>
-                                </th>
-                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("updated_at")}>
-                                    <div className="flex items-center gap-1">
-                                        Last Updated
-                                        <SortIcon field="updated_at" currentField={sortField} direction={sortDirection} />
-                                    </div>
-                                </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">
                                     Actions
                                 </th>
@@ -288,12 +276,6 @@ export default function UserManagement() {
                                         {user.last_login ? new Date(user.last_login).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : (
                                             <span className="italic text-text-muted/50">Never logged in</span>
                                         )}
-                                    </td>
-                                    <td className="px-4 py-4 text-text-muted whitespace-nowrap">
-                                        {new Date(user.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
-                                    </td>
-                                    <td className="px-4 py-4 text-text-muted whitespace-nowrap">
-                                        {new Date(user.updated_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                                     </td>
                                     <td className="px-4 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">

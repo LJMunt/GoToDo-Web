@@ -36,7 +36,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setState({ status: "loading" });
         try {
             const me = await getMe();
-            setState({ status: "authenticated", user: me });
+            // Cast to any briefly to satisfy TS if the schema and runtime mismatch during transition
+            // but we want to ensure settings exist.
+            const userMe = me as any;
+            setState({
+                status: "authenticated",
+                user: {
+                    ...me,
+                    settings: userMe.settings ?? {
+                        theme: "system",
+                        showCompletedDefault: false
+                    }
+                } as components["schemas"]["UserMe"]
+            });
         } catch {
             // token invalid/expired/etc
             setToken(null);

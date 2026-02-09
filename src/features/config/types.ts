@@ -1,3 +1,8 @@
+import type { components } from "../../api/schema";
+
+export type ConfigKey = components["schemas"]["ConfigKey"];
+export type ConfigTranslations = components["schemas"]["ConfigTranslations"];
+
 export interface BrandingConfig {
     appName: string;
     appLogoInitial: string;

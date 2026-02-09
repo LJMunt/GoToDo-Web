@@ -13,7 +13,7 @@ type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 export default function UserSettingsPage() {
     const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
-    useConfig();
+    const { language, setLanguage } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const nav = useNavigate();
 
@@ -232,6 +232,38 @@ export default function UserSettingsPage() {
                                     }`}
                                 />
                             </button>
+                        </div>
+
+                        <div className="h-px bg-surface-10/50" />
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div>
+                                <div className="font-bold text-lg text-text-base tracking-tight">Language</div>
+                                <div className="text-xs text-text-muted mt-1.5 font-medium leading-relaxed max-w-xs">
+                                    Choose your preferred language for the interface.
+                                </div>
+                            </div>
+                            <div className="flex bg-surface-10 p-1.5 rounded-2xl border border-surface-15">
+                                {[
+                                    { code: "en", label: "EN" },
+                                    { code: "de", label: "DE" },
+                                    { code: "fr", label: "FR" },
+                                    { code: "it", label: "IT" },
+                                    { code: "es", label: "ES" },
+                                ].map((l) => (
+                                    <button
+                                        key={l.code}
+                                        onClick={() => setLanguage(l.code)}
+                                        className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                                            language === l.code
+                                                ? "bg-surface-3 text-brand-500 shadow-lg border border-surface-15 scale-105"
+                                                : "text-text-muted hover:text-text-base"
+                                        }`}
+                                    >
+                                        {l.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                     {settingsError && <div className="text-red-400 text-xs flex items-center gap-2 font-bold animate-in shake duration-500">

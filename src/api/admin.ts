@@ -1,6 +1,8 @@
 import { apiFetch } from "./http";
 import type { components } from "./schema";
 
+import type { ConfigKey, ConfigTranslations } from "../features/config/types";
+
 export type User = components["schemas"]["User"];
 export type Project = components["schemas"]["Project"];
 export type Task = components["schemas"]["Task"];
@@ -73,5 +75,20 @@ export async function listUserTags(userId: number): Promise<Tag[]> {
 export async function deleteUserTag(userId: number, tagId: number): Promise<void> {
     await apiFetch(`/v1/admin/users/${userId}/tags/${tagId}`, {
         method: "DELETE",
+    });
+}
+
+export async function listConfigKeys(): Promise<ConfigKey[]> {
+    return apiFetch<ConfigKey[]>("/v1/admin/config/keys");
+}
+
+export async function getConfigTranslations(lang: string): Promise<ConfigTranslations> {
+    return apiFetch<ConfigTranslations>(`/v1/admin/config/translations?lang=${lang}`);
+}
+
+export async function updateConfigTranslations(lang: string, translations: ConfigTranslations): Promise<void> {
+    await apiFetch(`/v1/admin/config/translations?lang=${lang}`, {
+        method: "PUT",
+        body: JSON.stringify(translations),
     });
 }

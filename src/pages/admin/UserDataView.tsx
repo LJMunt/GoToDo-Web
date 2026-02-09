@@ -488,7 +488,7 @@ export default function UserDataView() {
                         <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
                     </svg>
                 </Link>
-                <h1 className="text-2xl font-bold text-text-base">User Data <span className="text-text-muted font-normal ml-2">{user?.email || (loading ? "..." : `#${userId}`)}</span></h1>
+                <h1 className="text-2xl font-bold text-text-base transition-none!">User Data <span className="text-text-muted font-normal ml-2">{user?.email || (loading ? "..." : `#${userId}`)}</span></h1>
             </div>
 
             <div className="bg-surface-2 rounded-2xl border border-surface-8 overflow-hidden">

@@ -2,16 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../../api/http";
 import { useConfig } from "../../features/config/ConfigContext";
 
+import type { components } from "../../api/schema";
+import { listUsers } from "../../api/admin";
+
 type HealthStatus = "loading" | "healthy" | "unhealthy" | "error";
 
-interface DatabaseMetrics {
-    database_size: string;
-    connections: number;
-    deadlocks: number;
-    blocks_read: number;
-    blocks_hit: number;
-    cache_hit_ratio: number;
-}
+type DatabaseMetrics = components["schemas"]["DatabaseMetrics"];
 
 interface StatusIndicatorProps {
     status: HealthStatus;
@@ -57,7 +53,7 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
                     bg: "bg-surface-10",
                     border: "border-surface-20",
                     text: "text-text-muted",
-                    icon: <div className="w-1 h-1 rounded-full bg-current animate-pulse" />,
+                    icon: <div className="w-1 h-1 rounded-full bg-current" />,
                 };
         }
     };
@@ -144,7 +140,7 @@ export default function AdminDashboard() {
 
         const fetchUserCount = async () => {
             try {
-                const data = await apiFetch<unknown[]>("/v1/admin/users");
+                const data = await listUsers();
                 setUserCount(data.length);
             } catch (e) {
                 setUserCount("error");
@@ -184,7 +180,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-text-base">{config.navigation.dashboard}</h1>
+                    <h1 className="text-2xl font-bold text-text-base transition-none!">{config.navigation.dashboard}</h1>
                     <p className="text-sm text-text-muted mt-1">System status and overview.</p>
                 </div>
                 <button
