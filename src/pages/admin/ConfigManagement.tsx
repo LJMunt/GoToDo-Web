@@ -95,7 +95,6 @@ export default function ConfigManagement() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-text-base transition-none!">{appConfig.navigation.configuration}</h1>
-                    <p className="text-sm text-text-muted mt-1">{appConfig.ui.languageDescription}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {hasChanges && (
