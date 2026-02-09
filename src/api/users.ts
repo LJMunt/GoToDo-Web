@@ -26,3 +26,13 @@ export async function updateMe(body: UpdateMeReq): Promise<MeRes> {
         throw err;
     }
 }
+
+export async function deleteMe(currentPassword: string): Promise<void> {
+    const token = getToken();
+    if (!token) throw new Error("not authenticated");
+
+    await apiFetch<void>("/v1/users/me", {
+        method: "DELETE",
+        body: JSON.stringify({ currentPassword }),
+    });
+}

@@ -33,6 +33,9 @@
   --animate-pop: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --animate-vanish: vanish 0.6s ease-in-out forwards;
   --animate-wiggle: wiggle 0.3s ease-in-out infinite;
+
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.5rem;
 }
 
 @keyframes pop {

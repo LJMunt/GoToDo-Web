@@ -80,13 +80,13 @@ const tagColorClasses: Record<string, string> = {
 function TaskTags({ tags }: { tags?: Tag[] }) {
     if (!tags || tags.length === 0) return null;
     return (
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-2">
             {tags.map(tag => {
                 const colorClass = tagColorClasses[tag.color] || tagColorClasses.slate;
                 return (
                     <span
                         key={tag.id}
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${colorClass}`}
+                        className={`rounded-xl px-2.5 py-1 text-[10px] font-black uppercase tracking-tight ring-1 ${colorClass}`}
                     >
                         {tag.name}
                     </span>
@@ -553,17 +553,17 @@ export default function HomePage() {
                     <div className="mt-4 space-y-1">
                         <button
                             onClick={() => nav("/")}
-                            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all relative group/nav ${
+                            className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all relative group/nav ${
                                 selectedProjectId === null
-                                    ? "bg-surface-8 text-text-base font-bold ring-1 ring-surface-10"
-                                    : "text-text-muted hover:bg-surface-5 hover:text-text-base"
+                                    ? "bg-surface-8 text-text-base font-black uppercase tracking-widest ring-1 ring-surface-15 shadow-sm"
+                                    : "text-text-muted hover:bg-surface-5 hover:text-text-base font-bold"
                             }`}
                         >
                             {selectedProjectId === null && (
-                                <div className="absolute left-0 h-5 w-1 rounded-r-full bg-brand-500 shadow-brand-500/80 shadow-md" />
+                                <div className="absolute left-0 h-6 w-1 rounded-r-full bg-brand-500 shadow-brand-500/80 shadow-md" />
                             )}
                             <svg className={`h-5 w-5 transition-colors ${selectedProjectId === null ? "text-brand-500" : "group-hover/nav:text-text-300"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            <span className="text-sm">Today's Agenda</span>
+                            <span className="text-sm">Agenda</span>
                         </button>
                     </div>
                 </div>
@@ -614,16 +614,16 @@ export default function HomePage() {
                                     <button
                                         key={project.id}
                                         onClick={() => nav(`/projects/${project.id}`)}
-                                        className={`group flex w-full flex-col rounded-xl px-4 py-3 text-left transition-all ${
+                                        className={`group flex w-full flex-col rounded-2xl px-5 py-4 text-left transition-all ${
                                             isActive
-                                                ? "bg-surface-8 ring-1 ring-white/20"
+                                                ? "bg-surface-8 ring-1 ring-surface-15 shadow-sm"
                                                 : "text-text-muted hover:bg-surface-5 hover:text-text-base"
                                         }`}
                                     >
                                         <div className="flex items-center justify-between w-full">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${isActive ? "bg-brand-500 shadow-brand-500/60 shadow-sm" : "bg-surface-15 group-hover:bg-text-muted"}`} />
-                                                <span className={`text-sm font-semibold tracking-tight ${isActive ? "text-text-base" : ""}`}>
+                                            <div className="flex items-center gap-4">
+                                                <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${isActive ? "bg-brand-500 shadow-brand-500/60 shadow-sm scale-125" : "bg-surface-15 group-hover:bg-text-muted"}`} />
+                                                <span className={`text-sm tracking-tight ${isActive ? "text-text-base font-black uppercase tracking-widest" : "font-bold"}`}>
                                                     {project.name}
                                                 </span>
                                             </div>
@@ -632,13 +632,13 @@ export default function HomePage() {
                                                     e.stopPropagation();
                                                     setEditingProjectId(project.id);
                                                 }}
-                                                className="flex h-6 w-6 items-center justify-center rounded-lg text-text-base/20 transition-all hover:bg-surface-10 hover:text-text-base group-hover:opacity-100 opacity-0 cursor-pointer"
+                                                className="flex h-8 w-8 items-center justify-center rounded-xl text-text-muted/20 transition-all hover:bg-surface-10 hover:text-text-base group-hover:opacity-100 opacity-0 cursor-pointer border border-transparent hover:border-surface-15"
                                             >
-                                                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.121a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                         </div>
                                         {project.description && (
-                                            <p className="mt-1 ml-4.5 line-clamp-1 text-[11px] text-text-muted group-hover:text-text-muted">
+                                            <p className={`mt-2 ml-5.5 line-clamp-1 text-[11px] font-medium transition-colors ${isActive ? "text-text-muted" : "text-text-muted/60 group-hover:text-text-muted"}`}>
                                                 {project.description}
                                             </p>
                                         )}
@@ -742,50 +742,50 @@ export default function HomePage() {
                                     return (
                                         <div
                                             key={key}
-                                            className={`group relative flex items-start gap-6 rounded-3xl border border-surface-5 bg-surface-3 p-5 transition-all hover:bg-surface-5 hover:border-surface-10 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""} ${isVanishing ? "animate-vanish" : ""}`}
+                                            className={`group relative flex items-start gap-6 rounded-4xl border border-surface-5 bg-surface-3 p-6 transition-all hover:bg-surface-5 hover:border-surface-10 hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/20 ${showCompletedVisuals ? "opacity-40 grayscale-[0.5]" : ""} ${isVanishing ? "animate-vanish" : ""}`}
                                         >
                                             <div className="relative flex-shrink-0 mt-1">
                                                 <button
                                                     onClick={() => handleToggleAgenda(item)}
                                                     disabled={isCompleting}
-                                                    className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 ${
+                                                    className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300 active:scale-90 cursor-pointer ${
                                                         isCompleting
                                                             ? "border-brand-500/50 animate-wiggle"
                                                             : showCompletedVisuals
-                                                                ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                                                                ? "border-brand-500 bg-brand-500/10 text-brand-500 shadow-[0_0_15px_rgba(var(--brand-500-rgb),0.2)]"
                                                                 : "border-surface-10 text-transparent hover:border-brand-500/40 hover:text-brand-500/40"
                                                     }`}
                                                 >
-                                                    <svg className={`h-6 w-6 ${(showCompletedVisuals && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                    <svg className={`h-7 w-7 ${(showCompletedVisuals && !isCompleting) ? "animate-pop" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                                 </button>
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5">
-                                                    <span className={`text-[10px] font-black uppercase tracking-[0.15em] transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500/70" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
                                                         {item.kind === "occurrence" ? "Recurring" : "Task"}
                                                     </span>
                                                     <span className={`h-1 w-1 rounded-full bg-surface-10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
-                                                    <span className="truncate text-xs font-bold text-text-muted">
+                                                    <span className="truncate text-[10px] font-black uppercase tracking-widest text-text-muted/60">
                                                         {projectName}
                                                     </span>
                                                 </div>
-                                                <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-text-muted line-through" : "text-text-base group-hover:text-brand-600"}`}>
+                                                <h3 className={`mt-2 truncate text-lg font-bold tracking-tight transition-all ${completed ? "text-text-muted line-through" : "text-text-base group-hover:text-brand-600"}`}>
                                                     {item.title}
                                                 </h3>
                                                 <TaskTags tags={tagsByTaskId[item.task_id]} />
                                             </div>
 
-                                            <div className="flex flex-col items-end gap-2 flex-shrink-0 mt-1">
-                                                <div className="flex items-center gap-2 rounded-xl bg-surface-5 px-3 py-1.5 text-xs font-bold text-text-muted group-hover:bg-surface-8 group-hover:text-text-300">
-                                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <div className="flex flex-col items-end gap-3 flex-shrink-0 mt-1">
+                                                <div className="flex items-center gap-2 rounded-xl bg-surface-5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-text-muted group-hover:bg-surface-8 group-hover:text-text-300 border border-surface-10 transition-all">
+                                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                                     {formatTime(item.due_at)}
                                                 </div>
                                                 <button
                                                     onClick={() => setEditingTaskId(item.task_id)}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-5 text-text-muted/30 transition-all hover:bg-surface-10 hover:text-text-base active:scale-90"
+                                                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-5 text-text-muted/30 transition-all hover:bg-surface-10 hover:text-text-base active:scale-90 border border-transparent hover:border-surface-15 cursor-pointer"
                                                 >
-                                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                    <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.121a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                 </button>
                                             </div>
                                         </div>
@@ -824,9 +824,9 @@ export default function HomePage() {
                                 </label>
                                 <button
                                     onClick={() => setShowCreateModal(true)}
-                                    className="flex items-center gap-2 rounded-xl bg-linear-to-br from-brand-400 to-brand-600 px-6 py-2.5 text-sm font-bold text-text-base shadow-brand-500/40 shadow-lg transition-all hover:scale-[1.02] hover:shadow-brand-500/60 shadow-xl active:scale-[0.98] cursor-pointer animate-in fade-in zoom-in duration-500"
+                                    className="flex items-center gap-3 rounded-2xl bg-brand-500 px-8 py-3.5 text-sm font-black uppercase tracking-widest text-on-brand shadow-brand-500/30 shadow-xl transition-all hover:scale-[1.02] hover:bg-brand-600 active:scale-[0.98] cursor-pointer animate-in fade-in zoom-in duration-500"
                                 >
-                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     Create Task
                                 </button>
                                 <button
