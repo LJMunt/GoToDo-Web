@@ -602,12 +602,13 @@ export default function UserDataView() {
                                                         <SortIcon field="updated_at" currentField={sortField} direction={sortDirection} />
                                                     </div>
                                                 </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-surface-8">
                                             {filteredProjects.length === 0 && !projectsLoading ? (
                                                 <tr>
-                                                    <td colSpan={6} className="px-4 py-8 text-center text-text-muted italic">
+                                                    <td colSpan={7} className="px-4 py-8 text-center text-text-muted italic">
                                                         {search ? "No projects found matching your search." : "No projects found for this user."}
                                                     </td>
                                                 </tr>
@@ -615,46 +616,7 @@ export default function UserDataView() {
                                                 filteredProjects.map((project) => (
                                                     <tr key={project.id} className={`transition-colors group ${project.is_deleted ? 'opacity-60 bg-surface-5/30' : 'hover:bg-surface-5/50'}`}>
                                                         <td className="px-4 py-4 font-mono text-xs text-text-muted">
-                                                            <div className="flex items-center gap-2">
-                                                                #{project.id}
-                                                                {project.is_deleted ? (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded-md border border-red-500/20">
-                                                                            Deleted
-                                                                        </span>
-                                                                        <button
-                                                                            onClick={() => handleRestoreProject(project.id)}
-                                                                            disabled={isRestoringProjectId === project.id}
-                                                                            className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-green-500 transition-all p-1 rounded-md hover:bg-green-500/10 cursor-pointer"
-                                                                            title="Restore project"
-                                                                        >
-                                                                            {isRestoringProjectId === project.id ? (
-                                                                                <div className="h-3.5 w-3.5 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
-                                                                            ) : (
-                                                                                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                                                    <polyline points="23 4 23 10 17 10" />
-                                                                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                                                                                </svg>
-                                                                            )}
-                                                                        </button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={() => handleDeleteProject(project.id)}
-                                                                        disabled={isDeletingProjectId === project.id}
-                                                                        className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-red-500 transition-all p-1 rounded-md hover:bg-red-500/10 cursor-pointer"
-                                                                        title="Delete project"
-                                                                    >
-                                                                        {isDeletingProjectId === project.id ? (
-                                                                            <div className="h-3.5 w-3.5 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
-                                                                        ) : (
-                                                                            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
-                                                                            </svg>
-                                                                        )}
-                                                                    </button>
-                                                                )}
-                                                            </div>
+                                                            #{project.id}
                                                         </td>
                                                         <td className="px-4 py-4 font-medium text-text-base">
                                                             {project.is_deleted ? (
@@ -807,6 +769,50 @@ export default function UserDataView() {
                                                         </td>
                                                         <td className="px-4 py-4 text-text-muted whitespace-nowrap">
                                                             {new Date(project.updated_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                {project.is_deleted ? (
+                                                                    <div className="flex items-center gap-1">
+                                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded-md border border-red-500/20">
+                                                                            Deleted
+                                                                        </span>
+                                                                        <button
+                                                                            onClick={() => handleRestoreProject(project.id)}
+                                                                            disabled={isRestoringProjectId === project.id}
+                                                                            className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all disabled:opacity-50 cursor-pointer"
+                                                                            title="Restore project"
+                                                                        >
+                                                                            {isRestoringProjectId === project.id ? (
+                                                                                <div className="h-4 w-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+                                                                            ) : (
+                                                                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" />
+                                                                                </svg>
+                                                                            )}
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleDeleteProject(project.id)}
+                                                                        disabled={isDeletingProjectId === project.id}
+                                                                        className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all disabled:opacity-50 cursor-pointer"
+                                                                        title="Delete project"
+                                                                    >
+                                                                        {isDeletingProjectId === project.id ? (
+                                                                            <div className="h-4 w-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                                                                        ) : (
+                                                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                                <path d="M3 6h18" />
+                                                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                                                                <line x1="10" y1="11" x2="10" y2="17" />
+                                                                                <line x1="14" y1="11" x2="14" y2="17" />
+                                                                            </svg>
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
@@ -993,7 +999,11 @@ export default function UserDataView() {
                                                                             <div className="h-4 w-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
                                                                         ) : (
                                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                                <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
+                                                                                <path d="M3 6h18" />
+                                                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                                                                <line x1="10" y1="11" x2="10" y2="17" />
+                                                                                <line x1="14" y1="11" x2="14" y2="17" />
                                                                             </svg>
                                                                         )}
                                                                     </button>
@@ -1100,7 +1110,11 @@ export default function UserDataView() {
                                                                         <div className="h-4 w-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
                                                                     ) : (
                                                                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                            <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                                                            <path d="M3 6h18" />
+                                                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                                                            <line x1="10" y1="11" x2="10" y2="17" />
+                                                                            <line x1="14" y1="11" x2="14" y2="17" />
                                                                         </svg>
                                                                     )}
                                                                 </button>
