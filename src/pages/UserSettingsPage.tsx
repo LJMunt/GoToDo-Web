@@ -248,8 +248,6 @@ export default function UserSettingsPage() {
                                     { code: "en", label: "EN" },
                                     { code: "de", label: "DE" },
                                     { code: "fr", label: "FR" },
-                                    { code: "it", label: "IT" },
-                                    { code: "es", label: "ES" },
                                 ].map((l) => (
                                     <button
                                         key={l.code}

@@ -6,7 +6,7 @@ import { PasswordRequirements } from "../components/PasswordRequirements";
 import { useConfig } from "../features/config/ConfigContext";
 
 export default function SignupPage() {
-    const { config } = useConfig();
+    const { config, language, setLanguage } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,12 +100,32 @@ export default function SignupPage() {
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-surface-5 text-center">
-                        <p className="text-sm text-text-muted font-medium">
+                        <p className="text-sm text-text-muted font-medium mb-6">
                             {config.auth.alreadyHaveAccountPrompt}{" "}
                             <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/login">
                                 {config.auth.signInLink}
                             </Link>
                         </p>
+
+                        <div className="flex items-center justify-center gap-2">
+                            {[
+                                { code: "en", label: "EN" },
+                                { code: "de", label: "DE" },
+                                { code: "fr", label: "FR" },
+                            ].map((l) => (
+                                <button
+                                    key={l.code}
+                                    onClick={() => setLanguage(l.code)}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                                        language === l.code
+                                            ? "bg-brand-500/10 text-brand-500 border border-brand-500/20"
+                                            : "text-text-muted hover:text-text-base border border-transparent"
+                                    }`}
+                                >
+                                    {l.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

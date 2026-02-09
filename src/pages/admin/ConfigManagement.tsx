@@ -7,8 +7,6 @@ const LANGUAGES = [
     { code: "en", label: "English" },
     { code: "de", label: "German" },
     { code: "fr", label: "French" },
-    { code: "it", label: "Italian" },
-    { code: "es", label: "Spanish" },
 ];
 
 export default function ConfigManagement() {
