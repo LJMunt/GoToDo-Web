@@ -17,18 +17,18 @@ type Project = components["schemas"]["Project"];
 type Task = components["schemas"]["Task"];
 type Tag = components["schemas"]["Tag"];
 
-const formatter = new Intl.DateTimeFormat(undefined, {
+const getFormatter = (lang: string) => new Intl.DateTimeFormat(lang, {
     weekday: "long",
     month: "short",
     day: "numeric",
 });
 
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
+const getTimeFormatter = (lang: string) => new Intl.DateTimeFormat(lang, {
     hour: "numeric",
     minute: "2-digit",
 });
 
-function dayRange(date: Date) {
+function dayRange(date: Date, lang: string) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
     const end = new Date(date);
@@ -36,7 +36,7 @@ function dayRange(date: Date) {
     return {
         startISO: start.toISOString(),
         endISO: end.toISOString(),
-        label: formatter.format(date),
+        label: getFormatter(lang).format(date),
     };
 }
 
@@ -47,15 +47,15 @@ function formatInputDate(date: Date) {
     return `${y}-${m}-${d}`;
 }
 
-function formatTime(value: string) {
+function formatTime(value: string, lang: string) {
     const date = new Date(value);
-    return timeFormatter.format(date);
+    return getTimeFormatter(lang).format(date);
 }
 
-function formatDue(value: string | null | undefined) {
-    if (!value) return "No due date";
+function formatDue(value: string | null | undefined, lang: string, noDueDateText: string) {
+    if (!value) return noDueDateText;
     const date = new Date(value);
-    return `${formatter.format(date)} · ${timeFormatter.format(date)}`;
+    return `${getFormatter(lang).format(date)} · ${getTimeFormatter(lang).format(date)}`;
 }
 
 const tagColorClasses: Record<string, string> = {
@@ -109,10 +109,10 @@ function isTaskCompleted(task: Task) {
 
 export default function HomePage() {
     const { state } = useAuth();
-    const { config } = useConfig();
+    const { config, language } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const [agendaDate, setAgendaDate] = useState(() => new Date());
-    const agendaDay = useMemo(() => dayRange(agendaDate), [agendaDate]);
+    const agendaDay = useMemo(() => dayRange(agendaDate, language), [agendaDate, language]);
     const agendaDateInput = useMemo(() => formatInputDate(agendaDate), [agendaDate]);
 
     const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
@@ -661,7 +661,7 @@ export default function HomePage() {
                                 </h1>
                                 <div className="mt-2 flex items-center gap-2">
                                     <p className="text-text-muted">
-                                        {agendaDay.label} • {filteredAgenda.length} items
+                                        {agendaDay.label} • {filteredAgenda.length} {config.ui.itemsCount}
                                     </p>
                                     {isLoadingExtra && (
                                         <svg className="h-3 w-3 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -765,7 +765,7 @@ export default function HomePage() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5">
                                                     <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
-                                                        {item.kind === "occurrence" ? "Recurring" : "Task"}
+                                                        {item.kind === "occurrence" ? config.ui.recurringLabel : config.navigation.userData}
                                                     </span>
                                                     <span className={`h-1 w-1 rounded-full bg-surface-10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
                                                     <span className="truncate text-[10px] font-black uppercase tracking-widest text-text-muted/60">
@@ -781,7 +781,7 @@ export default function HomePage() {
                                             <div className="flex flex-col items-end gap-3 flex-shrink-0 mt-1">
                                                 <div className="flex items-center gap-2 rounded-xl bg-surface-5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-text-muted group-hover:bg-surface-8 group-hover:text-text-300 border border-surface-10 transition-all">
                                                     <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                                    {formatTime(item.due_at)}
+                                                    {formatTime(item.due_at, language)}
                                                 </div>
                                                 <button
                                                     onClick={() => setEditingTaskId(item.task_id)}
@@ -801,7 +801,7 @@ export default function HomePage() {
                             <div className="flex-grow min-w-0">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
-                                        Project
+                                        {config.navigation.projects}
                                     </span>
                                 </div>
                                 <h1 className="mt-1 truncate text-4xl font-bold tracking-tight text-text-base lg:text-5xl" title={currentProject?.name ?? "Project"}>
@@ -829,7 +829,7 @@ export default function HomePage() {
                                     className="flex items-center gap-3 rounded-2xl bg-brand-500 px-8 py-3.5 text-sm font-black uppercase tracking-widest text-on-brand shadow-brand-500/30 shadow-xl transition-all hover:scale-[1.02] hover:bg-brand-600 active:scale-[0.98] cursor-pointer animate-in fade-in zoom-in duration-500"
                                 >
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                    Create Task
+                                    {config.ui.createTaskButton}
                                 </button>
                                 <button
                                     onClick={() => setShowTagsModal(true)}
@@ -907,11 +907,11 @@ export default function HomePage() {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2.5">
                                                             <span className={`text-[10px] font-black uppercase tracking-[0.15em] transition-opacity duration-300 ${isRecurring ? "text-brand-500/70" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
-                                                                {isRecurring ? "Recurring Template" : "Single Task"}
+                                                                {isRecurring ? config.ui.recurringTemplate : config.navigation.userData}
                                                             </span>
                                                             {isRecurring && task.repeat_every && (
                                                                 <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                                                                    Every {task.repeat_every} {task.repeat_unit}
+                                                                    Every {task.repeat_every} {task.repeat_unit === "day" ? config.ui.dayUnit : task.repeat_unit === "week" ? config.ui.weekUnit : config.ui.monthUnit}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -925,7 +925,7 @@ export default function HomePage() {
                                                             </p>
                                                         )}
                                                         <p className="mt-2 text-sm text-text-muted">
-                                                            {formatDue(task.due_at ?? undefined)}
+                                                            {formatDue(task.due_at ?? undefined, language, config.ui.noDueDate)}
                                                         </p>
                                                     </div>
 
@@ -935,7 +935,7 @@ export default function HomePage() {
                                                                 onClick={() => toggleRecurringExpansion(task)}
                                                                 className={`flex items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-xs font-bold text-text-300 transition-all hover:bg-surface-10 hover:text-text-base ${isExpanded ? "bg-surface-10 text-text-base ring-1 ring-surface-10" : ""}`}
                                                             >
-                                                                Occurrences
+                                                                {config.ui.occurrences}
                                                                 <svg className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                                                             </button>
                                                         )}
@@ -1043,6 +1043,7 @@ function OccurrenceList({
     completingKeys: Set<string>;
     onToggle: (taskId: number, occurrence: components["schemas"]["Occurrence"]) => Promise<void>;
 }) {
+    const { config, language } = useConfig();
     const items = useMemo(() => [...(state?.items ?? [])].sort(
         (a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()
     ), [state?.items]);
@@ -1068,7 +1069,7 @@ function OccurrenceList({
     if (!state?.loading && items.length === 0) {
         return (
             <div className="py-4 text-sm text-text-muted italic">
-                No occurrences found for this template.
+                {config.ui.noTasksFound}
             </div>
         );
     }
@@ -1100,7 +1101,7 @@ function OccurrenceList({
                             </button>
                             <div>
                                 <p className={`text-base font-medium ${completed ? "text-text-muted line-through" : "text-text-200"}`}>
-                                    {formatDue(occurrence.due_at)}
+                                    {formatDue(occurrence.due_at, language, config.ui.noDueDate)}
                                 </p>
                                 {description && (
                                     <p className={`mt-0.5 text-sm transition-all ${completed ? "text-text-muted/60 line-through" : "text-text-muted"}`}>

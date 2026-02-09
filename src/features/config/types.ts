@@ -97,6 +97,51 @@ export interface UIConfig {
     save: string;
     settingsTitle: string;
     settingsSubtitle: string;
+    recurringTemplate: string;
+    everyMonth: string;
+    occurrences: string;
+    createProjectTitle: string;
+    createProjectSubtitle: string;
+    projectNameLabel: string;
+    projectNamePlaceholder: string;
+    projectDescriptionLabel: string;
+    projectDescriptionPlaceholder: string;
+    createProjectButton: string;
+    editProjectTitle: string;
+    editProjectSubtitle: string;
+    saveChangesButton: string;
+    deleteProjectButton: string;
+    deleteProjectConfirm: string;
+    createTaskTitle: string;
+    editTaskTitle: string;
+    taskTitleLabel: string;
+    taskTitlePlaceholder: string;
+    taskDescriptionLabel: string;
+    taskDescriptionPlaceholder: string;
+    dueDateLabel: string;
+    tagsLabel: string;
+    addTagPlaceholder: string;
+    addButton: string;
+    repeatEveryLabel: string;
+    frequencyLabel: string;
+    dayUnit: string;
+    weekUnit: string;
+    monthUnit: string;
+    recurringLabel: string;
+    createTaskButton: string;
+    deleteTaskButton: string;
+    manageTagsTitle: string;
+    manageTagsSubtitle: string;
+    createNewTagPlaceholder: string;
+    createButton: string;
+    noTagsYet: string;
+    editTagTitle: string;
+    deleteTagTitle: string;
+    loadingProjectDetails: string;
+    loadingTags: string;
+    taskTitleRequired: string;
+    dueDateRequiredForRecurring: string;
+    projectNameRequired: string;
 }
 
 export interface NavigationConfig {
@@ -213,6 +258,51 @@ export const DEFAULT_CONFIG: AppConfig = {
         save: "Save",
         settingsTitle: "Settings",
         settingsSubtitle: "Manage your workspace and security.",
+        recurringTemplate: "Recurring Template",
+        everyMonth: "Every 1 month",
+        occurrences: "Occurences",
+        createProjectTitle: "Create New Project",
+        createProjectSubtitle: "Start something new",
+        projectNameLabel: "Project Name",
+        projectNamePlaceholder: "e.g. Personal Website",
+        projectDescriptionLabel: "Description",
+        projectDescriptionPlaceholder: "What is this project about?",
+        createProjectButton: "Create Project",
+        editProjectTitle: "Edit Project",
+        editProjectSubtitle: "Workspace Settings",
+        saveChangesButton: "Save Changes",
+        deleteProjectButton: "Delete",
+        deleteProjectConfirm: "Are you sure you want to delete this project? All tasks within will be lost.",
+        createTaskTitle: "Create Task",
+        editTaskTitle: "Edit Task",
+        taskTitleLabel: "Title",
+        taskTitlePlaceholder: "Task title",
+        taskDescriptionLabel: "Description",
+        taskDescriptionPlaceholder: "Add a description...",
+        dueDateLabel: "Due Date",
+        tagsLabel: "Tags",
+        addTagPlaceholder: "Add tag...",
+        addButton: "Add",
+        repeatEveryLabel: "Repeat Every",
+        frequencyLabel: "Frequency",
+        dayUnit: "Day(s)",
+        weekUnit: "Week(s)",
+        monthUnit: "Month(s)",
+        recurringLabel: "Recurring",
+        createTaskButton: "Create Task",
+        deleteTaskButton: "Delete",
+        manageTagsTitle: "Manage Tags",
+        manageTagsSubtitle: "Organize your workspace",
+        createNewTagPlaceholder: "Create new tag...",
+        createButton: "Create",
+        noTagsYet: "No tags created yet.",
+        editTagTitle: "Edit tag",
+        deleteTagTitle: "Delete tag",
+        loadingProjectDetails: "Loading project details...",
+        loadingTags: "Loading tags...",
+        taskTitleRequired: "Title is required",
+        dueDateRequiredForRecurring: "Due date is required for recurring tasks",
+        projectNameRequired: "Project name is required",
     },
     navigation: {
         agenda: "Agenda",

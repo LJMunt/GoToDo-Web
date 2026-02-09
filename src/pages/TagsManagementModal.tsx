@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listTags, updateTag, deleteTag, createTag } from "../api/tags";
 import type { components } from "../api/schema";
+import { useConfig } from "../features/config/ConfigContext";
 
 type Tag = components["schemas"]["Tag"];
 
@@ -58,6 +59,7 @@ export function TagsManagementModal({
     onClose: () => void;
     onTagsUpdated: () => void;
 }) {
+    const { config } = useConfig();
     const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export function TagsManagementModal({
                 const data = await listTags();
                 setTags(data);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load tags");
+                setError(err instanceof Error ? err.message : config.ui.errorPrefix);
             } finally {
                 setLoading(false);
             }
@@ -136,9 +138,9 @@ export function TagsManagementModal({
                 <div className="p-10">
                     <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-3xl font-bold text-text-base tracking-tight">Manage Tags</h2>
+                            <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.manageTagsTitle}</h2>
                             <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2 ml-0.5">
-                                Organize your workspace
+                                {config.ui.manageTagsSubtitle}
                             </p>
                         </div>
                         <button
@@ -158,14 +160,14 @@ export function TagsManagementModal({
                     {loading ? (
                         <div className="py-20 text-center">
                             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-3 border-brand-500 border-t-transparent" />
-                            <p className="mt-6 text-xs font-bold uppercase tracking-widest text-text-muted animate-pulse">Loading tags...</p>
+                            <p className="mt-6 text-xs font-bold uppercase tracking-widest text-text-muted animate-pulse">{config.ui.loadingTags}</p>
                         </div>
                     ) : (
                         <div className="space-y-8">
                             <div className="flex gap-3">
                                 <input
                                     className="flex-1 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium placeholder:text-text-muted/40"
-                                    placeholder="Create new tag..."
+                                    placeholder={config.ui.createNewTagPlaceholder}
                                     value={newName}
                                     onChange={(e) => setNewName(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && handleCreate()}
@@ -175,14 +177,14 @@ export function TagsManagementModal({
                                     disabled={saving || !newName.trim()}
                                     className="rounded-2xl bg-brand-500 px-8 py-4 text-sm font-black uppercase tracking-widest text-on-brand hover:bg-brand-600 transition-all disabled:opacity-50 shadow-lg shadow-brand-500/20"
                                 >
-                                    Create
+                                    {config.ui.createButton}
                                 </button>
                             </div>
 
                             <div className="max-h-[40vh] overflow-y-auto pr-3 space-y-3 custom-scrollbar">
                                 {tags.length === 0 ? (
                                     <div className="text-center py-12 rounded-3xl border border-dashed border-surface-10 bg-surface-3">
-                                        <p className="text-sm font-medium text-text-muted">No tags created yet.</p>
+                                        <p className="text-sm font-medium text-text-muted">{config.ui.noTagsYet}</p>
                                     </div>
                                 ) : (
                                     tags.map(tag => (
@@ -240,14 +242,14 @@ export function TagsManagementModal({
                                                                 setEditColor(tag.color as Color);
                                                             }}
                                                             className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-5 text-text-muted hover:text-text-base hover:bg-surface-10 border border-surface-10 transition-all"
-                                                            title="Edit tag"
+                                                            title={config.ui.editTagTitle}
                                                         >
                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(tag.id)}
                                                             className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/5 text-text-muted hover:text-red-400 hover:bg-red-500/10 border border-red-500/10 transition-all"
-                                                            title="Delete tag"
+                                                            title={config.ui.deleteTagTitle}
                                                         >
                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                                         </button>

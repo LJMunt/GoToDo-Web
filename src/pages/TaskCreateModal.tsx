@@ -3,6 +3,7 @@ import { createTask } from "../api/projects";
 import { setTaskTags } from "../api/tasks";
 import { createTag, listTags } from "../api/tags";
 import type { components } from "../api/schema";
+import { useConfig } from "../features/config/ConfigContext";
 
 type Tag = components["schemas"]["Tag"];
 
@@ -35,6 +36,7 @@ export function TaskCreateModal({
     onClose: () => void;
     onCreated: (task?: components["schemas"]["Task"]) => void;
 }) {
+    const { config } = useConfig();
     const [allTags, setAllTags] = useState<Tag[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -63,11 +65,11 @@ export function TaskCreateModal({
 
     async function handleSave() {
         if (!title.trim()) {
-            setError("Title is required");
+            setError(config.ui.taskTitleRequired);
             return;
         }
         if (isRecurring && !dueDate) {
-            setError("Due date is required for recurring tasks");
+            setError(config.ui.dueDateRequiredForRecurring);
             return;
         }
         setSaving(true);
@@ -132,9 +134,9 @@ export function TaskCreateModal({
                 <div className="p-10">
                     <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-3xl font-bold text-text-base tracking-tight">Create New Task</h2>
+                            <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.createTaskTitle}</h2>
                             <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2 ml-0.5">
-                                Adding to project
+                                {config.ui.createProjectSubtitle}
                             </p>
                         </div>
                         <button
@@ -153,28 +155,28 @@ export function TaskCreateModal({
 
                     <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Title</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.taskTitleLabel}</label>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium placeholder:text-text-muted/40"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Task title"
+                                placeholder={config.ui.taskTitlePlaceholder}
                                 autoFocus
                             />
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Description</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.taskDescriptionLabel}</label>
                             <textarea
                                 className="w-full h-32 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 resize-none font-medium placeholder:text-text-muted/40"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Add a description..."
+                                placeholder={config.ui.taskDescriptionPlaceholder}
                             />
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Due Date</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.dueDateLabel}</label>
                             <input
                                 type="datetime-local"
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium"
@@ -184,7 +186,7 @@ export function TaskCreateModal({
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Tags</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.tagsLabel}</label>
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {tags.map(tag => {
                                     const colorClass = tagColorClasses[tag.color] || tagColorClasses.slate;
@@ -209,7 +211,7 @@ export function TaskCreateModal({
                                             addTag(newTag);
                                         }
                                     }}
-                                    placeholder="Add tag..."
+                                    placeholder={config.ui.addTagPlaceholder}
                                     list="create-tags-list"
                                 />
                                 <datalist id="create-tags-list">
@@ -221,7 +223,7 @@ export function TaskCreateModal({
                                     onClick={() => addTag(newTag)}
                                     className="rounded-2xl bg-surface-5 px-6 py-3 text-sm font-bold text-text-300 hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
                                 >
-                                    Add
+                                    {config.ui.addButton}
                                 </button>
                             </div>
                         </div>
@@ -231,7 +233,7 @@ export function TaskCreateModal({
                             <div className="pt-8 border-t border-surface-5 animate-in slide-in-from-top-4 duration-500 fade-in">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2.5">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Repeat Every</label>
+                                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.repeatEveryLabel}</label>
                                         <div className="relative">
                                             <input
                                                 type="number"
@@ -243,16 +245,16 @@ export function TaskCreateModal({
                                         </div>
                                     </div>
                                     <div className="space-y-2.5">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Frequency</label>
+                                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.frequencyLabel}</label>
                                         <div className="relative">
                                             <select
                                                 className="w-full rounded-2xl border border-surface-10 bg-bg-1a px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 appearance-none cursor-pointer font-medium"
                                                 value={repeatUnit}
                                                 onChange={(e) => setRepeatUnit(e.target.value as never)}
                                             >
-                                                <option value="day">Day(s)</option>
-                                                <option value="week">Week(s)</option>
-                                                <option value="month">Month(s)</option>
+                                                <option value="day">{config.ui.dayUnit}</option>
+                                                <option value="week">{config.ui.weekUnit}</option>
+                                                <option value="month">{config.ui.monthUnit}</option>
                                             </select>
                                             <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">
                                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -277,7 +279,7 @@ export function TaskCreateModal({
                             {isRecurring && <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                         </div>
                         <span className={`text-sm font-bold transition-colors uppercase tracking-widest ${isRecurring ? "text-brand-500" : "text-text-muted group-hover:text-text-base"}`}>
-                            Recurring
+                            {config.ui.recurringLabel}
                         </span>
                     </label>
 
@@ -286,7 +288,7 @@ export function TaskCreateModal({
                             onClick={onClose}
                             className="rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
                         >
-                            Cancel
+                            {config.ui.cancel}
                         </button>
                         <button
                             onClick={handleSave}
@@ -295,7 +297,7 @@ export function TaskCreateModal({
                         >
                             {saving ? (
                                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            ) : "Create Task"}
+                            ) : config.ui.createTaskButton}
                         </button>
                     </div>
                 </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { deleteTask, getTask, getTaskTags, setTaskTags, updateTask } from "../api/tasks";
 import { createTag, listTags } from "../api/tags";
 import type { components } from "../api/schema";
+import { useConfig } from "../features/config/ConfigContext";
 
 type Task = components["schemas"]["Task"];
 type Tag = components["schemas"]["Tag"];
@@ -37,6 +38,7 @@ export function TaskEditModal({
     onUpdated: (task?: Task) => void;
     onDeleted: () => void;
 }) {
+    const { config } = useConfig();
     const [task, setTask] = useState<Task | null>(null);
     const [tags, setTags] = useState<Tag[]>([]);
     const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -123,7 +125,7 @@ export function TaskEditModal({
             onDeleted();
             onClose();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to delete task");
+            setError(err instanceof Error ? err.message : config.ui.errorPrefix);
         } finally {
             setSaving(false);
         }
@@ -173,10 +175,10 @@ export function TaskEditModal({
                 <div className="p-10">
                     <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-3xl font-bold text-text-base tracking-tight">Edit Task</h2>
+                            <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.editTaskTitle}</h2>
                             {isRecurring && (
                                 <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mt-2 ml-0.5">
-                                    Recurring Template
+                                    {config.ui.recurringTemplate}
                                 </p>
                             )}
                         </div>
@@ -196,28 +198,28 @@ export function TaskEditModal({
 
                     <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Title</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.taskTitleLabel}</label>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium placeholder:text-text-muted/40"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Task title"
+                                placeholder={config.ui.taskTitlePlaceholder}
                             />
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Description</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.taskDescriptionLabel}</label>
                             <textarea
                                 className="w-full h-32 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 resize-none font-medium placeholder:text-text-muted/40"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Add a description..."
+                                placeholder={config.ui.taskDescriptionPlaceholder}
                             />
                         </div>
 
                         {!isRecurring && (
                             <div className="space-y-2.5">
-                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Due Date</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.dueDateLabel}</label>
                                 <input
                                     type="datetime-local"
                                     className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium"
@@ -228,7 +230,7 @@ export function TaskEditModal({
                         )}
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Tags</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.tagsLabel}</label>
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {tags.map(tag => {
                                     const colorClass = tagColorClasses[tag.color] || tagColorClasses.slate;
@@ -253,7 +255,7 @@ export function TaskEditModal({
                                             addTag(newTag);
                                         }
                                     }}
-                                    placeholder="Add tag..."
+                                    placeholder={config.ui.addTagPlaceholder}
                                     list="all-tags-list"
                                 />
                                 <datalist id="all-tags-list">
@@ -265,7 +267,7 @@ export function TaskEditModal({
                                     onClick={() => addTag(newTag)}
                                     className="rounded-2xl bg-surface-5 px-6 py-3 text-sm font-bold text-text-300 hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
                                 >
-                                    Add
+                                    {config.ui.addButton}
                                 </button>
                             </div>
                         </div>
@@ -279,14 +281,14 @@ export function TaskEditModal({
                         className="flex items-center gap-2 rounded-2xl px-6 py-4 text-sm font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-50"
                     >
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        Delete
+                        {config.ui.deleteTaskButton}
                     </button>
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onClose}
                             className="rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
                         >
-                            Cancel
+                            {config.ui.cancel}
                         </button>
                         <button
                             onClick={handleSave}
@@ -295,7 +297,7 @@ export function TaskEditModal({
                         >
                             {saving ? (
                                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            ) : "Save Changes"}
+                            ) : config.ui.saveChangesButton}
                         </button>
                     </div>
                 </div>
