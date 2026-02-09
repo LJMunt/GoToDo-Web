@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useConfig } from "../features/config/ConfigContext";
 
 interface Requirement {
     label: string;
@@ -6,19 +7,20 @@ interface Requirement {
 }
 
 export function PasswordRequirements({ password }: { password: string }) {
+    const { config } = useConfig();
     const requirements = useMemo<Requirement[]>(() => [
-        { label: "At least 8 characters", met: password.length >= 8 },
-        { label: "Uppercase letter", met: /[A-Z]/.test(password) },
-        { label: "Lowercase letter", met: /[a-z]/.test(password) },
-        { label: "Number", met: /[0-9]/.test(password) },
-        { label: "Special character", met: /[^A-Za-z0-9]/.test(password) },
-    ], [password]);
+        { label: config.ui.atLeast8Chars, met: password.length >= 8 },
+        { label: config.ui.uppercaseLetter, met: /[A-Z]/.test(password) },
+        { label: config.ui.lowercaseLetter, met: /[a-z]/.test(password) },
+        { label: config.ui.numberRequirement, met: /[0-9]/.test(password) },
+        { label: config.ui.specialCharRequirement, met: /[^A-Za-z0-9]/.test(password) },
+    ], [password, config.ui]);
 
     if (!password) return null;
 
     return (
         <div className="mt-4 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3 ml-1">Password Security</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3 ml-1">{config.ui.passwordSecurity}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {requirements.map((req) => (
                     <div key={req.label} className="flex items-center gap-2.5">

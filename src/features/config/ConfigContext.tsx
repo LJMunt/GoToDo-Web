@@ -14,6 +14,29 @@ interface ConfigContextType {
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
+function deepMerge<T extends object>(target: T, source: any): T {
+    const result = { ...target };
+    for (const key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            const sourceValue = source[key];
+            const targetValue = (target as any)[key];
+
+            if (
+                sourceValue &&
+                typeof sourceValue === "object" &&
+                !Array.isArray(sourceValue) &&
+                targetValue &&
+                typeof targetValue === "object"
+            ) {
+                (result as any)[key] = deepMerge(targetValue, sourceValue);
+            } else if (sourceValue !== undefined) {
+                (result as any)[key] = sourceValue;
+            }
+        }
+    }
+    return result;
+}
+
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
     const [isLoading, setIsLoading] = useState(false);
@@ -29,8 +52,8 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiFetch<AppConfig>(`/v1/config?lang=${language}`);
-            setConfig(data);
+            const data = await apiFetch<any>(`/v1/config?lang=${language}`);
+            setConfig(deepMerge(DEFAULT_CONFIG, data));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch configuration");
             // Fallback to default config on error

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { listUsers, updateUser, type User } from "../../api/admin";
 import { useAuth } from "../../features/auth/AuthContext";
+import { useConfig } from "../../features/config/ConfigContext";
 
 function SortIcon({ field, currentField, direction }: { field: keyof User, currentField: keyof User, direction: "asc" | "desc" }) {
     if (field !== currentField) {
@@ -25,6 +26,7 @@ function SortIcon({ field, currentField, direction }: { field: keyof User, curre
 export default function UserManagement() {
     const navigate = useNavigate();
     const { state: authState } = useAuth();
+    const { config } = useConfig();
     const currentUser = authState.status === "authenticated" ? authState.user : null;
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -146,7 +148,7 @@ export default function UserManagement() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Search users by email or ID..."
+                        placeholder={config.ui.searchPlaceholder}
                         className="w-full bg-surface-3 border border-surface-8 rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 focus:ring-4 focus:ring-brand-500/5 text-text-base placeholder:text-text-muted/50 transition-all"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -159,9 +161,9 @@ export default function UserManagement() {
                             value={filterAdmin}
                             onChange={(e) => setFilterAdmin(e.target.value as "all" | "admin" | "user")}
                         >
-                            <option value="all">All Roles</option>
-                            <option value="admin">Admins Only</option>
-                            <option value="user">Users Only</option>
+                            <option value="all">{config.ui.allRoles}</option>
+                            <option value="admin">{config.ui.adminsOnly}</option>
+                            <option value="user">{config.ui.usersOnly}</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-text-muted">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -175,9 +177,9 @@ export default function UserManagement() {
                             value={filterActive}
                             onChange={(e) => setFilterActive(e.target.value as "all" | "active" | "inactive")}
                         >
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="all">{config.ui.allStatus}</option>
+                            <option value="active">{config.ui.active}</option>
+                            <option value="inactive">{config.ui.inactive}</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-text-muted">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,36 +197,36 @@ export default function UserManagement() {
                             <tr>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("id")}>
                                     <div className="flex items-center gap-1">
-                                        ID
+                                        {config.ui.id}
                                         <SortIcon field="id" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("email")}>
                                     <div className="flex items-center gap-1">
-                                        Email
+                                        {config.ui.email}
                                         <SortIcon field="email" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("is_admin")}>
                                     <div className="flex items-center gap-1">
-                                        Role
+                                        {config.ui.role}
                                         <SortIcon field="is_admin" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("is_active")}>
                                     <div className="flex items-center gap-1">
-                                        Status
+                                        {config.ui.status}
                                         <SortIcon field="is_active" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("last_login")}>
                                     <div className="flex items-center gap-1">
-                                        Last Login
+                                        {config.ui.lastLogin}
                                         <SortIcon field="last_login" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">
-                                    Actions
+                                    {config.ui.actions}
                                 </th>
                             </tr>
                         </thead>
@@ -237,7 +239,7 @@ export default function UserManagement() {
                                             {user.email}
                                             {currentUser?.id === user.id && (
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
-                                                    You
+                                                    {config.ui.you}
                                                 </span>
                                             )}
                                         </div>
@@ -245,11 +247,11 @@ export default function UserManagement() {
                                     <td className="px-4 py-4">
                                         {user.is_admin ? (
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                                                Admin
+                                                {config.ui.adminRole}
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-text-muted border border-surface-20">
-                                                User
+                                                {config.ui.userRole}
                                             </span>
                                         )}
                                     </td>
@@ -262,19 +264,19 @@ export default function UserManagement() {
                                             {user.is_active ? (
                                                 <span className="flex items-center gap-1.5 text-green-500 group-hover/status:text-green-400 transition-colors">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                                                    Active
+                                                    {config.ui.active}
                                                 </span>
                                             ) : (
                                                 <span className="flex items-center gap-1.5 text-text-muted group-hover/status:text-red-400 transition-colors">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                    Inactive
+                                                    {config.ui.inactive}
                                                 </span>
                                             )}
                                         </button>
                                     </td>
                                     <td className="px-4 py-4 text-text-muted whitespace-nowrap">
                                         {user.last_login ? new Date(user.last_login).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : (
-                                            <span className="italic text-text-muted/50">Never logged in</span>
+                                            <span className="italic text-text-muted/50">{config.ui.never}</span>
                                         )}
                                     </td>
                                     <td className="px-4 py-4 text-right">

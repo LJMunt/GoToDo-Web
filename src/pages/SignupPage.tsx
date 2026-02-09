@@ -55,7 +55,7 @@ export default function SignupPage() {
 
                     <form onSubmit={onSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Email Address</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.auth.emailLabel}</label>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="email"
@@ -68,7 +68,7 @@ export default function SignupPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Password</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.auth.passwordLabel}</label>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="password"
@@ -90,10 +90,10 @@ export default function SignupPage() {
                                 {isSubmitting ? (
                                     <>
                                         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        Creating account...
+                                        {config.auth.creatingAccount}
                                     </>
                                 ) : (
-                                    "Create account"
+                                    config.auth.signUpButton
                                 )}
                             </div>
                         </button>
@@ -101,9 +101,9 @@ export default function SignupPage() {
 
                     <div className="mt-8 pt-6 border-t border-surface-5 text-center">
                         <p className="text-sm text-text-muted font-medium">
-                            Already have an account?{" "}
+                            {config.auth.alreadyHaveAccountPrompt}{" "}
                             <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/login">
-                                Sign in
+                                {config.auth.signInLink}
                             </Link>
                         </p>
                     </div>

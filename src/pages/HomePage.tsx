@@ -685,7 +685,7 @@ export default function HomePage() {
                                     onClick={() => setAgendaDate(new Date())}
                                     className="rounded-xl bg-surface-5 px-4 py-2 text-sm font-medium text-text-300 transition-all hover:bg-surface-10 hover:text-text-base active:scale-95"
                                 >
-                                    Today
+                                    {config.ui.today}
                                 </button>
                                 <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-sm text-text-300 transition-all hover:bg-surface-10 active:scale-95">
                                     <input
@@ -694,7 +694,7 @@ export default function HomePage() {
                                         onChange={(e) => setShowCompletedAgenda(e.target.checked)}
                                         className="h-4 w-4 rounded border-surface-15 bg-transparent text-brand-500/70 focus:ring-0 focus:ring-offset-0"
                                     />
-                                    <span className="select-none">Show completed</span>
+                                    <span className="select-none">{config.ui.showCompleted}</span>
                                 </label>
                                 <button
                                     onClick={() => setShowTagsModal(true)}
@@ -822,7 +822,7 @@ export default function HomePage() {
                                         onChange={(e) => setShowCompletedProjectTasks(e.target.checked)}
                                         className="h-4 w-4 rounded border-surface-15 bg-transparent text-brand-500/70 focus:ring-0 focus:ring-offset-0"
                                     />
-                                    <span className="select-none">Show completed</span>
+                                    <span className="select-none">{config.ui.showCompleted}</span>
                                 </label>
                                 <button
                                     onClick={() => setShowCreateModal(true)}
@@ -857,8 +857,8 @@ export default function HomePage() {
 
                         {!tasksLoading && !tasksError && filteredTasks.length === 0 && (
                             <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-surface-10 bg-surface-3 py-24 text-center">
-                                <h3 className="text-xl font-semibold text-text-200">No tasks found</h3>
-                                <p className="mt-2 text-text-muted">This project is currently empty. Start by adding a task.</p>
+                                <h3 className="text-xl font-semibold text-text-200">{config.ui.noTasksFound}</h3>
+                                <p className="mt-2 text-text-muted">{config.ui.projectEmptyStateText}</p>
                             </div>
                         )}
 

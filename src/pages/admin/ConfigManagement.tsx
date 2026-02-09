@@ -97,7 +97,7 @@ export default function ConfigManagement() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-text-base transition-none!">{appConfig.navigation.configuration}</h1>
-                    <p className="text-sm text-text-muted mt-1">Manage system-wide settings and translations.</p>
+                    <p className="text-sm text-text-muted mt-1">{appConfig.ui.languageDescription}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {hasChanges && (
@@ -107,7 +107,7 @@ export default function ConfigManagement() {
                                 disabled={saving}
                                 className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-base transition-colors"
                             >
-                                Reset
+                                {appConfig.ui.reset}
                             </button>
                             <button
                                 onClick={handleSave}
@@ -117,9 +117,9 @@ export default function ConfigManagement() {
                                 {saving ? (
                                     <>
                                         <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                        Saving...
+                                        {appConfig.ui.saving}
                                     </>
-                                ) : "Save Changes"}
+                                ) : appConfig.ui.saveChanges}
                             </button>
                         </div>
                     )}
@@ -203,7 +203,7 @@ export default function ConfigManagement() {
                 <div className="w-full lg:w-72 flex-shrink-0">
                     <div className="sticky top-6 space-y-6">
                         <div className="p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
-                            <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">Language</h3>
+                            <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">{appConfig.ui.language}</h3>
                             <div className="space-y-2">
                                 {LANGUAGES.map((lang) => (
                                     <button
