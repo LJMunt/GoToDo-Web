@@ -264,7 +264,7 @@ export function TagsManagementModal({
                     )}
                 </div>
 
-                <div className="bg-surface-3 p-10 border-t border-surface-5 flex justify-end">
+                <div className="bg-surface-3 p-10 border-t border-surface-5 flex flex-wrap justify-end gap-6">
                     <button
                         onClick={onClose}
                         className="rounded-2xl bg-surface-5 px-10 py-4 text-sm font-black uppercase tracking-widest text-text-muted hover:bg-surface-8 hover:text-text-base transition-all border border-surface-10 shadow-sm"

@@ -267,7 +267,7 @@ export function TaskCreateModal({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between bg-surface-3 p-10 border-t border-surface-5">
+                <div className="flex flex-wrap items-center justify-between bg-surface-3 p-10 border-t border-surface-5 gap-6">
                     <label className="flex items-center gap-3 cursor-pointer group">
                         <div className={`flex h-6 w-6 items-center justify-center rounded-xl border-2 transition-all ${isRecurring ? "border-brand-500 bg-brand-500/10 text-brand-500" : "border-surface-10 group-hover:border-surface-15"}`}>
                             <input

@@ -85,7 +85,7 @@ export function ProjectCreateModal({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end bg-surface-3 p-10 border-t border-surface-5 gap-4">
+                <div className="flex flex-wrap items-center justify-end bg-surface-3 p-10 border-t border-surface-5 gap-6">
                     <button
                         onClick={onClose}
                         className="rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"

@@ -138,7 +138,7 @@ export function ProjectEditModal({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between bg-surface-3 p-10 border-t border-surface-5">
+                <div className="flex flex-wrap items-center justify-between bg-surface-3 p-10 border-t border-surface-5 gap-6">
                     <button
                         onClick={handleDelete}
                         disabled={saving}
