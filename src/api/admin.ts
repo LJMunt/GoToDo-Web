@@ -1,7 +1,7 @@
 import { apiFetch } from "./http";
 import type { components } from "./schema";
 
-import type { ConfigKey, ConfigTranslations } from "../features/config/types";
+import type { ConfigKey, ConfigTranslations, ConfigValues } from "../features/config/types";
 
 export type User = components["schemas"]["User"];
 export type Project = components["schemas"]["Project"];
@@ -90,5 +90,16 @@ export async function updateConfigTranslations(lang: string, translations: Confi
     await apiFetch(`/v1/admin/config/translations?lang=${lang}`, {
         method: "PUT",
         body: JSON.stringify(translations),
+    });
+}
+
+export async function getConfigValues(): Promise<ConfigValues> {
+    return apiFetch<ConfigValues>("/v1/admin/config/values");
+}
+
+export async function updateConfigValues(values: ConfigValues): Promise<void> {
+    await apiFetch("/v1/admin/config/values", {
+        method: "PUT",
+        body: JSON.stringify(values),
     });
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { listConfigKeys, getConfigTranslations, updateConfigTranslations } from "../../api/admin";
-import type { ConfigKey, ConfigTranslations } from "../../features/config/types";
+import { listConfigKeys, getConfigTranslations, updateConfigTranslations, getConfigValues, updateConfigValues } from "../../api/admin";
+import type { ConfigKey, ConfigTranslations, ConfigValues, ConfigValue } from "../../features/config/types";
 import { useConfig } from "../../features/config/ConfigContext";
 
 const LANGUAGES = [
@@ -11,10 +11,18 @@ const LANGUAGES = [
 
 export default function ConfigManagement() {
     const { config: appConfig, refreshConfig } = useConfig();
+    const [scope, setScope] = useState<"ui" | "backend">("ui");
     const [keys, setKeys] = useState<ConfigKey[]>([]);
     const [currentLang, setCurrentLang] = useState("en");
+    
+    // UI Text state
     const [translations, setTranslations] = useState<ConfigTranslations>({});
     const [editedTranslations, setEditedTranslations] = useState<ConfigTranslations>({});
+    
+    // Backend values state
+    const [values, setValues] = useState<ConfigValues>({});
+    const [editedValues, setEditedValues] = useState<ConfigValues>({});
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,13 +33,16 @@ export default function ConfigManagement() {
             setLoading(true);
             setError(null);
             try {
-                const [keysData, translationsData] = await Promise.all([
+                const [keysData, translationsData, valuesData] = await Promise.all([
                     listConfigKeys(),
-                    getConfigTranslations(currentLang)
+                    getConfigTranslations(currentLang),
+                    getConfigValues()
                 ]);
                 setKeys(keysData);
                 setTranslations(translationsData);
                 setEditedTranslations(translationsData);
+                setValues(valuesData);
+                setEditedValues(valuesData);
             } catch (e) {
                 setError(e instanceof Error ? e.message : "Failed to fetch configuration data");
             } finally {
@@ -42,32 +53,47 @@ export default function ConfigManagement() {
     }, [currentLang]);
 
     const hasChanges = useMemo(() => {
-        return JSON.stringify(translations) !== JSON.stringify(editedTranslations);
-    }, [translations, editedTranslations]);
+        if (scope === "ui") {
+            return JSON.stringify(translations) !== JSON.stringify(editedTranslations);
+        } else {
+            return JSON.stringify(values) !== JSON.stringify(editedValues);
+        }
+    }, [scope, translations, editedTranslations, values, editedValues]);
 
     const handleSave = async () => {
         setSaving(true);
         setError(null);
         try {
-            await updateConfigTranslations(currentLang, editedTranslations);
-            setTranslations(editedTranslations);
-            // Refresh public config if we updated the current language
+            if (scope === "ui") {
+                await updateConfigTranslations(currentLang, editedTranslations);
+                setTranslations(editedTranslations);
+            } else {
+                await updateConfigValues(editedValues);
+                setValues(editedValues);
+            }
+            // Refresh public config
             await refreshConfig();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Failed to save translations");
+            setError(e instanceof Error ? e.message : "Failed to save changes");
         } finally {
             setSaving(false);
         }
     };
 
     const handleReset = () => {
-        setEditedTranslations(translations);
+        if (scope === "ui") {
+            setEditedTranslations(translations);
+        } else {
+            setEditedValues(values);
+        }
     };
 
-    const filteredKeys = keys.filter(k => 
-        k.key.toLowerCase().includes(search.toLowerCase()) || 
-        k.description?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredKeys = keys.filter(k => {
+        const matchesSearch = k.key.toLowerCase().includes(search.toLowerCase()) || 
+            k.description?.toLowerCase().includes(search.toLowerCase());
+        const matchesScope = scope === "ui" ? k.is_public : !k.is_public;
+        return matchesSearch && matchesScope;
+    });
 
     const groupedKeys = useMemo(() => {
         const groups: Record<string, ConfigKey[]> = {};
@@ -97,6 +123,28 @@ export default function ConfigManagement() {
                     <h1 className="text-2xl font-bold text-text-base transition-none!">{appConfig.navigation.configuration}</h1>
                 </div>
                 <div className="flex items-center gap-3">
+                    <div className="flex bg-surface-5 p-1 rounded-xl border border-surface-10 mr-4">
+                        <button
+                            onClick={() => setScope("ui")}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                scope === "ui"
+                                    ? "bg-surface-3 text-brand-500 shadow-sm ring-1 ring-surface-10"
+                                    : "text-text-muted hover:text-text-base"
+                            }`}
+                        >
+                            UI Text
+                        </button>
+                        <button
+                            onClick={() => setScope("backend")}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                scope === "backend"
+                                    ? "bg-surface-3 text-brand-500 shadow-sm ring-1 ring-surface-10"
+                                    : "text-text-muted hover:text-text-base"
+                            }`}
+                        >
+                            Backend Settings
+                        </button>
+                    </div>
                     {hasChanges && (
                         <div className="flex items-center gap-2">
                             <button
@@ -158,9 +206,13 @@ export default function ConfigManagement() {
                                                 <div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-mono text-sm font-bold text-text-base">{k.key}</span>
-                                                        {k.is_public && (
+                                                        {k.is_public ? (
                                                             <span className="text-[10px] font-bold uppercase tracking-wider text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-md border border-green-500/20">
                                                                 Public
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded-md border border-red-500/20">
+                                                                Private
                                                             </span>
                                                         )}
                                                     </div>
@@ -172,16 +224,63 @@ export default function ConfigManagement() {
                                             </div>
 
                                             <div className="relative group/input">
-                                                <input
-                                                    type={k.data_type === 'number' ? 'number' : 'text'}
-                                                    value={editedTranslations[k.key] ?? ""}
-                                                    onChange={(e) => setEditedTranslations({
-                                                        ...editedTranslations,
-                                                        [k.key]: e.target.value
-                                                    })}
-                                                    className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"
-                                                    placeholder="Enter translation..."
-                                                />
+                                                {scope === "ui" ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editedTranslations[k.key] ?? ""}
+                                                        onChange={(e) => setEditedTranslations({
+                                                            ...editedTranslations,
+                                                            [k.key]: e.target.value
+                                                        })}
+                                                        className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"
+                                                        placeholder="Enter translation..."
+                                                    />
+                                                ) : (
+                                                    k.data_type === "boolean" ? (
+                                                        <div className="flex items-center gap-4 py-1">
+                                                            <button
+                                                                onClick={() => setEditedValues({
+                                                                    ...editedValues,
+                                                                    [k.key]: true
+                                                                })}
+                                                                className={`flex-1 py-2 px-4 rounded-xl border text-sm font-medium transition-all ${
+                                                                    editedValues[k.key] === true
+                                                                        ? "bg-brand-500/10 border-brand-500 text-brand-500"
+                                                                        : "bg-surface-5 border-surface-10 text-text-muted hover:border-surface-20"
+                                                                }`}
+                                                            >
+                                                                True
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setEditedValues({
+                                                                    ...editedValues,
+                                                                    [k.key]: false
+                                                                })}
+                                                                className={`flex-1 py-2 px-4 rounded-xl border text-sm font-medium transition-all ${
+                                                                    editedValues[k.key] === false
+                                                                        ? "bg-brand-500/10 border-brand-500 text-brand-500"
+                                                                        : "bg-surface-5 border-surface-10 text-text-muted hover:border-surface-20"
+                                                                }`}
+                                                            >
+                                                                False
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <input
+                                                            type={k.data_type === 'number' ? 'number' : 'text'}
+                                                            value={(editedValues[k.key] as any) ?? ""}
+                                                            onChange={(e) => {
+                                                                const val = k.data_type === 'number' ? (e.target.value === "" ? 0 : Number(e.target.value)) : e.target.value;
+                                                                setEditedValues({
+                                                                    ...editedValues,
+                                                                    [k.key]: val as ConfigValue
+                                                                });
+                                                            }}
+                                                            className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"
+                                                            placeholder={`Enter ${k.data_type} value...`}
+                                                        />
+                                                    )
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -199,32 +298,34 @@ export default function ConfigManagement() {
 
                 <div className="w-full lg:w-72 flex-shrink-0">
                     <div className="sticky top-6 space-y-6">
-                        <div className="p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
-                            <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">{appConfig.ui.language}</h3>
-                            <div className="space-y-2">
-                                {LANGUAGES.map((lang) => (
-                                    <button
-                                        key={lang.code}
-                                        onClick={() => {
-                                            if (hasChanges && !confirm("You have unsaved changes. Switch language anyway?")) return;
-                                            setCurrentLang(lang.code);
-                                        }}
-                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all text-sm font-medium border ${
-                                            currentLang === lang.code
-                                                ? "bg-brand-500/10 text-brand-500 border-brand-500/20"
-                                                : "text-text-muted border-transparent hover:bg-surface-5 hover:text-text-base"
-                                        }`}
-                                    >
-                                        {lang.label}
-                                        {currentLang === lang.code && (
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                ))}
+                        {scope === "ui" && (
+                            <div className="p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
+                                <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">{appConfig.ui.language}</h3>
+                                <div className="space-y-2">
+                                    {LANGUAGES.map((lang) => (
+                                        <button
+                                            key={lang.code}
+                                            onClick={() => {
+                                                if (hasChanges && !confirm("You have unsaved changes. Switch language anyway?")) return;
+                                                setCurrentLang(lang.code);
+                                            }}
+                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all text-sm font-medium border ${
+                                                currentLang === lang.code
+                                                    ? "bg-brand-500/10 text-brand-500 border-brand-500/20"
+                                                    : "text-text-muted border-transparent hover:bg-surface-5 hover:text-text-base"
+                                            }`}
+                                        >
+                                            {lang.label}
+                                            {currentLang === lang.code && (
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="p-6 rounded-3xl border border-surface-8 bg-brand-500/5 ring-1 ring-brand-500/10 shadow-sm">
                             <div className="flex items-center gap-2 text-brand-500 mb-2">
