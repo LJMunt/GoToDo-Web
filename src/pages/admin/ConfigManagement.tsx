@@ -268,12 +268,41 @@ export default function ConfigManagement() {
                                                     ) : (
                                                         <input
                                                             type={k.data_type === 'number' ? 'number' : 'text'}
-                                                            value={(editedValues[k.key] as any) ?? ""}
+                                                            value={(() => {
+                                                                const current = editedValues[k.key];
+                                                                if (current == null) return "";
+                                                                if (typeof current === "object") return JSON.stringify(current);
+                                                                return String(current);
+                                                            })()}
                                                             onChange={(e) => {
-                                                                const val = k.data_type === 'number' ? (e.target.value === "" ? 0 : Number(e.target.value)) : e.target.value;
+                                                                const raw = e.target.value;
+                                                                let val: ConfigValue;
+                                                                if (k.data_type === 'number') {
+                                                                    val = raw === "" ? 0 : Number(raw);
+                                                                } else {
+                                                                    if (raw.trim() === "") {
+                                                                        val = null;
+                                                                    } else {
+                                                                        try {
+                                                                            const parsed = JSON.parse(raw);
+                                                                            if (Array.isArray(parsed)) {
+                                                                                val = parsed as unknown[];
+                                                                            } else if (parsed !== null && typeof parsed === "object") {
+                                                                                val = parsed as Record<string, never>;
+                                                                            } else if (typeof parsed === "number" || typeof parsed === "boolean") {
+                                                                                val = parsed as number | boolean;
+                                                                            } else {
+                                                                                val = null;
+                                                                            }
+                                                                        } catch {
+                                                                            // If not valid JSON, fall back to null to satisfy type and avoid invalid state
+                                                                            val = null;
+                                                                        }
+                                                                    }
+                                                                }
                                                                 setEditedValues({
                                                                     ...editedValues,
-                                                                    [k.key]: val as ConfigValue
+                                                                    [k.key]: val
                                                                 });
                                                             }}
                                                             className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"

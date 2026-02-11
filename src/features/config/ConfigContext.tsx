@@ -14,27 +14,29 @@ interface ConfigContextType {
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
-function deepMerge<T extends object>(target: T, source: any): T {
-    const result = { ...target };
-    for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-            const sourceValue = source[key];
-            const targetValue = (target as any)[key];
+function deepMerge<T extends object>(target: T, source: Partial<T>): T {
+    const result = { ...(target as object) } as unknown as Record<string, unknown>;
+    const src = source as unknown as Record<string, unknown>;
+    const tgt = target as unknown as Record<string, unknown>;
 
-            if (
-                sourceValue &&
-                typeof sourceValue === "object" &&
-                !Array.isArray(sourceValue) &&
-                targetValue &&
-                typeof targetValue === "object"
-            ) {
-                (result as any)[key] = deepMerge(targetValue, sourceValue);
-            } else if (sourceValue !== undefined) {
-                (result as any)[key] = sourceValue;
-            }
+    for (const key of Object.keys(src)) {
+        const sourceValue = src[key];
+        const targetValue = tgt[key];
+
+        if (
+            sourceValue &&
+            typeof sourceValue === "object" &&
+            !Array.isArray(sourceValue) &&
+            targetValue &&
+            typeof targetValue === "object" &&
+            !Array.isArray(targetValue)
+        ) {
+            result[key] = deepMerge(targetValue as object, sourceValue as object) as unknown;
+        } else if (sourceValue !== undefined) {
+            result[key] = sourceValue;
         }
     }
-    return result;
+    return result as unknown as T;
 }
 
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
@@ -52,8 +54,8 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiFetch<any>(`/v1/config?lang=${language}`);
-            setConfig(deepMerge(DEFAULT_CONFIG, data));
+            const data = await apiFetch<Partial<AppConfig>>(`/v1/config?lang=${language}`);
+            setConfig(deepMerge<AppConfig>(DEFAULT_CONFIG, data));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch configuration");
             // Fallback to default config on error
@@ -74,6 +76,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- exporting hook from the context module is intentional.
 export function useConfig() {
     const context = useContext(ConfigContext);
     if (context === undefined) {

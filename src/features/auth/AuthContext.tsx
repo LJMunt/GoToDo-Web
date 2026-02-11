@@ -36,18 +36,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setState({ status: "loading" });
         try {
             const me = await getMe();
-            // Cast to any briefly to satisfy TS if the schema and runtime mismatch during transition
-            // but we want to ensure settings exist.
-            const userMe = me as any;
+            // Ensure settings exist while avoiding `any` casts and enforce allowed theme values
+            const hasSettings = typeof me === "object" && me !== null && "settings" in me;
+            const incoming = hasSettings && (me as { settings?: { theme?: string; showCompletedDefault?: boolean } }).settings
+                ? (me as { settings: { theme?: string; showCompletedDefault?: boolean } }).settings
+                : { theme: "system", showCompletedDefault: false };
+
+            const allowedThemes = new Set(["system", "light", "dark"] as const);
+            const theme = allowedThemes.has(incoming.theme as typeof allowedThemes extends Set<infer U> ? U : never)
+                ? (incoming.theme as "system" | "light" | "dark")
+                : "system";
+            const showCompletedDefault = incoming.showCompletedDefault ?? false;
+
             setState({
                 status: "authenticated",
                 user: {
-                    ...me,
-                    settings: userMe.settings ?? {
-                        theme: "system",
-                        showCompletedDefault: false
-                    }
-                } as components["schemas"]["UserMe"]
+                    ...(me as components["schemas"]["UserMe"]),
+                    settings: { theme, showCompletedDefault },
+                },
             });
         } catch {
             // token invalid/expired/etc

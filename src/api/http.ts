@@ -45,8 +45,12 @@ export async function apiFetch<T>(
 
         let msg = `HTTP ${res.status}`;
         try {
-            const data = await res.json();
-            if ((data as any)?.error) msg = String((data as any).error);
+            const data: unknown = await res.json();
+            if (typeof data === "object" && data !== null && "error" in data) {
+                const errVal = (data as { error?: unknown }).error;
+                if (typeof errVal === "string") msg = errVal;
+                else if (errVal != null) msg = String(errVal);
+            }
         } catch {
             const text = await res.text().catch(() => "");
             if (text) msg = text;
