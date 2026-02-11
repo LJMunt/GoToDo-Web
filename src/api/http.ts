@@ -11,26 +11,42 @@ export function setToken(token: string | null) {
     else localStorage.removeItem("token");
 }
 
+// Default timeout for API requests (ms)
+const DEFAULT_TIMEOUT = 15000;
+
 export async function apiFetch<T>(
     path: string,
     init: RequestInit = {}
 ): Promise<T> {
     const token = getToken();
 
-    const res = await fetch(`${API_BASE}${path}`, {
-        ...init,
-        headers: {
-            ...(init.headers ?? {}),
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+    let res: Response;
+    try {
+        res = await fetch(`${API_BASE}${path}`, {
+            ...init,
+            signal: controller.signal,
+            headers: {
+                ...(init.headers ?? {}),
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        });
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
+        // Clear token on 401 to preserve expected auth flow without backend changes
+        if (res.status === 401) setToken(null);
+
         let msg = `HTTP ${res.status}`;
         try {
             const data = await res.json();
-            if (data?.error) msg = String(data.error);
+            if ((data as any)?.error) msg = String((data as any).error);
         } catch {
             const text = await res.text().catch(() => "");
             if (text) msg = text;
