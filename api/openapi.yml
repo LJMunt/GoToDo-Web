@@ -257,8 +257,9 @@ components:
       description: Nested JSON configuration object (public)
 
     ConfigValue:
-      description: JSON value for non-string config keys.
+      description: JSON value for config keys. String values are allowed for non-public keys.
       oneOf:
+        - type: string
         - type: boolean
         - type: number
         - type: object
@@ -1530,9 +1531,10 @@ paths:
     get:
       tags: [ Admin ]
       summary: Get backend config values (Admin only)
+      description: Returns all configuration values stored in value_json.
       responses:
         "200":
-          description: Key-value pairs of backend config values
+          description: Key-value pairs of config values
           content:
             application/json:
               schema:
@@ -1545,7 +1547,14 @@ paths:
           $ref: "#/components/responses/InternalServerError"
     put:
       tags: [ Admin ]
-      summary: Bulk upsert backend config values (Admin only)
+      summary: Bulk upsert config values (Admin only)
+      description: |
+        Bulk updates configuration values stored in value_json.
+        Rules:
+        - Rejects updates for public string keys (must use translations endpoint).
+        - Allows updates for non-public string keys.
+        - Rejects updates for any public key to prevent accidental exposure of backend settings via this endpoint.
+        - Validates JSON type matches data_type for 'boolean' and 'number'.
       requestBody:
         required: true
         content:
