@@ -265,6 +265,17 @@ export default function ConfigManagement() {
                                                                 False
                                                             </button>
                                                         </div>
+                                                    ) : k.data_type === 'string' ? (
+                                                        <input
+                                                            type="text"
+                                                            value={String(editedValues[k.key] ?? "")}
+                                                            onChange={(e) => setEditedValues({
+                                                                ...editedValues,
+                                                                [k.key]: e.target.value
+                                                            })}
+                                                            className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"
+                                                            placeholder="Enter string value..."
+                                                        />
                                                     ) : (
                                                         <input
                                                             type={k.data_type === 'number' ? 'number' : 'text'}
@@ -292,11 +303,11 @@ export default function ConfigManagement() {
                                                                             } else if (typeof parsed === "number" || typeof parsed === "boolean") {
                                                                                 val = parsed as number | boolean;
                                                                             } else {
-                                                                                val = null;
+                                                                                val = raw; // Fallback to raw string if it's not valid JSON but might be intended as string
                                                                             }
                                                                         } catch {
-                                                                            // If not valid JSON, fall back to null to satisfy type and avoid invalid state
-                                                                            val = null;
+                                                                            // If not valid JSON, treat as string
+                                                                            val = raw;
                                                                         }
                                                                     }
                                                                 }
