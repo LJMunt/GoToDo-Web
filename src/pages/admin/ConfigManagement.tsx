@@ -1,13 +1,27 @@
 import { useEffect, useState, useMemo } from "react";
-import { listConfigKeys, getConfigTranslations, updateConfigTranslations, getConfigValues, updateConfigValues } from "../../api/admin";
+import {
+    listConfigKeys,
+    getConfigTranslations,
+    updateConfigTranslations,
+    getConfigValues,
+    updateConfigValues,
+    createLanguage,
+    deleteLanguage
+} from "../../api/admin";
 import type { ConfigKey, ConfigTranslations, ConfigValues, ConfigValue } from "../../features/config/types";
 import { useConfig } from "../../features/config/ConfigContext";
 
 export default function ConfigManagement() {
-    const { config: appConfig, refreshConfig, availableLanguages: LANGUAGES } = useConfig();
+    const { config: appConfig, refreshConfig, availableLanguages: LANGUAGES, fetchLanguages } = useConfig();
     const [scope, setScope] = useState<"ui" | "backend">("ui");
     const [keys, setKeys] = useState<ConfigKey[]>([]);
     const [currentLang, setCurrentLang] = useState("en");
+
+    // Language management state
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newCode, setNewCode] = useState("");
+    const [newName, setNewName] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
     
     // UI Text state
     const [translations, setTranslations] = useState<ConfigTranslations>({});
@@ -79,6 +93,49 @@ export default function ConfigManagement() {
             setEditedTranslations(translations);
         } else {
             setEditedValues(values);
+        }
+    };
+
+    const handleCreateLanguage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsCreating(true);
+        setError(null);
+        try {
+            const normalizedCode = newCode.toLowerCase();
+            await createLanguage({ code: normalizedCode, name: newName });
+            const configValues = await getConfigValues();
+            const defaultLang = (configValues["config.default_language"] as string) || "en";
+
+            if (normalizedCode !== defaultLang) {
+                const defaultTranslations = await getConfigTranslations(defaultLang);
+                await updateConfigTranslations(normalizedCode, defaultTranslations);
+            }
+
+            setNewCode("");
+            setNewName("");
+            setShowCreateModal(false);
+            await fetchLanguages();
+            await refreshConfig();
+            setCurrentLang(normalizedCode);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to create language");
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const handleDeleteLanguage = async (code: string) => {
+        if (!confirm(`Are you sure you want to delete language ${code}?`)) return;
+        setError(null);
+        try {
+            await deleteLanguage(code);
+            await fetchLanguages();
+            await refreshConfig();
+            if (currentLang === code) {
+                setCurrentLang("en");
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to delete language");
         }
     };
 
@@ -334,28 +391,54 @@ export default function ConfigManagement() {
                     <div className="sticky top-6 space-y-6">
                         {scope === "ui" && (
                             <div className="p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
-                                <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">{appConfig.ui.language}</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest">{appConfig.ui.language}</h3>
+                                    <button
+                                        onClick={() => setShowCreateModal(true)}
+                                        className="p-1.5 rounded-lg bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition-all cursor-pointer"
+                                        title="Add Language"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div className="space-y-2">
                                     {LANGUAGES.map((lang) => (
-                                        <button
-                                            key={lang.code}
-                                            onClick={() => {
-                                                if (hasChanges && !confirm("You have unsaved changes. Switch language anyway?")) return;
-                                                setCurrentLang(lang.code);
-                                            }}
-                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all text-sm font-medium border ${
-                                                currentLang === lang.code
-                                                    ? "bg-brand-500/10 text-brand-500 border-brand-500/20"
-                                                    : "text-text-muted border-transparent hover:bg-surface-5 hover:text-text-base"
-                                            }`}
-                                        >
-                                            {lang.name}
-                                            {currentLang === lang.code && (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
+                                        <div key={lang.code} className="group/lang relative">
+                                            <button
+                                                onClick={() => {
+                                                    if (hasChanges && !confirm("You have unsaved changes. Switch language anyway?")) return;
+                                                    setCurrentLang(lang.code);
+                                                }}
+                                                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all text-sm font-medium border ${
+                                                    currentLang === lang.code
+                                                        ? "bg-brand-500/10 text-brand-500 border-brand-500/20"
+                                                        : "text-text-muted border-transparent hover:bg-surface-5 hover:text-text-base"
+                                                }`}
+                                            >
+                                                {lang.name}
+                                                {currentLang === lang.code && (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                            {currentLang === lang.code && lang.code !== 'en' && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteLanguage(lang.code);
+                                                    }}
+                                                    className="absolute right-10 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-red-500 opacity-0 group-hover/lang:opacity-100 transition-all cursor-pointer"
+                                                    title="Delete Language"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
                                             )}
-                                        </button>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
@@ -375,6 +458,64 @@ export default function ConfigManagement() {
                     </div>
                 </div>
             </div>
+
+            {showCreateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-md overflow-hidden rounded-5xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-surface-15">
+                        <form onSubmit={handleCreateLanguage} className="p-10 space-y-8">
+                            <div>
+                                <h2 className="text-3xl font-bold text-text-base tracking-tight">Add Language</h2>
+                                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2">
+                                    Create a new localization
+                                </p>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Language Code (e.g. en, pt-br)</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        pattern="^[a-zA-Z]{2}(-[a-zA-Z]{2,4})?$"
+                                        value={newCode}
+                                        onChange={(e) => setNewCode(e.target.value.toLowerCase())}
+                                        className="w-full bg-surface-5 border border-surface-15 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all text-text-base placeholder:text-text-muted/20 font-medium"
+                                        placeholder="en"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Display Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        className="w-full bg-surface-5 border border-surface-15 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all text-text-base placeholder:text-text-muted/20 font-medium"
+                                        placeholder="English"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="flex-1 px-6 py-4 rounded-2xl border border-surface-15 text-text-muted font-black uppercase tracking-widest text-sm hover:bg-surface-5 transition-all active:scale-[0.98] cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isCreating}
+                                    className="flex-1 px-6 py-4 rounded-2xl bg-brand-500 text-on-brand font-black uppercase tracking-widest text-sm hover:bg-brand-600 shadow-xl shadow-brand-500/20 transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                                >
+                                    {isCreating ? "Adding..." : "Add"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

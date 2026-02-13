@@ -11,7 +11,6 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import UserManagement from "../pages/admin/UserManagement";
 import UserDataView from "../pages/admin/UserDataView";
 import ConfigManagement from "../pages/admin/ConfigManagement";
-import LanguageManagement from "../pages/admin/LanguageManagement";
 
 export const router = createBrowserRouter([
     {
@@ -37,7 +36,6 @@ export const router = createBrowserRouter([
                     { path: "users", element: <UserManagement /> },
                     { path: "users/:userId/:tab", element: <UserDataView /> },
                     { path: "config", element: <ConfigManagement /> },
-                    { path: "languages", element: <LanguageManagement /> },
                     { path: "jobs", element: <div>Jobs</div> },
                 ],
             },

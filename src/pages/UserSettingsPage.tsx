@@ -243,14 +243,14 @@ export default function UserSettingsPage() {
                                     {config.ui.languageDescription}
                                 </div>
                             </div>
-                            <div className="flex flex-wrap bg-surface-10 p-1.5 rounded-2xl border border-surface-15 gap-1.5">
+                            <div className="flex flex-wrap bg-surface-10 p-1 rounded-xl border border-surface-15 gap-1">
                                 {availableLanguages.map((l) => (
                                     <button
                                         key={l.code}
                                         onClick={() => setLanguage(l.code)}
-                                        className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
                                             language === l.code
-                                                ? "bg-surface-3 text-brand-500 shadow-lg border border-surface-15 scale-105"
+                                                ? "bg-surface-3 text-brand-500 shadow-sm border border-surface-15 scale-105"
                                                 : "text-text-muted hover:text-text-base"
                                         }`}
                                     >

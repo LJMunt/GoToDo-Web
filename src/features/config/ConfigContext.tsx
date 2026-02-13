@@ -14,6 +14,7 @@ interface ConfigContextType {
     availableLanguages: Language[];
     setLanguage: (lang: string) => void;
     refreshConfig: () => Promise<void>;
+    fetchLanguages: () => Promise<void>;
 }
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -113,7 +114,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     }, [language]);
 
     return (
-        <ConfigContext.Provider value={{ config, isLoading, error, language, availableLanguages, setLanguage, refreshConfig }}>
+        <ConfigContext.Provider value={{ config, isLoading, error, language, availableLanguages, setLanguage, refreshConfig, fetchLanguages }}>
             {children}
         </ConfigContext.Provider>
     );
