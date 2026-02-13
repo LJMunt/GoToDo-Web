@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../../api/http";
+import { useConfig } from "../../features/config/ConfigContext";
+
+import type { components } from "../../api/schema";
+import { listUsers } from "../../api/admin";
 
 type HealthStatus = "loading" | "healthy" | "unhealthy" | "error";
 
-interface DatabaseMetrics {
-    database_size: string;
-    connections: number;
-    deadlocks: number;
-    blocks_read: number;
-    blocks_hit: number;
-    cache_hit_ratio: number;
-}
+type DatabaseMetrics = components["schemas"]["DatabaseMetrics"];
 
 interface StatusIndicatorProps {
     status: HealthStatus;
@@ -56,7 +53,7 @@ function StatusIndicator({ status, label }: StatusIndicatorProps) {
                     bg: "bg-surface-10",
                     border: "border-surface-20",
                     text: "text-text-muted",
-                    icon: <div className="w-1 h-1 rounded-full bg-current animate-pulse" />,
+                    icon: <div className="w-1 h-1 rounded-full bg-current" />,
                 };
         }
     };
@@ -99,6 +96,7 @@ function MetricCard({ label, value, description, icon }: MetricCardProps) {
 }
 
 export default function AdminDashboard() {
+    const { config } = useConfig();
     const version = `v${import.meta.env.APP_VERSION}`;
     const [backendVersion, setBackendVersion] = useState<string>("loading...");
     const [healthStatus, setHealthStatus] = useState<HealthStatus>("loading");
@@ -142,7 +140,7 @@ export default function AdminDashboard() {
 
         const fetchUserCount = async () => {
             try {
-                const data = await apiFetch<unknown[]>("/v1/admin/users");
+                const data = await listUsers();
                 setUserCount(data.length);
             } catch (e) {
                 setUserCount("error");
@@ -182,7 +180,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-text-base">Admin Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-text-base transition-none!">{config.navigation.dashboard}</h1>
                     <p className="text-sm text-text-muted mt-1">System status and overview.</p>
                 </div>
                 <button
@@ -208,32 +206,32 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest ml-1">System Status</h2>
+                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest ml-1">{config.ui.systemStatus}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <StatusIndicator label="Backend Health" status={healthStatus} />
-                    <StatusIndicator label="DB Ready" status={readyStatus} />
+                    <StatusIndicator label={config.ui.backendHealth} status={healthStatus} />
+                    <StatusIndicator label={config.ui.dbReady} status={readyStatus} />
                 </div>
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest ml-1">System Information</h2>
+                <h2 className="text-xs font-bold text-text-muted uppercase tracking-widest ml-1">{config.ui.systemInformation}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
-                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">Web Version</span>
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">{config.ui.webVersion}</span>
                         <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-surface-5 text-text-muted border border-surface-10 uppercase tracking-tighter">
                             {version}
                         </span>
                     </div>
                     <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
-                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">Backend Version</span>
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">{config.ui.backendVersion}</span>
                         <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-surface-5 text-text-muted border border-surface-10 uppercase tracking-tighter">
                             {backendVersion}
                         </span>
                     </div>
                     <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
-                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">Total Users</span>
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">{config.ui.totalUsers}</span>
                         <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/20 uppercase tracking-tighter">
-                            {userCount === "loading" ? "..." : userCount === "error" ? "Error" : userCount}
+                            {userCount === "loading" ? "..." : userCount === "error" ? config.ui.errorPrefix : userCount}
                         </span>
                     </div>
                 </div>
@@ -244,16 +242,16 @@ export default function AdminDashboard() {
                     <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-sm font-medium">Failed to load database metrics: {metricsError}</p>
+                    <p className="text-sm font-medium">{config.ui.databaseMetrics} {config.ui.errorPrefix}: {metricsError}</p>
                 </div>
             )}
 
             {metrics && (
                 <div className="space-y-4">
-                    <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Database Metrics</h2>
+                    <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">{config.ui.databaseMetrics}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <MetricCard
-                            label="Database Size"
+                            label={config.ui.databaseSize}
                             value={metrics.database_size}
                             description="Total size of the database on disk"
                             icon={(
@@ -263,7 +261,7 @@ export default function AdminDashboard() {
                             )}
                         />
                         <MetricCard
-                            label="Active Connections"
+                            label={config.ui.activeConnections}
                             value={metrics.connections}
                             description="Number of currently active database connections"
                             icon={(
@@ -273,7 +271,7 @@ export default function AdminDashboard() {
                             )}
                         />
                         <MetricCard
-                            label="Cache Hit Ratio"
+                            label={config.ui.cacheHitRatio}
                             value={`${metrics.cache_hit_ratio.toFixed(2)}%`}
                             description="Percentage of disk blocks found in buffer cache"
                             icon={(
@@ -283,7 +281,7 @@ export default function AdminDashboard() {
                             )}
                         />
                         <MetricCard
-                            label="Deadlocks"
+                            label={config.ui.deadlocks}
                             value={metrics.deadlocks}
                             description="Total number of transaction conflicts detected"
                             icon={(
@@ -293,7 +291,7 @@ export default function AdminDashboard() {
                             )}
                         />
                         <MetricCard
-                            label="Blocks Read"
+                            label={config.ui.blocksRead}
                             value={metrics.blocks_read.toLocaleString()}
                             description="Total number of disk blocks read from storage"
                             icon={(
@@ -303,7 +301,7 @@ export default function AdminDashboard() {
                             )}
                         />
                         <MetricCard
-                            label="Blocks Hit"
+                            label={config.ui.blocksHit}
                             value={metrics.blocks_hit.toLocaleString()}
                             description="Total disk blocks found in buffer cache"
                             icon={(

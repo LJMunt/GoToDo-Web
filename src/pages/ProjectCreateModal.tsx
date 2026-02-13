@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createProject } from "../api/projects";
+import { useConfig } from "../features/config/ConfigContext";
 
 export function ProjectCreateModal({
     onClose,
@@ -8,6 +9,7 @@ export function ProjectCreateModal({
     onClose: () => void;
     onCreated: () => void;
 }) {
+    const { config } = useConfig();
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -15,7 +17,7 @@ export function ProjectCreateModal({
 
     async function handleSave() {
         if (!name.trim()) {
-            setError("Project name is required");
+            setError(config.ui.projectNameRequired);
             return;
         }
         setSaving(true);
@@ -28,7 +30,7 @@ export function ProjectCreateModal({
             onCreated();
             onClose();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to create project");
+            setError(err instanceof Error ? err.message : config.ui.errorPrefix);
         } finally {
             setSaving(false);
         }
@@ -40,9 +42,9 @@ export function ProjectCreateModal({
                 <div className="p-10">
                     <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-3xl font-bold text-text-base tracking-tight">Create New Project</h2>
+                            <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.createProjectTitle}</h2>
                             <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2 ml-0.5">
-                                Start something new
+                                {config.ui.createProjectSubtitle}
                             </p>
                         </div>
                         <button
@@ -61,34 +63,34 @@ export function ProjectCreateModal({
 
                     <div className="space-y-8">
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Project Name</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.projectNameLabel}</label>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium placeholder:text-text-muted/40"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. Personal Website"
+                                placeholder={config.ui.projectNamePlaceholder}
                                 autoFocus
                             />
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Description</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.projectDescriptionLabel}</label>
                             <textarea
                                 className="w-full h-32 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 resize-none font-medium placeholder:text-text-muted/40"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="What is this project about?"
+                                placeholder={config.ui.projectDescriptionPlaceholder}
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end bg-surface-3 p-10 border-t border-surface-5 gap-4">
+                <div className="flex flex-wrap items-center justify-end bg-surface-3 p-10 border-t border-surface-5 gap-6">
                     <button
                         onClick={onClose}
                         className="rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
                     >
-                        Cancel
+                        {config.ui.cancel}
                     </button>
                     <button
                         onClick={handleSave}
@@ -97,7 +99,7 @@ export function ProjectCreateModal({
                     >
                         {saving ? (
                             <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        ) : "Create Project"}
+                        ) : config.ui.createProjectButton}
                     </button>
                 </div>
             </div>

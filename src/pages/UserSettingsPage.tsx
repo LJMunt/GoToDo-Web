@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme, type Theme } from "../features/theme/ThemeContext";
+import { useConfig } from "../features/config/ConfigContext";
 import { changePassword } from "../api/auth";
 import { updateMe, deleteMe } from "../api/users";
 import type { components } from "../api/schema";
@@ -12,6 +13,7 @@ type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 export default function UserSettingsPage() {
     const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
+    const { language, setLanguage, config } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const nav = useNavigate();
 
@@ -116,8 +118,8 @@ export default function UserSettingsPage() {
     return (
         <div className="max-w-2xl mx-auto space-y-12 py-8 px-4">
             <div className="animate-in fade-in slide-in-from-top-4 duration-700">
-                <h1 className="text-4xl font-black text-text-base tracking-tight italic">Settings</h1>
-                <p className="text-text-muted mt-3 font-medium">Manage your workspace and security.</p>
+                <h1 className="text-4xl font-black text-text-base tracking-tight italic">{config.ui.settingsTitle}</h1>
+                <p className="text-text-muted mt-3 font-medium">{config.ui.settingsSubtitle}</p>
             </div>
 
             <section className="space-y-5 animate-in fade-in slide-in-from-top-6 duration-700 delay-75">
@@ -127,11 +129,11 @@ export default function UserSettingsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <h2 className="text-xs font-black uppercase tracking-widest">Account</h2>
+                    <h2 className="text-xs font-black uppercase tracking-widest">{config.ui.account}</h2>
                 </div>
                 <div className="bg-surface-3 border border-surface-8 rounded-4xl p-8 space-y-8 ring-1 ring-surface-10 shadow-sm">
                     <div className="space-y-3">
-                        <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">Email Address</label>
+                        <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">{config.auth.emailLabel}</label>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1 relative group">
                                 {isEditingEmail ? (
@@ -161,7 +163,7 @@ export default function UserSettingsPage() {
                                         : "bg-surface-8 text-text-base hover:bg-surface-15 border border-surface-15 shadow-sm"
                                 }`}
                             >
-                                {isEditingEmail ? "Save" : "Edit"}
+                                {isEditingEmail ? config.ui.save : config.ui.edit}
                             </button>
                         </div>
                         {emailError && <div className="text-red-400 text-xs mt-3 flex items-center gap-2 font-bold animate-in shake duration-500">
@@ -179,15 +181,15 @@ export default function UserSettingsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                         </svg>
                     </div>
-                    <h2 className="text-xs font-black uppercase tracking-widest">Preferences</h2>
+                    <h2 className="text-xs font-black uppercase tracking-widest">{config.ui.preferences}</h2>
                 </div>
                 <div className="bg-surface-3 border border-surface-8 rounded-4xl p-8 space-y-10 ring-1 ring-surface-10 shadow-sm">
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                             <div>
-                                <div className="font-bold text-lg text-text-base tracking-tight">App Theme</div>
+                                <div className="font-bold text-lg text-text-base tracking-tight">{config.ui.appTheme}</div>
                                 <div className="text-xs text-text-muted mt-1.5 font-medium leading-relaxed max-w-xs">
-                                    Personalize your workspace with a theme that fits your flow.
+                                    {config.ui.themeDescription}
                                 </div>
                             </div>
                             <div className="flex bg-surface-10 p-1.5 rounded-2xl border border-surface-15">
@@ -212,9 +214,9 @@ export default function UserSettingsPage() {
 
                         <div className="flex items-center justify-between gap-6">
                             <div>
-                                <div className="font-bold text-lg text-text-base tracking-tight">Completed Tasks</div>
+                                <div className="font-bold text-lg text-text-base tracking-tight">{config.ui.completedTasks}</div>
                                 <div className="text-xs text-text-muted mt-1.5 font-medium leading-relaxed max-w-xs">
-                                    Automatically show completed tasks in your projects by default.
+                                    {config.ui.completedTasksDescription}
                                 </div>
                             </div>
                             <button
@@ -231,6 +233,36 @@ export default function UserSettingsPage() {
                                 />
                             </button>
                         </div>
+
+                        <div className="h-px bg-surface-10/50" />
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div>
+                                <div className="font-bold text-lg text-text-base tracking-tight">{config.ui.language}</div>
+                                <div className="text-xs text-text-muted mt-1.5 font-medium leading-relaxed max-w-xs">
+                                    {config.ui.languageDescription}
+                                </div>
+                            </div>
+                            <div className="flex bg-surface-10 p-1.5 rounded-2xl border border-surface-15">
+                                {[
+                                    { code: "en", label: "EN" },
+                                    { code: "de", label: "DE" },
+                                    { code: "fr", label: "FR" },
+                                ].map((l) => (
+                                    <button
+                                        key={l.code}
+                                        onClick={() => setLanguage(l.code)}
+                                        className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                                            language === l.code
+                                                ? "bg-surface-3 text-brand-500 shadow-lg border border-surface-15 scale-105"
+                                                : "text-text-muted hover:text-text-base"
+                                        }`}
+                                    >
+                                        {l.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                     {settingsError && <div className="text-red-400 text-xs flex items-center gap-2 font-bold animate-in shake duration-500">
                         <div className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -246,12 +278,12 @@ export default function UserSettingsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
-                    <h2 className="text-xs font-black uppercase tracking-widest">Security</h2>
+                    <h2 className="text-xs font-black uppercase tracking-widest">{config.ui.security}</h2>
                 </div>
                 <form onSubmit={handlePasswordChange} className="bg-surface-3 border border-surface-8 rounded-4xl p-8 space-y-10 ring-1 ring-surface-10 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                         <div className="space-y-3">
-                            <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">Current Password</label>
+                            <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">{config.auth.currentPasswordLabel}</label>
                             <input
                                 type="password"
                                 required
@@ -262,7 +294,7 @@ export default function UserSettingsPage() {
                             />
                         </div>
                         <div className="space-y-3">
-                            <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">New Password</label>
+                            <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">{config.auth.newPasswordLabel}</label>
                             <input
                                 type="password"
                                 required

@@ -2,9 +2,11 @@ import { type FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login } from "../api/auth";
 import { useAuth } from "../features/auth/AuthContext";
+import { useConfig } from "../features/config/ConfigContext";
 
 
 export default function LoginPage() {
+    const { config, language, setLanguage } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,13 +39,13 @@ export default function LoginPage() {
             <div className="w-full max-w-105 animate-in fade-in zoom-in duration-700">
                 <div className="flex flex-col items-center text-center mb-10">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-on-brand shadow-brand-500/40 shadow-lg mb-6">
-                        <span className="text-2xl font-black italic">G</span>
+                        <span className="text-2xl font-black italic">{config.branding.appLogoInitial}</span>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight bg-linear-to-br from-text-base to-text-muted bg-clip-text text-transparent">
-                        Welcome back
+                        {config.auth.loginTitle}
                     </h1>
                     <p className="mt-3 text-text-muted font-medium">
-                        Step back into your agenda.
+                        {config.auth.loginSubtitle}
                     </p>
                 </div>
 
@@ -56,7 +58,7 @@ export default function LoginPage() {
 
                     <form onSubmit={onSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Email Address</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.auth.emailLabel}</label>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="email"
@@ -70,7 +72,7 @@ export default function LoginPage() {
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between ml-1">
-                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Password</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{config.auth.passwordLabel}</label>
                             </div>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
@@ -92,22 +94,42 @@ export default function LoginPage() {
                                 {isSubmitting ? (
                                     <>
                                         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        Signing in...
+                                        {config.auth.signingIn}
                                     </>
                                 ) : (
-                                    "Sign in"
+                                    config.auth.signInButton
                                 )}
                             </div>
                         </button>
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-surface-5 text-center">
-                        <p className="text-sm text-text-muted font-medium">
-                            Don&apos;t have an account?{" "}
+                        <p className="text-sm text-text-muted font-medium mb-6">
+                            {config.auth.noAccountPrompt}{" "}
                             <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/signup">
-                                Create one
+                                {config.auth.createOneLink}
                             </Link>
                         </p>
+
+                        <div className="flex items-center justify-center gap-2">
+                            {[
+                                { code: "en", label: "EN" },
+                                { code: "de", label: "DE" },
+                                { code: "fr", label: "FR" },
+                            ].map((l) => (
+                                <button
+                                    key={l.code}
+                                    onClick={() => setLanguage(l.code)}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                                        language === l.code
+                                            ? "bg-brand-500/10 text-brand-500 border border-brand-500/20"
+                                            : "text-text-muted hover:text-text-base border border-transparent"
+                                    }`}
+                                >
+                                    {l.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

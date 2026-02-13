@@ -83,6 +83,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version check */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            version?: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public configuration
+         * @description Returns public configuration keys as a nested JSON object. Uses lang parameter or Accept-Language header for translation.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Language code (e.g., en, de-CH) */
+                    lang?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppConfig"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/signup": {
         parameters: {
             query?: never;
@@ -322,7 +403,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["UserMe"];
+                        "application/json": components["schemas"]["User"];
                     };
                 };
                 401: components["responses"]["Unauthorized"];
@@ -1559,6 +1640,227 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get database metrics (Admin only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Database metrics */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DatabaseMetrics"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/config/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List configuration keys (Admin only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of configuration keys with metadata */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigKey"][];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/config/translations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get translations (Admin only) */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Language code (e.g., en, de-CH) */
+                    lang: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Key-value pairs for the requested language */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigTranslations"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        /** Bulk upsert translations (Admin only) */
+        put: {
+            parameters: {
+                query: {
+                    /** @description Language code (e.g., en, de-CH) */
+                    lang: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConfigTranslations"];
+                };
+            };
+            responses: {
+                /** @description Translations updated */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/config/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get backend config values (Admin only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Key-value pairs of backend config values */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigValues"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        /** Bulk upsert backend config values (Admin only) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConfigValues"];
+                };
+            };
+            responses: {
+                /** @description Values updated */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -2440,12 +2742,7 @@ export interface components {
             email: string;
             is_admin: boolean;
             is_active: boolean;
-            /** Format: date-time */
-            last_login: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
+            last_login: string;
         };
         Project: {
             /** Format: int64 */
@@ -2502,10 +2799,6 @@ export interface components {
             is_active: boolean;
             /** Format: date-time */
             last_login: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
             settings: {
                 /** @enum {string} */
                 theme: "system" | "light" | "dark";
@@ -2534,6 +2827,44 @@ export interface components {
             title: string;
             /** Format: date-time */
             due_at: string;
+        };
+        DatabaseMetrics: {
+            /** @description Database size in human readable format (MB, GB, TB) */
+            database_size: string;
+            /** @description Number of active connections */
+            connections: number;
+            /** @description Number of deadlocks */
+            deadlocks: number;
+            /** @description Number of disk blocks read */
+            blocks_read: number;
+            /** @description Number of times disk blocks were found in buffer cache */
+            blocks_hit: number;
+            /**
+             * Format: float
+             * @description Cache hit ratio percentage
+             */
+            cache_hit_ratio: number;
+        };
+        ConfigKey: {
+            /** @description Configuration key (supports dot notation for nesting) */
+            key: string;
+            /** @description Description of the configuration key */
+            description?: string;
+            /** @enum {string} */
+            data_type: "string" | "boolean" | "number";
+            /** @description Whether the key is accessible via the public /config endpoint */
+            is_public: boolean;
+        };
+        /** @description Key-value pairs for translations in a specific language */
+        ConfigTranslations: {
+            [key: string]: string;
+        };
+        /** @description Nested JSON configuration object (public) */
+        AppConfig: Record<string, never>;
+        /** @description JSON value for non-string config keys. */
+        ConfigValue: boolean | number | Record<string, never> | unknown[] | null;
+        ConfigValues: {
+            [key: string]: components["schemas"]["ConfigValue"];
         };
     };
     responses: {
