@@ -2,12 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { type AppConfig, DEFAULT_CONFIG } from "./types";
 
 import { apiFetch } from "../../api/http";
+import { listLanguages, type Language } from "../../api/languages";
+import { updateMe } from "../../api/users";
+import { useAuth } from "../auth/AuthContext";
 
 interface ConfigContextType {
     config: AppConfig;
     isLoading: boolean;
     error: string | null;
     language: string;
+    availableLanguages: Language[];
     setLanguage: (lang: string) => void;
     refreshConfig: () => Promise<void>;
 }
@@ -40,14 +44,49 @@ function deepMerge<T extends object>(target: T, source: Partial<T>): T {
 }
 
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
+    const { state: authState } = useAuth();
     const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [language, setLanguageState] = useState<string>(() => localStorage.getItem("language") ?? "en");
+    const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
 
-    const setLanguage = (lang: string) => {
+    const setLanguage = async (lang: string) => {
         setLanguageState(lang);
         localStorage.setItem("language", lang);
+
+        if (authState.status === "authenticated") {
+            try {
+                await updateMe({
+                    settings: {
+                        ...authState.user.settings,
+                        language: lang,
+                    },
+                });
+            } catch (err) {
+                console.error("Failed to update user language", err);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (authState.status === "authenticated" && authState.user.settings?.language) {
+            const userLang = authState.user.settings.language;
+            if (userLang !== language) {
+                setLanguageState(userLang);
+                localStorage.setItem("language", userLang);
+                void refreshConfig(); // Fetch translations for the user's language
+            }
+        }
+    }, [authState]);
+
+    const fetchLanguages = async () => {
+        try {
+            const langs = await listLanguages();
+            setAvailableLanguages(langs);
+        } catch (err) {
+            console.error("Failed to fetch languages", err);
+        }
     };
 
     const refreshConfig = async () => {
@@ -66,11 +105,15 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
+        void fetchLanguages();
+    }, []);
+
+    useEffect(() => {
         void refreshConfig();
     }, [language]);
 
     return (
-        <ConfigContext.Provider value={{ config, isLoading, error, language, setLanguage, refreshConfig }}>
+        <ConfigContext.Provider value={{ config, isLoading, error, language, availableLanguages, setLanguage, refreshConfig }}>
             {children}
         </ConfigContext.Provider>
     );

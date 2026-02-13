@@ -9,12 +9,12 @@ import { ConfigProvider } from "./features/config/ConfigContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-        <ConfigProvider>
-            <AuthProvider>
+        <AuthProvider>
+            <ConfigProvider>
                 <ThemeProvider>
                     <RouterProvider router={router} />
                 </ThemeProvider>
-            </AuthProvider>
-        </ConfigProvider>
+            </ConfigProvider>
+        </AuthProvider>
     </React.StrictMode>
 );

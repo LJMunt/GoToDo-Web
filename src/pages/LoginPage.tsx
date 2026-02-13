@@ -6,7 +6,7 @@ import { useConfig } from "../features/config/ConfigContext";
 
 
 export default function LoginPage() {
-    const { config, language, setLanguage } = useConfig();
+    const { config, language, setLanguage, availableLanguages } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,12 +111,8 @@ export default function LoginPage() {
                             </Link>
                         </p>
 
-                        <div className="flex items-center justify-center gap-2">
-                            {[
-                                { code: "en", label: "EN" },
-                                { code: "de", label: "DE" },
-                                { code: "fr", label: "FR" },
-                            ].map((l) => (
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {availableLanguages.map((l) => (
                                 <button
                                     key={l.code}
                                     onClick={() => setLanguage(l.code)}
@@ -126,7 +122,7 @@ export default function LoginPage() {
                                             : "text-text-muted hover:text-text-base border border-transparent"
                                     }`}
                                 >
-                                    {l.label}
+                                    {l.name}
                                 </button>
                             ))}
                         </div>

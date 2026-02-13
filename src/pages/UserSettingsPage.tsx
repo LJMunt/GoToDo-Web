@@ -13,7 +13,7 @@ type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 export default function UserSettingsPage() {
     const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
-    const { language, setLanguage, config } = useConfig();
+    const { language, setLanguage, config, availableLanguages } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const nav = useNavigate();
 
@@ -243,12 +243,8 @@ export default function UserSettingsPage() {
                                     {config.ui.languageDescription}
                                 </div>
                             </div>
-                            <div className="flex bg-surface-10 p-1.5 rounded-2xl border border-surface-15">
-                                {[
-                                    { code: "en", label: "EN" },
-                                    { code: "de", label: "DE" },
-                                    { code: "fr", label: "FR" },
-                                ].map((l) => (
+                            <div className="flex flex-wrap bg-surface-10 p-1.5 rounded-2xl border border-surface-15 gap-1.5">
+                                {availableLanguages.map((l) => (
                                     <button
                                         key={l.code}
                                         onClick={() => setLanguage(l.code)}
@@ -258,7 +254,7 @@ export default function UserSettingsPage() {
                                                 : "text-text-muted hover:text-text-base"
                                         }`}
                                     >
-                                        {l.label}
+                                        {l.name}
                                     </button>
                                 ))}
                             </div>

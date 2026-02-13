@@ -164,6 +164,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lang": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List languages (public) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of supported languages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Language"][];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/signup": {
         parameters: {
             query?: never;
@@ -499,6 +536,8 @@ export interface paths {
                             theme?: "system" | "light" | "dark";
                             /** @description Default for showing completed tasks in views. */
                             showCompletedDefault?: boolean;
+                            /** @description User's preferred language code (e.g., 'en', 'fr'). */
+                            language?: string;
                         };
                     } | unknown | unknown;
                 };
@@ -1224,7 +1263,10 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** List task occurrences */
+        /**
+         * List task occurrences
+         * @description Lists occurrences for a recurring task owned by the authenticated user.
+         */
         get: {
             parameters: {
                 query?: {
@@ -1258,7 +1300,7 @@ export interface paths {
                     };
                 };
                 401: components["responses"]["Unauthorized"];
-                /** @description Task not found */
+                /** @description Task not found (or not owned by authenticated user) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1299,7 +1341,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update task occurrence (e.g., complete it) */
+        /**
+         * Update task occurrence (e.g., complete it)
+         * @description Updates an occurrence for a recurring task owned by the authenticated user.
+         */
         patch: {
             parameters: {
                 query?: never;
@@ -1337,17 +1382,12 @@ export interface paths {
                     };
                 };
                 401: components["responses"]["Unauthorized"];
-                /** @description Occurrence not found */
+                /** @description Task/occurrence not found (or task not owned by authenticated user) */
                 404: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        /**
-                         * @example {
-                         *       "error": "occurrence not found"
-                         *     }
-                         */
                         "application/json": components["schemas"]["Error"];
                     };
                 };
@@ -1819,7 +1859,12 @@ export interface paths {
                 500: components["responses"]["InternalServerError"];
             };
         };
-        /** Bulk upsert backend config values (Admin only) */
+        /**
+         * Bulk upsert backend config values (Admin only)
+         * @description Updates backend-only config values.
+         *     Note: String keys can only be updated here if they are not public (is_public=false).
+         *     Public string keys must be updated via the translations endpoint.
+         */
         put: {
             parameters: {
                 query?: never;
@@ -1856,6 +1901,158 @@ export interface paths {
         };
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/lang": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List languages (Admin only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of languages with timestamps */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminLanguage"][];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        /** Create language (Admin only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Language"];
+                };
+            };
+            responses: {
+                /** @description Language created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminLanguage"];
+                    };
+                };
+                /** @description Validation error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/lang/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete language (Admin only) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Language deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Conflict (e.g., default or last language) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -2019,7 +2216,11 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Update user (Admin only) */
+        /**
+         * Update user (Admin only)
+         * @description Update user details.
+         *     Note: Admins cannot promote other users to admin status.
+         */
         patch: {
             parameters: {
                 query?: never;
@@ -2032,6 +2233,8 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /** @description Note: Setting this to true will be rejected as admins cannot create new admins. */
+                        is_admin?: boolean;
                         is_active?: boolean;
                         password?: string;
                     };
@@ -2039,7 +2242,7 @@ export interface paths {
             };
             responses: {
                 /** @description User updated */
-                200: {
+                204: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -2803,6 +3006,7 @@ export interface components {
                 /** @enum {string} */
                 theme: "system" | "light" | "dark";
                 showCompletedDefault: boolean;
+                language: string;
             };
         };
         Occurrence: {
@@ -2861,6 +3065,17 @@ export interface components {
         };
         /** @description Nested JSON configuration object (public) */
         AppConfig: Record<string, never>;
+        Language: {
+            /** @description Language code, either 2 letters (e.g., en) or format xx-xx (e.g., en-gb) */
+            code: string;
+            name: string;
+        };
+        AdminLanguage: components["schemas"]["Language"] & {
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
         /** @description JSON value for non-string config keys. */
         ConfigValue: boolean | number | Record<string, never> | unknown[] | null;
         ConfigValues: {

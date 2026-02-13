@@ -3,14 +3,8 @@ import { listConfigKeys, getConfigTranslations, updateConfigTranslations, getCon
 import type { ConfigKey, ConfigTranslations, ConfigValues, ConfigValue } from "../../features/config/types";
 import { useConfig } from "../../features/config/ConfigContext";
 
-const LANGUAGES = [
-    { code: "en", label: "English" },
-    { code: "de", label: "German" },
-    { code: "fr", label: "French" },
-];
-
 export default function ConfigManagement() {
-    const { config: appConfig, refreshConfig } = useConfig();
+    const { config: appConfig, refreshConfig, availableLanguages: LANGUAGES } = useConfig();
     const [scope, setScope] = useState<"ui" | "backend">("ui");
     const [keys, setKeys] = useState<ConfigKey[]>([]);
     const [currentLang, setCurrentLang] = useState("en");
@@ -355,7 +349,7 @@ export default function ConfigManagement() {
                                                     : "text-text-muted border-transparent hover:bg-surface-5 hover:text-text-base"
                                             }`}
                                         >
-                                            {lang.label}
+                                            {lang.name}
                                             {currentLang === lang.code && (
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
