@@ -2,7 +2,7 @@ import type { components } from "../../api/schema";
 
 export type ConfigKey = components["schemas"]["ConfigKey"];
 export type ConfigTranslations = components["schemas"]["ConfigTranslations"]; 
-export type ConfigValue = components["schemas"]["ConfigValue"]; 
+export type ConfigValue = components["schemas"]["ConfigValue"] | string; 
 export type ConfigValues = components["schemas"]["ConfigValues"];
 
 export interface BrandingConfig {

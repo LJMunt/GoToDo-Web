@@ -257,9 +257,8 @@ components:
       description: Nested JSON configuration object (public)
 
     ConfigValue:
-      description: JSON value for config keys. String values are allowed for non-public keys.
+      description: JSON value for non-string config keys.
       oneOf:
-        - type: string
         - type: boolean
         - type: number
         - type: object
@@ -1115,6 +1114,7 @@ paths:
           format: date-time
     get:
       summary: List task occurrences
+      description: Lists occurrences for a recurring task owned by the authenticated user.
       responses:
         "200":
           description: List of occurrences
@@ -1134,13 +1134,15 @@ paths:
                 invalid_task_id:
                   value: {error: "invalid task id"}
                 invalid_from:
-                  value: {error: "invalid 'from' parameter"}
+                  value: {error: "invalid from (use RFC3339)"}
                 invalid_to:
-                  value: {error: "invalid 'to' parameter"}
+                  value: {error: "invalid to (use RFC3339)"}
+                invalid_window:
+                  value: {error: "to must be after from"}
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
-          description: Task not found
+          description: Task not found (or not owned by authenticated user)
           content:
             application/json:
               schema:
@@ -1166,6 +1168,7 @@ paths:
           format: int64
     patch:
       summary: Update task occurrence (e.g., complete it)
+      description: Updates an occurrence for a recurring task owned by the authenticated user.
       requestBody:
         required: true
         content:
@@ -1197,16 +1200,21 @@ paths:
                   value: {error: "invalid task id"}
                 invalid_occurrence_id:
                   value: {error: "invalid occurrence id"}
+                completed_required:
+                  value: {error: "completed is required"}
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
-          description: Occurrence not found
+          description: Task/occurrence not found (or task not owned by authenticated user)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              example:
-                error: "occurrence not found"
+              examples:
+                task_not_found:
+                  value: {error: "task not found"}
+                occurrence_not_found:
+                  value: {error: "occurrence not found"}
         "500":
           $ref: '#/components/responses/InternalServerError'
 
@@ -1531,10 +1539,9 @@ paths:
     get:
       tags: [ Admin ]
       summary: Get backend config values (Admin only)
-      description: Returns all configuration values stored in value_json.
       responses:
         "200":
-          description: Key-value pairs of config values
+          description: Key-value pairs of backend config values
           content:
             application/json:
               schema:
@@ -1547,14 +1554,11 @@ paths:
           $ref: "#/components/responses/InternalServerError"
     put:
       tags: [ Admin ]
-      summary: Bulk upsert config values (Admin only)
+      summary: Bulk upsert backend config values (Admin only)
       description: |
-        Bulk updates configuration values stored in value_json.
-        Rules:
-        - Rejects updates for public string keys (must use translations endpoint).
-        - Allows updates for non-public string keys.
-        - Rejects updates for any public key to prevent accidental exposure of backend settings via this endpoint.
-        - Validates JSON type matches data_type for 'boolean' and 'number'.
+        Updates backend-only config values.
+        Note: String keys can only be updated here if they are not public (is_public=false).
+        Public string keys must be updated via the translations endpoint.
       requestBody:
         required: true
         content:
@@ -1637,6 +1641,9 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     patch:
       summary: Update user (Admin only)
+      description: |
+        Update user details. 
+        Note: Admins cannot promote other users to admin status.
       requestBody:
         required: true
         content:
@@ -1644,12 +1651,15 @@ paths:
             schema:
               type: object
               properties:
+                is_admin:
+                  type: boolean
+                  description: "Note: Setting this to true will be rejected as admins cannot create new admins."
                 is_active:
                   type: boolean
                 password:
                   type: string
       responses:
-        "200":
+        "204":
           description: User updated
         "400":
           description: Invalid request
@@ -1662,6 +1672,8 @@ paths:
                   value: {error: "invalid request body"}
                 invalid_user_id:
                   value: {error: "invalid user id"}
+                empty_patch:
+                  value: {error: "no fields to update"}
         "401":
           $ref: '#/components/responses/Unauthorized'
         "403":

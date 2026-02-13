@@ -16,7 +16,7 @@ export async function getUser(id: number): Promise<User> {
     return apiFetch<User>(`/v1/admin/users/${id}`);
 }
 
-export async function updateUser(id: number, body: { is_active?: boolean; password?: string }): Promise<void> {
+export async function updateUser(id: number, body: { is_admin?: boolean; is_active?: boolean; password?: string }): Promise<void> {
     await apiFetch(`/v1/admin/users/${id}`, {
         method: "PATCH",
         body: JSON.stringify(body),
