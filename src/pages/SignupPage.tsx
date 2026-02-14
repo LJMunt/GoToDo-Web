@@ -60,7 +60,7 @@ export default function SignupPage() {
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="email"
                                 autoComplete="email"
-                                placeholder="name@example.com"
+                                placeholder={config.auth.emailPlaceholder}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -73,7 +73,7 @@ export default function SignupPage() {
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="password"
                                 autoComplete="new-password"
-                                placeholder="Min 8 characters"
+                                placeholder={config.auth.signupPasswordPlaceholder}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required

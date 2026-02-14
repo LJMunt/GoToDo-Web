@@ -37,11 +37,57 @@ function deepMerge<T extends object>(target: T, source: Partial<T>): T {
             !Array.isArray(targetValue)
         ) {
             result[key] = deepMerge(targetValue as object, sourceValue as object) as unknown;
-        } else if (sourceValue !== undefined) {
+        } else if (sourceValue !== undefined && sourceValue !== null && (typeof sourceValue !== "string" || sourceValue !== "")) {
             result[key] = sourceValue;
         }
     }
     return result as unknown as T;
+}
+
+function expandDotNotation(obj: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+
+    const assign = (target: Record<string, unknown>, parts: string[], value: unknown) => {
+        const [head, ...rest] = parts;
+        if (!head) return;
+
+        if (rest.length === 0) {
+            target[head] = value;
+            return;
+        }
+
+        if (!target[head] || typeof target[head] !== "object" || Array.isArray(target[head])) {
+            target[head] = {};
+        }
+
+        assign(target[head] as Record<string, unknown>, rest, value);
+    };
+
+    // First pass: build nested structure from dotted keys
+    for (const [key, value] of Object.entries(obj)) {
+        if (key.includes(".")) {
+            assign(result, key.split("."), value);
+        } else {
+            result[key] = value;
+        }
+    }
+
+    // Second pass: move flat UI keys (backend may send them at root)
+    const uiKeys = new Set(Object.keys(DEFAULT_CONFIG.ui));
+    for (const [key, value] of Object.entries(obj)) {
+        if (!key.includes(".") && uiKeys.has(key)) {
+            if (!result.ui || typeof result.ui !== "object" || Array.isArray(result.ui)) {
+                result.ui = {};
+            }
+            const ui = result.ui as Record<string, unknown>;
+            if (ui[key] === undefined || ui[key] === null) {
+                ui[key] = value;
+            }
+            delete result[key];
+        }
+    }
+
+    return result;
 }
 
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
@@ -94,8 +140,9 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiFetch<Partial<AppConfig>>(`/v1/config?lang=${language}`);
-            setConfig(deepMerge<AppConfig>(DEFAULT_CONFIG, data));
+            const data = await apiFetch<Record<string, unknown>>(`/v1/config?lang=${language}`);
+            const expanded = expandDotNotation(data);
+            setConfig(deepMerge<AppConfig>(DEFAULT_CONFIG, expanded as Partial<AppConfig>));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch configuration");
             // Fallback to default config on error

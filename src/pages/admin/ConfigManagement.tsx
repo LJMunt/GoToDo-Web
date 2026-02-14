@@ -9,6 +9,7 @@ import {
     deleteLanguage
 } from "../../api/admin";
 import type { ConfigKey, ConfigTranslations, ConfigValues, ConfigValue } from "../../features/config/types";
+import { DEFAULT_CONFIG } from "../../features/config/types";
 import { useConfig } from "../../features/config/ConfigContext";
 
 export default function ConfigManagement() {
@@ -46,7 +47,31 @@ export default function ConfigManagement() {
                     getConfigTranslations(currentLang),
                     getConfigValues()
                 ]);
-                setKeys(keysData);
+
+                // Merge with DEFAULT_CONFIG keys
+                const allKeysMap = new Map<string, ConfigKey>();
+
+                // Add keys from backend
+                keysData.forEach(k => allKeysMap.set(k.key, k));
+
+                // Add keys from DEFAULT_CONFIG if missing
+                const addDefaultKeys = (obj: any, prefix = "") => {
+                    for (const key in obj) {
+                        const fullKey = prefix ? `${prefix}.${key}` : key;
+                        if (typeof obj[key] === "object" && obj[key] !== null && !Array.isArray(obj[key])) {
+                            addDefaultKeys(obj[key], fullKey);
+                        } else if (!allKeysMap.has(fullKey)) {
+                            allKeysMap.set(fullKey, {
+                                key: fullKey,
+                                data_type: typeof obj[key] === "boolean" ? "boolean" : typeof obj[key] === "number" ? "number" : "string",
+                                is_public: true
+                            });
+                        }
+                    }
+                };
+                addDefaultKeys(DEFAULT_CONFIG);
+
+                setKeys(Array.from(allKeysMap.values()));
                 setTranslations(translationsData);
                 setEditedTranslations(translationsData);
                 setValues(valuesData);
@@ -449,7 +474,7 @@ export default function ConfigManagement() {
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <h3 className="text-xs font-bold uppercase tracking-widest">Tip</h3>
+                                <h3 className="text-xs font-bold uppercase tracking-widest">{appConfig.ui.adminTip}</h3>
                             </div>
                             <p className="text-[11px] text-text-muted leading-relaxed">
                                 Public keys are visible without authentication, while private keys are only used on the backend.
@@ -464,15 +489,15 @@ export default function ConfigManagement() {
                     <div className="w-full max-w-md overflow-hidden rounded-5xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-surface-15">
                         <form onSubmit={handleCreateLanguage} className="p-10 space-y-8">
                             <div>
-                                <h2 className="text-3xl font-bold text-text-base tracking-tight">Add Language</h2>
+                                <h2 className="text-3xl font-bold text-text-base tracking-tight">{appConfig.ui.addLanguageTitle}</h2>
                                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2">
-                                    Create a new localization
+                                    {appConfig.ui.addLanguageSubtitle}
                                 </p>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Language Code (e.g. en, pt-br)</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{appConfig.ui.languageCodeLabel}</label>
                                     <input
                                         type="text"
                                         required
@@ -484,7 +509,7 @@ export default function ConfigManagement() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">Display Name</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{appConfig.ui.displayNameLabel}</label>
                                     <input
                                         type="text"
                                         required
@@ -502,14 +527,14 @@ export default function ConfigManagement() {
                                     onClick={() => setShowCreateModal(false)}
                                     className="flex-1 px-6 py-4 rounded-2xl border border-surface-15 text-text-muted font-black uppercase tracking-widest text-sm hover:bg-surface-5 transition-all active:scale-[0.98] cursor-pointer"
                                 >
-                                    Cancel
+                                    {appConfig.ui.cancel}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isCreating}
                                     className="flex-1 px-6 py-4 rounded-2xl bg-brand-500 text-on-brand font-black uppercase tracking-widest text-sm hover:bg-brand-600 shadow-xl shadow-brand-500/20 transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                                 >
-                                    {isCreating ? "Adding..." : "Add"}
+                                    {isCreating ? appConfig.ui.addingLanguage : appConfig.ui.addLanguageButton}
                                 </button>
                             </div>
                         </form>
