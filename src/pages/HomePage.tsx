@@ -550,7 +550,7 @@ export default function HomePage() {
             <aside className="space-y-8">
                 <div>
                     <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-                        Navigation
+                        {config.ui.navigationTitle}
                     </h2>
                     <div className="mt-4 space-y-1">
                         <button
@@ -604,7 +604,7 @@ export default function HomePage() {
 
                         {!projectsLoading && !projectsError && projects.length === 0 && (
                             <div className="px-4 py-3 text-sm text-text-muted italic">
-                                No projects yet.
+                                {config.ui.noProjectsYet}
                             </div>
                         )}
 
@@ -734,7 +734,7 @@ export default function HomePage() {
                             {!agendaLoading &&
                                 !agendaError &&
                                 filteredAgenda.map((item) => {
-                                    const projectName = projectNameMap.get(item.project_id) ?? "Project";
+                                    const projectName = projectNameMap.get(item.project_id) ?? config.ui.projectLabel;
                                     const key = agendaKey(item);
                                     const isCompleting = completingKeys.has(key);
                                     const isVanishing = removingKeys.has(key);
@@ -765,7 +765,7 @@ export default function HomePage() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5">
                                                     <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
-                                                        {item.kind === "occurrence" ? config.ui.recurringLabel : config.navigation.userData}
+                                                        {item.kind === "occurrence" ? config.ui.recurringLabel : config.ui.singleTaskLabel}
                                                     </span>
                                                     <span className={`h-1 w-1 rounded-full bg-surface-10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
                                                     <span className="truncate text-[10px] font-black uppercase tracking-widest text-text-muted/60">
@@ -804,8 +804,8 @@ export default function HomePage() {
                                         {config.navigation.projects}
                                     </span>
                                 </div>
-                                <h1 className="mt-1 truncate text-4xl font-bold tracking-tight text-text-base lg:text-5xl" title={currentProject?.name ?? "Project"}>
-                                    {currentProject?.name ?? "Project"}
+                                <h1 className="mt-1 truncate text-4xl font-bold tracking-tight text-text-base lg:text-5xl" title={currentProject?.name ?? config.ui.projectLabel}>
+                                    {currentProject?.name ?? config.ui.projectLabel}
                                 </h1>
                                 {currentProject?.description && (
                                     <p className="mt-3 line-clamp-2 text-lg text-text-muted max-w-2xl animate-in slide-in-from-top-2 duration-500" title={currentProject.description}>

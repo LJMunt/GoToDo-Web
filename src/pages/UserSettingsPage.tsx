@@ -13,7 +13,7 @@ type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 export default function UserSettingsPage() {
     const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
-    const { language, setLanguage, config } = useConfig();
+    const { language, setLanguage, config, availableLanguages } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const nav = useNavigate();
 
@@ -243,22 +243,18 @@ export default function UserSettingsPage() {
                                     {config.ui.languageDescription}
                                 </div>
                             </div>
-                            <div className="flex bg-surface-10 p-1.5 rounded-2xl border border-surface-15">
-                                {[
-                                    { code: "en", label: "EN" },
-                                    { code: "de", label: "DE" },
-                                    { code: "fr", label: "FR" },
-                                ].map((l) => (
+                            <div className="flex flex-wrap bg-surface-10 p-1 rounded-xl border border-surface-15 gap-1">
+                                {availableLanguages.map((l) => (
                                     <button
                                         key={l.code}
                                         onClick={() => setLanguage(l.code)}
-                                        className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
                                             language === l.code
-                                                ? "bg-surface-3 text-brand-500 shadow-lg border border-surface-15 scale-105"
+                                                ? "bg-surface-3 text-brand-500 shadow-sm border border-surface-15 scale-105"
                                                 : "text-text-muted hover:text-text-base"
                                         }`}
                                     >
-                                        {l.label}
+                                        {language === l.code ? l.name : l.code}
                                     </button>
                                 ))}
                             </div>
@@ -317,14 +313,14 @@ export default function UserSettingsPage() {
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
-                                Updated
+                                {config.ui.updatedSuccess}
                             </div>}
                         </div>
                         <button
                             type="submit"
                             className="w-full sm:w-auto px-10 bg-brand-500 hover:bg-brand-600 text-on-brand font-black uppercase tracking-widest py-4 rounded-2xl transition-all active:scale-[0.98] shadow-xl shadow-brand-500/20 cursor-pointer"
                         >
-                            Update Password
+                            {config.ui.updatePasswordButton}
                         </button>
                         {!user.is_admin && (
                             <button
@@ -332,7 +328,7 @@ export default function UserSettingsPage() {
                                 onClick={() => setShowDeleteModal(true)}
                                 className="w-full sm:w-auto px-10 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-black uppercase tracking-widest py-4 rounded-2xl transition-all active:scale-[0.98] border border-red-500/20 cursor-pointer"
                             >
-                                Delete my Account
+                                {config.ui.deleteAccountButton}
                             </button>
                         )}
                     </div>
@@ -345,9 +341,9 @@ export default function UserSettingsPage() {
                         <div className="p-10">
                             <div className="flex items-center justify-between mb-8">
                                 <div>
-                                    <h2 className="text-3xl font-bold text-red-500 tracking-tight">Delete Account</h2>
+                                    <h2 className="text-3xl font-bold text-red-500 tracking-tight">{config.ui.deleteAccountTitle}</h2>
                                     <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2">
-                                        This action is permanent
+                                        {config.ui.deleteAccountPermanent}
                                     </p>
                                 </div>
                                 <button
@@ -364,19 +360,19 @@ export default function UserSettingsPage() {
                             </div>
 
                             <p className="text-text-muted mb-8 font-medium leading-relaxed">
-                                Are you absolutely sure? All your projects, tasks, and data will be permanently deleted. This cannot be undone.
+                                {config.ui.deleteAccountConfirmation}
                             </p>
 
                             <form onSubmit={handleDeleteAccount} className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">Confirm Password</label>
+                                    <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">{config.ui.confirmPasswordLabel}</label>
                                     <input
                                         type="password"
                                         required
                                         value={deletePassword}
                                         onChange={(e) => setDeletePassword(e.target.value)}
                                         className="w-full bg-red-500/5 border border-red-500/10 rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all text-text-base placeholder:text-text-muted/20 font-medium"
-                                        placeholder="Enter your password"
+                                        placeholder={config.ui.enterPasswordPlaceholder}
                                         autoFocus
                                     />
                                 </div>
@@ -392,7 +388,7 @@ export default function UserSettingsPage() {
                                         {deleteConfirmed && <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                                     </div>
                                     <span className="text-sm font-bold text-text-muted group-hover:text-text-base transition-colors leading-tight">
-                                        I understand that my account and all associated data will be permanently removed.
+                                        {config.ui.deleteAccountAgreement}
                                     </span>
                                 </label>
 
@@ -408,7 +404,7 @@ export default function UserSettingsPage() {
                                         onClick={() => setShowDeleteModal(false)}
                                         className="flex-1 rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
                                     >
-                                        Cancel
+                                        {config.ui.cancel}
                                     </button>
                                     <button
                                         type="submit"
@@ -417,7 +413,7 @@ export default function UserSettingsPage() {
                                     >
                                         {isDeleting ? (
                                             <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        ) : "Delete my Account"}
+                                        ) : config.ui.deleteAccountButton}
                                     </button>
                                 </div>
                             </form>

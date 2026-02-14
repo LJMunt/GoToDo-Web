@@ -6,7 +6,7 @@ import { useConfig } from "../features/config/ConfigContext";
 
 
 export default function LoginPage() {
-    const { config, language, setLanguage } = useConfig();
+    const { config, language, setLanguage, availableLanguages } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,7 +63,7 @@ export default function LoginPage() {
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="email"
                                 autoComplete="email"
-                                placeholder="name@example.com"
+                                placeholder={config.auth.emailPlaceholder}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -78,7 +78,7 @@ export default function LoginPage() {
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                 type="password"
                                 autoComplete="current-password"
-                                placeholder="••••••••"
+                                placeholder={config.auth.passwordPlaceholder}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -111,12 +111,8 @@ export default function LoginPage() {
                             </Link>
                         </p>
 
-                        <div className="flex items-center justify-center gap-2">
-                            {[
-                                { code: "en", label: "EN" },
-                                { code: "de", label: "DE" },
-                                { code: "fr", label: "FR" },
-                            ].map((l) => (
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {availableLanguages.map((l) => (
                                 <button
                                     key={l.code}
                                     onClick={() => setLanguage(l.code)}
@@ -126,7 +122,7 @@ export default function LoginPage() {
                                             : "text-text-muted hover:text-text-base border border-transparent"
                                     }`}
                                 >
-                                    {l.label}
+                                    {l.name}
                                 </button>
                             ))}
                         </div>

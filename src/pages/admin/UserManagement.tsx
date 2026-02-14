@@ -135,8 +135,8 @@ export default function UserManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-text-base transition-none!">User Management</h1>
-                <p className="text-sm text-text-muted mt-1">Manage all users in the system.</p>
+                <h1 className="text-2xl font-bold text-text-base transition-none!">{config.ui.userManagementTitle}</h1>
+                <p className="text-sm text-text-muted mt-1">{config.ui.userManagementSubtitle}</p>
             </div>
 
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -322,8 +322,8 @@ export default function UserManagement() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </div>
-                        <h3 className="text-sm font-medium text-text-base">No users found</h3>
-                        <p className="text-xs text-text-muted mt-1">Try adjusting your filters or search terms.</p>
+                        <h3 className="text-sm font-medium text-text-base">{config.ui.noUsersFound}</h3>
+                        <p className="text-xs text-text-muted mt-1">{config.ui.noUsersFoundDescription}</p>
                     </div>
                 )}
             </div>
@@ -334,7 +334,7 @@ export default function UserManagement() {
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 className="text-xl font-bold text-text-base">Change User Status</h2>
+                                    <h2 className="text-xl font-bold text-text-base">{config.ui.changeUserStatus}</h2>
                                     <p className="text-sm text-text-muted mt-1">{editingUser.email}</p>
                                 </div>
                                 <button
@@ -357,7 +357,7 @@ export default function UserManagement() {
                                         />
                                         {editingUser.is_active && <div className="h-2 w-2 rounded-full bg-on-brand" />}
                                     </div>
-                                    <span className={`font-medium ${editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>Active</span>
+                                    <span className={`font-medium ${editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>{config.ui.active}</span>
                                 </label>
 
                                 <label 
@@ -378,18 +378,18 @@ export default function UserManagement() {
                                         />
                                         {!editingUser.is_active && <div className="h-2 w-2 rounded-full bg-on-brand" />}
                                     </div>
-                                    <span className={`font-medium ${!editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>Inactive</span>
+                                    <span className={`font-medium ${!editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>{config.ui.inactive}</span>
                                 </label>
 
                                 {currentUser?.id === editingUser.id && (
                                     <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-medium">
-                                        ℹ️ You cannot inactivate your own account.
+                                        ℹ️ {config.ui.cannotInactivateSelf}
                                     </div>
                                 )}
 
                                 {!editingUser.is_active && currentUser?.id !== editingUser.id && (
                                     <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-medium animate-in fade-in slide-in-from-top-2">
-                                        ⚠️ This will immediately log the user out and block future logins.
+                                        ⚠️ {config.ui.inactivateWarning}
                                     </div>
                                 )}
                             </div>
@@ -400,14 +400,14 @@ export default function UserManagement() {
                                 onClick={() => setEditingUser(null)}
                                 className="px-4 py-2 text-sm font-bold text-text-muted hover:text-text-base transition-colors"
                             >
-                                Cancel
+                                {config.ui.cancel}
                             </button>
                             <button
                                 onClick={() => handleUpdateStatus(editingUser, editingUser.is_active)}
                                 disabled={isUpdating}
                                 className="rounded-xl bg-brand-500 px-6 py-2 text-sm font-bold text-on-brand shadow-lg shadow-brand-500/10 hover:bg-brand-600 transition-all disabled:opacity-50"
                             >
-                                {isUpdating ? "Saving..." : "Save Changes"}
+                                {isUpdating ? config.ui.saving : config.ui.saveChanges}
                             </button>
                         </div>
                     </div>

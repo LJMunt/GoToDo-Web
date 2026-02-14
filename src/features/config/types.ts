@@ -28,6 +28,9 @@ export interface AuthConfig {
     createOneLink: string;
     alreadyHaveAccountPrompt: string;
     signInLink: string;
+    emailPlaceholder: string;
+    passwordPlaceholder: string;
+    signupPasswordPlaceholder: string;
 }
 
 export interface UIConfig {
@@ -144,6 +147,39 @@ export interface UIConfig {
     taskTitleRequired: string;
     dueDateRequiredForRecurring: string;
     projectNameRequired: string;
+    adminTip: string;
+    userManagementTitle: string;
+    userManagementSubtitle: string;
+    systemOverviewSubtitle: string;
+    databaseSizeDescription: string;
+    activeConnectionsDescription: string;
+    cacheHitRatioDescription: string;
+    deadlocksDescription: string;
+    blocksReadDescription: string;
+    blocksHitDescription: string;
+    updatePasswordButton: string;
+    updatedSuccess: string;
+    deleteAccountButton: string;
+    deleteAccountTitle: string;
+    deleteAccountPermanent: string;
+    deleteAccountConfirmation: string;
+    confirmPasswordLabel: string;
+    enterPasswordPlaceholder: string;
+    deleteAccountAgreement: string;
+    noUsersFound: string;
+    noUsersFoundDescription: string;
+    cannotInactivateSelf: string;
+    inactivateWarning: string;
+    addLanguageTitle: string;
+    addLanguageSubtitle: string;
+    languageCodeLabel: string;
+    displayNameLabel: string;
+    addingLanguage: string;
+    addLanguageButton: string;
+    navigationTitle: string;
+    noProjectsYet: string;
+    singleTaskLabel: string;
+    projectLabel: string;
 }
 
 export interface NavigationConfig {
@@ -190,6 +226,9 @@ export const DEFAULT_CONFIG: AppConfig = {
         createOneLink: "Create one",
         alreadyHaveAccountPrompt: "Already have an account?",
         signInLink: "Sign in",
+        emailPlaceholder: "name@example.com",
+        passwordPlaceholder: "••••••••",
+        signupPasswordPlaceholder: "Min 8 characters",
     },
     ui: {
         agendaTitle: "Your Agenda",
@@ -305,6 +344,39 @@ export const DEFAULT_CONFIG: AppConfig = {
         taskTitleRequired: "Title is required",
         dueDateRequiredForRecurring: "Due date is required for recurring tasks",
         projectNameRequired: "Project name is required",
+        adminTip: "Admin Tip",
+        userManagementTitle: "User Management",
+        userManagementSubtitle: "Manage all users in the system.",
+        systemOverviewSubtitle: "System status and overview.",
+        databaseSizeDescription: "Total size of the database on disk",
+        activeConnectionsDescription: "Number of currently active database connections",
+        cacheHitRatioDescription: "Percentage of disk blocks found in buffer cache",
+        deadlocksDescription: "Total number of transaction conflicts detected",
+        blocksReadDescription: "Total number of disk blocks read from storage",
+        blocksHitDescription: "Total disk blocks found in buffer cache",
+        updatePasswordButton: "Update Password",
+        updatedSuccess: "Updated",
+        deleteAccountButton: "Delete my Account",
+        deleteAccountTitle: "Delete Account",
+        deleteAccountPermanent: "This action is permanent",
+        deleteAccountConfirmation: "Are you absolutely sure? All your projects, tasks, and data will be permanently deleted. This cannot be undone.",
+        confirmPasswordLabel: "Confirm Password",
+        enterPasswordPlaceholder: "Enter your password",
+        deleteAccountAgreement: "I understand that my account and all associated data will be permanently removed.",
+        noUsersFound: "No users found",
+        noUsersFoundDescription: "Try adjusting your filters or search terms.",
+        cannotInactivateSelf: "You cannot inactivate your own account.",
+        inactivateWarning: "This will immediately log the user out and block future logins.",
+        addLanguageTitle: "Add Language",
+        addLanguageSubtitle: "Create a new localization",
+        languageCodeLabel: "Language Code (e.g. en, pt-br)",
+        displayNameLabel: "Display Name",
+        addingLanguage: "Adding...",
+        addLanguageButton: "Add",
+        navigationTitle: "Navigation",
+        noProjectsYet: "No projects yet.",
+        singleTaskLabel: "Single Task",
+        projectLabel: "Project",
     },
     navigation: {
         agenda: "Agenda",

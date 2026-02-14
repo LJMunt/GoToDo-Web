@@ -181,7 +181,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-text-base transition-none!">{config.navigation.dashboard}</h1>
-                    <p className="text-sm text-text-muted mt-1">System status and overview.</p>
+                    <p className="text-sm text-text-muted mt-1">{config.ui.systemOverviewSubtitle}</p>
                 </div>
                 <button
                     onClick={fetchData}
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label={config.ui.databaseSize}
                             value={metrics.database_size}
-                            description="Total size of the database on disk"
+                            description={config.ui.databaseSizeDescription}
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 1.1.9 2 2 2h12a2 2 0 002-2V7M4 7c0-1.1.9-2 2-2h12a2 2 0 012 2M4 7l8 4 8-4M4 11l8 4 8-4" />
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label={config.ui.activeConnections}
                             value={metrics.connections}
-                            description="Number of currently active database connections"
+                            description={config.ui.activeConnectionsDescription}
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label={config.ui.cacheHitRatio}
                             value={`${metrics.cache_hit_ratio.toFixed(2)}%`}
-                            description="Percentage of disk blocks found in buffer cache"
+                            description={config.ui.cacheHitRatioDescription}
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label={config.ui.deadlocks}
                             value={metrics.deadlocks}
-                            description="Total number of transaction conflicts detected"
+                            description={config.ui.deadlocksDescription}
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label={config.ui.blocksRead}
                             value={metrics.blocks_read.toLocaleString()}
-                            description="Total number of disk blocks read from storage"
+                            description={config.ui.blocksReadDescription}
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -303,7 +303,7 @@ export default function AdminDashboard() {
                         <MetricCard
                             label={config.ui.blocksHit}
                             value={metrics.blocks_hit.toLocaleString()}
-                            description="Total disk blocks found in buffer cache"
+                            description={config.ui.blocksHitDescription}
                             icon={(
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />

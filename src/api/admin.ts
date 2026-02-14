@@ -7,6 +7,8 @@ export type User = components["schemas"]["User"];
 export type Project = components["schemas"]["Project"];
 export type Task = components["schemas"]["Task"];
 export type Tag = components["schemas"]["Tag"];
+export type Language = components["schemas"]["Language"];
+export type AdminLanguage = components["schemas"]["AdminLanguage"];
 
 export async function listUsers(): Promise<User[]> {
     return apiFetch<User[]>("/v1/admin/users");
@@ -101,5 +103,22 @@ export async function updateConfigValues(values: ConfigValues): Promise<void> {
     await apiFetch("/v1/admin/config/values", {
         method: "PUT",
         body: JSON.stringify(values),
+    });
+}
+
+export async function adminListLanguages(): Promise<AdminLanguage[]> {
+    return apiFetch<AdminLanguage[]>("/v1/admin/lang");
+}
+
+export async function createLanguage(body: Language): Promise<AdminLanguage> {
+    return apiFetch<AdminLanguage>("/v1/admin/lang", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+
+export async function deleteLanguage(code: string): Promise<void> {
+    await apiFetch(`/v1/admin/lang/${code}`, {
+        method: "DELETE",
     });
 }
