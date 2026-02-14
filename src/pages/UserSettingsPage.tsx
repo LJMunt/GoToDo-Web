@@ -254,7 +254,7 @@ export default function UserSettingsPage() {
                                                 : "text-text-muted hover:text-text-base"
                                         }`}
                                     >
-                                        {l.name}
+                                        {language === l.code ? l.name : l.code}
                                     </button>
                                 ))}
                             </div>
