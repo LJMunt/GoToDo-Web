@@ -15,6 +15,14 @@ type SignupRes =
 type PasswordChangeReq =
     paths["/api/v1/auth/password-change"]["post"]["requestBody"]["content"]["application/json"];
 
+type VerifyEmailReq =
+    paths["/api/v1/auth/verify-email"]["post"]["requestBody"]["content"]["application/json"];
+type VerifyEmailRes =
+    paths["/api/v1/auth/verify-email"]["post"]["responses"]["200"]["content"]["application/json"];
+
+type ResendVerificationReq =
+    paths["/api/v1/auth/verify-email/resend"]["post"]["requestBody"]["content"]["application/json"];
+
 // --- API functions ---
 export async function login(body: LoginReq): Promise<LoginRes> {
     const data = await apiFetch<LoginRes>("/v1/auth/login", {
@@ -32,8 +40,9 @@ export async function signup(body: SignupReq): Promise<SignupRes> {
         body: JSON.stringify(body),
     });
 
-    // Your signup returns token too — perfect UX
-    setToken(data.token ?? null);
+    // Store token only if backend issues one (may be absent when verification is required)
+    if (data.token) setToken(data.token);
+    else setToken(null);
     return data;
 }
 
@@ -59,4 +68,21 @@ export async function changePassword(body: PasswordChangeReq): Promise<void> {
         // Surface "not authenticated" or other errors as is
         throw err;
     }
+}
+
+export async function verifyEmail(token: VerifyEmailReq["token"]): Promise<VerifyEmailRes> {
+    const data = await apiFetch<VerifyEmailRes>("/v1/auth/verify-email", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+    });
+
+    setToken(data.token ?? null);
+    return data;
+}
+
+export function resendVerificationEmail(email: ResendVerificationReq["email"]): Promise<void> {
+    return apiFetch<void>("/v1/auth/verify-email/resend", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+    });
 }

@@ -11,6 +11,7 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import UserManagement from "../pages/admin/UserManagement";
 import UserDataView from "../pages/admin/UserDataView";
 import ConfigManagement from "../pages/admin/ConfigManagement";
+import VerifyEmailPage from "../pages/VerifyEmailPage";
 
 export const router = createBrowserRouter([
     {
@@ -43,4 +44,5 @@ export const router = createBrowserRouter([
     },
     { path: "/login", element: <LoginPage /> },
     { path: "/signup", element: <SignupPage /> },
+    { path: "/verify-email", element: <VerifyEmailPage /> },
 ]);

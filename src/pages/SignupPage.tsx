@@ -21,9 +21,14 @@ export default function SignupPage() {
         setIsSubmitting(true);
 
         try {
-            await signup({ email, password });
-            await refresh();
-            nav("/", { replace: true });
+            const res = await signup({ email, password });
+            const needsVerification = res.verificationRequired || status?.auth.requireEmailVerification;
+            if (!needsVerification && res.token) {
+                await refresh();
+                nav("/", { replace: true });
+            } else {
+                nav("/verify-email", { state: { email } });
+            }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Signup failed");
         } finally {
