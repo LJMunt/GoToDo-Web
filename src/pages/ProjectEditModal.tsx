@@ -16,7 +16,7 @@ export function ProjectEditModal({
     onUpdated: () => void;
     onDeleted: () => void;
 }) {
-    const { config } = useConfig();
+    const { config, status } = useConfig();
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -24,6 +24,8 @@ export function ProjectEditModal({
 
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+
+    const isReadOnly = status?.instance.readOnly;
 
     useEffect(() => {
         async function load() {
@@ -96,13 +98,20 @@ export function ProjectEditModal({
                     <div className="flex items-center justify-between mb-10">
                         <div>
                             <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.editProjectTitle}</h2>
-                            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2 ml-0.5">
-                                {config.ui.editProjectSubtitle}
-                            </p>
+                            {isReadOnly && (
+                                <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mt-2 ml-0.5">
+                                    ReadOnly Mode — No changes can be saved
+                                </p>
+                            )}
+                            {!isReadOnly && (
+                                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mt-2 ml-0.5">
+                                    {config.ui.editProjectSubtitle}
+                                </p>
+                            )}
                         </div>
                         <button
                             onClick={onClose}
-                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
+                            className="allow-readonly flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
                         >
                             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
@@ -150,7 +159,7 @@ export function ProjectEditModal({
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onClose}
-                            className="rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
+                            className="allow-readonly rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
                         >
                             {config.ui.cancel}
                         </button>

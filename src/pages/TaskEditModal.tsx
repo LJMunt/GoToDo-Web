@@ -38,7 +38,7 @@ export function TaskEditModal({
     onUpdated: (task?: Task) => void;
     onDeleted: () => void;
 }) {
-    const { config } = useConfig();
+    const { config, status } = useConfig();
     const [task, setTask] = useState<Task | null>(null);
     const [tags, setTags] = useState<Tag[]>([]);
     const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -50,6 +50,8 @@ export function TaskEditModal({
     const [description, setDescription] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [newTag, setNewTag] = useState("");
+
+    const isReadOnly = status?.instance.readOnly;
 
     useEffect(() => {
         async function load() {
@@ -176,7 +178,12 @@ export function TaskEditModal({
                     <div className="flex items-center justify-between mb-10">
                         <div>
                             <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.editTaskTitle}</h2>
-                            {isRecurring && (
+                            {isReadOnly && (
+                                <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mt-2 ml-0.5">
+                                    ReadOnly Mode — No changes can be saved
+                                </p>
+                            )}
+                            {isRecurring && !isReadOnly && (
                                 <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mt-2 ml-0.5">
                                     {config.ui.recurringTemplate}
                                 </p>
@@ -184,7 +191,7 @@ export function TaskEditModal({
                         </div>
                         <button
                             onClick={onClose}
-                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
+                            className="allow-readonly flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
                         >
                             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
@@ -286,7 +293,7 @@ export function TaskEditModal({
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onClose}
-                            className="rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
+                            className="allow-readonly rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
                         >
                             {config.ui.cancel}
                         </button>
