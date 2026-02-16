@@ -1,15 +1,18 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useConfig } from "../features/config/ConfigContext";
 
 export default function AppLayout() {
     const { state, logout } = useAuth();
-    const { config } = useConfig();
+    const { config, status } = useConfig();
     const nav = useNavigate();
+    const location = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const user = state.status === "authenticated" ? state.user : null;
+    const isReadOnly = status?.instance.readOnly;
+    const isAdminPath = location.pathname.startsWith("/admin");
 
     const initials = useMemo(() => {
         if (!user) return "";
@@ -39,6 +42,18 @@ export default function AppLayout() {
 
     return (
         <div className="min-h-screen bg-bg-base text-text-base selection:bg-brand-500/30">
+            {isReadOnly && (
+                <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2">
+                    <div className="flex items-center justify-center gap-2 text-amber-500 text-xs font-black uppercase tracking-widest">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        ReadOnly Mode — No changes can be saved
+                    </div>
+                </div>
+            )}
             <header className="sticky top-0 z-30 border-b border-surface-5 bg-bg-base/80 backdrop-blur-md">
                 <div className="flex max-w-full items-center justify-between px-6 py-4">
                     <Link to="/" className="flex items-center gap-3 group">
@@ -123,7 +138,7 @@ export default function AppLayout() {
                 </div>
             </header>
 
-            <main className="max-w-full px-6 py-12">
+            <main className={`max-w-full px-6 py-12 ${isReadOnly && !isAdminPath ? "is-readonly" : ""}`}>
                 <Outlet />
             </main>
         </div>

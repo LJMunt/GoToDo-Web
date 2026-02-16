@@ -6,7 +6,7 @@ import { useConfig } from "../features/config/ConfigContext";
 
 
 export default function LoginPage() {
-    const { config, language, setLanguage, availableLanguages } = useConfig();
+    const { config, status, language, setLanguage, availableLanguages } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,12 +104,14 @@ export default function LoginPage() {
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-surface-5 text-center">
-                        <p className="text-sm text-text-muted font-medium mb-6">
-                            {config.auth.noAccountPrompt}{" "}
-                            <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/signup">
-                                {config.auth.createOneLink}
-                            </Link>
-                        </p>
+                        {status?.auth.allowSignup !== false && (
+                            <p className="text-sm text-text-muted font-medium mb-6">
+                                {config.auth.noAccountPrompt}{" "}
+                                <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/signup">
+                                    {config.auth.createOneLink}
+                                </Link>
+                            </p>
+                        )}
 
                         <div className="flex flex-wrap items-center justify-center gap-2">
                             {availableLanguages.map((l) => (
