@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { type AppConfig, DEFAULT_CONFIG } from "./types";
+import { type AppConfig, DEFAULT_CONFIG, type ConfigStatus } from "./types";
 
 import { apiFetch } from "../../api/http";
+import { getConfigStatus } from "../../api/config";
 import { listLanguages, type Language } from "../../api/languages";
 import { updateMe } from "../../api/users";
 import { useAuth } from "../auth/AuthContext";
 
 interface ConfigContextType {
     config: AppConfig;
+    status: ConfigStatus | null;
     isLoading: boolean;
     error: string | null;
     language: string;
@@ -93,6 +95,7 @@ function expandDotNotation(obj: Record<string, unknown>): Record<string, unknown
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const { state: authState } = useAuth();
     const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+    const [status, setStatus] = useState<ConfigStatus | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [language, setLanguageState] = useState<string>(() => localStorage.getItem("language") ?? "en");
@@ -140,9 +143,13 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiFetch<Record<string, unknown>>(`/v1/config?lang=${language}`);
-            const expanded = expandDotNotation(data);
+            const [configData, statusData] = await Promise.all([
+                apiFetch<Record<string, unknown>>(`/v1/config?lang=${language}`),
+                getConfigStatus()
+            ]);
+            const expanded = expandDotNotation(configData);
             setConfig(deepMerge<AppConfig>(DEFAULT_CONFIG, expanded as Partial<AppConfig>));
+            setStatus(statusData);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to fetch configuration");
             // Fallback to default config on error
@@ -161,7 +168,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     }, [language]);
 
     return (
-        <ConfigContext.Provider value={{ config, isLoading, error, language, availableLanguages, setLanguage, refreshConfig, fetchLanguages }}>
+        <ConfigContext.Provider value={{ config, status, isLoading, error, language, availableLanguages, setLanguage, refreshConfig, fetchLanguages }}>
             {children}
         </ConfigContext.Provider>
     );

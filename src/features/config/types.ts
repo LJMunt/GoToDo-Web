@@ -4,6 +4,7 @@ export type ConfigKey = components["schemas"]["ConfigKey"];
 export type ConfigTranslations = components["schemas"]["ConfigTranslations"]; 
 export type ConfigValue = components["schemas"]["ConfigValue"] | string; 
 export type ConfigValues = { [key: string]: ConfigValue };
+export type ConfigStatus = components["schemas"]["ConfigStatus"];
 
 export interface BrandingConfig {
     appName: string;

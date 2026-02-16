@@ -150,3 +150,18 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
     background: #404040;
 }
+
+.is-readonly input,
+.is-readonly select,
+.is-readonly textarea,
+.is-readonly button:not(.allow-readonly),
+.is-readonly a:not(.allow-readonly) {
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+.is-readonly .checkbox-container {
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+}
