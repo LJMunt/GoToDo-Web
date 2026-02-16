@@ -121,6 +121,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/config/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get backend configuration status
+         * @description Returns the status of backend configuration flags (e.g., if signup is allowed).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigStatus"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/config": {
         parameters: {
             query?: never;
@@ -247,6 +287,22 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Signup disabled */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "signup_disabled",
+                         *       "message": "New account registration is currently disabled.",
+                         *       "retryable": false
+                         *     }
+                         */
                         "application/json": components["schemas"]["Error"];
                     };
                 };
@@ -2937,6 +2993,8 @@ export interface components {
     schemas: {
         Error: {
             error: string;
+            message?: string;
+            retryable?: boolean;
         };
         User: {
             /** Format: int64 */
@@ -3065,6 +3123,15 @@ export interface components {
         };
         /** @description Nested JSON configuration object (public) */
         AppConfig: Record<string, never>;
+        ConfigStatus: {
+            auth: {
+                allowSignup: boolean;
+                requireEmailVerification: boolean;
+            };
+            instance: {
+                readOnly: boolean;
+            };
+        };
         Language: {
             /** @description Language code, either 2 letters (e.g., en) or format xx-xx (e.g., en-gb) */
             code: string;
