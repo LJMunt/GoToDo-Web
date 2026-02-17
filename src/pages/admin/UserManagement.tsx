@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { listUsers, updateUser, type User } from "../../api/admin";
+import { listUsers, updateUser, verifyUserEmail, unverifyUserEmail, type User } from "../../api/admin";
 import { useAuth } from "../../features/auth/AuthContext";
 import { useConfig } from "../../features/config/ConfigContext";
 
@@ -38,7 +38,26 @@ export default function UserManagement() {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [verifyingUser, setVerifyingUser] = useState<User | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleVerifyEmail = async (user: User) => {
+        setIsUpdating(true);
+        try {
+            if (user.email_verified_at) {
+                await unverifyUserEmail(user.id);
+                setUsers(users.map(u => u.id === user.id ? { ...u, email_verified_at: null } : u));
+            } else {
+                await verifyUserEmail(user.id);
+                setUsers(users.map(u => u.id === user.id ? { ...u, email_verified_at: new Date().toISOString() } : u));
+            }
+            setVerifyingUser(null);
+        } catch (e) {
+            alert(e instanceof Error ? e.message : "Failed to update verification status");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -225,6 +244,12 @@ export default function UserManagement() {
                                         <SortIcon field="last_login" currentField={sortField} direction={sortDirection} />
                                     </div>
                                 </th>
+                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleSort("email_verified_at")}>
+                                    <div className="flex items-center gap-1">
+                                        {config.ui.emailVerified}
+                                        <SortIcon field="email_verified_at" currentField={sortField} direction={sortDirection} />
+                                    </div>
+                                </th>
                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">
                                     {config.ui.actions}
                                 </th>
@@ -278,6 +303,24 @@ export default function UserManagement() {
                                         {user.last_login ? new Date(user.last_login).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : (
                                             <span className="italic text-text-muted/50">{config.ui.never}</span>
                                         )}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap">
+                                        <button
+                                            onClick={() => setVerifyingUser(user)}
+                                            disabled={isUpdating}
+                                            className="text-xs font-medium focus:outline-none transition-all active:scale-95 cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-surface-10 disabled:opacity-50"
+                                            title={user.email_verified_at ? config.ui.unverifyEmail : config.ui.verifyEmail}
+                                        >
+                                            {user.email_verified_at ? (
+                                                <span className="text-brand-500 hover:text-brand-400">
+                                                    {new Date(user.email_verified_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                </span>
+                                            ) : (
+                                                <span className="italic text-text-muted/50 hover:text-text-muted">
+                                                    {config.ui.never}
+                                                </span>
+                                            )}
+                                        </button>
                                     </td>
                                     <td className="px-4 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
@@ -408,6 +451,49 @@ export default function UserManagement() {
                                 className="rounded-xl bg-brand-500 px-6 py-2 text-sm font-bold text-on-brand shadow-lg shadow-brand-500/10 hover:bg-brand-600 transition-all disabled:opacity-50"
                             >
                                 {isUpdating ? config.ui.saving : config.ui.saveChanges}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {verifyingUser && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-md overflow-hidden rounded-3xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-xl font-bold text-text-base">
+                                        {verifyingUser.email_verified_at ? config.ui.unverifyEmailConfirmTitle : config.ui.verifyEmailConfirmTitle}
+                                    </h2>
+                                    <p className="text-sm text-text-muted mt-1">{verifyingUser.email}</p>
+                                </div>
+                                <button
+                                    onClick={() => setVerifyingUser(null)}
+                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all"
+                                >
+                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+
+                            <p className="text-text-base mb-2">
+                                {verifyingUser.email_verified_at ? config.ui.unverifyEmailConfirmMessage : config.ui.verifyEmailConfirmMessage}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 bg-surface-3 p-6 border-t border-surface-8">
+                            <button
+                                onClick={() => setVerifyingUser(null)}
+                                className="px-4 py-2 text-sm font-bold text-text-muted hover:text-text-base transition-colors"
+                            >
+                                {config.ui.cancel}
+                            </button>
+                            <button
+                                onClick={() => handleVerifyEmail(verifyingUser)}
+                                disabled={isUpdating}
+                                className="rounded-xl bg-brand-500 px-6 py-2 text-sm font-bold text-on-brand shadow-lg shadow-brand-500/10 hover:bg-brand-600 transition-all disabled:opacity-50"
+                            >
+                                {isUpdating ? config.ui.saving : (verifyingUser.email_verified_at ? config.ui.unverifyEmail : config.ui.verifyEmail)}
                             </button>
                         </div>
                     </div>

@@ -181,6 +181,13 @@ export interface UIConfig {
     noProjectsYet: string;
     singleTaskLabel: string;
     projectLabel: string;
+    emailVerified: string;
+    verifyEmail: string;
+    unverifyEmail: string;
+    verifyEmailConfirmTitle: string;
+    verifyEmailConfirmMessage: string;
+    unverifyEmailConfirmTitle: string;
+    unverifyEmailConfirmMessage: string;
 }
 
 export interface NavigationConfig {
@@ -378,6 +385,13 @@ export const DEFAULT_CONFIG: AppConfig = {
         noProjectsYet: "No projects yet.",
         singleTaskLabel: "Single Task",
         projectLabel: "Project",
+        emailVerified: "E-Mail Verified",
+        verifyEmail: "Verify Email",
+        unverifyEmail: "Unverify Email",
+        verifyEmailConfirmTitle: "Verify User Email",
+        verifyEmailConfirmMessage: "Are you sure you want to mark this user's email as verified?",
+        unverifyEmailConfirmTitle: "Unverify User Email",
+        unverifyEmailConfirmMessage: "Are you sure you want to mark this user's email as unverified?",
     },
     navigation: {
         agenda: "Agenda",
