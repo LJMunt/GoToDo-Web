@@ -24,11 +24,19 @@ export default function LoginPage() {
         setIsSubmitting(true);
 
         try {
-            await login({ email, password });
-            await refresh();
-            nav(from, { replace: true });
+            const res = await login({ email, password });
+            if (res.token) {
+                await refresh();
+                nav(from, { replace: true });
+            } else {
+                nav("/verify-email", { state: { email } });
+            }
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Login failed");
+            const msg = err instanceof Error ? err.message : "Login failed";
+            setError(msg);
+            if (msg.toLowerCase().includes("email_not_verified") || msg.toLowerCase().includes("verify your email")) {
+                nav("/verify-email", { state: { email } });
+            }
         } finally {
             setIsSubmitting(false);
         }
