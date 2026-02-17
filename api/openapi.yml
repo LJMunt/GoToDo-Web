@@ -37,9 +37,6 @@ components:
         id:
           type: integer
           format: int64
-        public_id:
-          type: string
-          description: Public ULID exposed in API responses.
         email:
           type: string
           format: email
@@ -51,13 +48,7 @@ components:
           oneOf: [{type: string, format: date-time}, {type: "null"}]
         email_verified_at:
           oneOf: [{type: string, format: date-time}, {type: "null"}]
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-      required: [id, public_id, email, is_admin, is_active, last_login, email_verified_at, created_at, updated_at]
+      required: [id, email, is_admin, is_active, last_login, email_verified_at]
 
     Project:
       type: object
@@ -81,8 +72,11 @@ components:
       type: object
       properties:
         id:
-          type: string
-          description: Task public_id (ULID).
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
         project_id:
           type: integer
           format: int64
@@ -107,16 +101,13 @@ components:
         recurrence_start_at:
           oneOf: [{type: string}, {type: "null"}]
           format: date-time
-        next_due_at:
-          oneOf: [{type: string}, {type: "null"}]
-          format: date-time
         created_at:
           type: string
           format: date-time
         updated_at:
           type: string
           format: date-time
-      required: [id, project_id, title, created_at, updated_at]
+      required: [id, user_id, project_id, title, created_at, updated_at]
 
     Tag:
       type: object
@@ -157,9 +148,9 @@ components:
     UserMe:
       type: object
       properties:
-        public_id:
-          type: string
-          description: Public ULID exposed in API responses.
+        id:
+          type: integer
+          format: int64
         email:
           type: string
           format: email
@@ -184,7 +175,7 @@ components:
             language:
               type: string
           required: [theme, showCompletedDefault, language]
-      required: [public_id, email, is_admin, is_active, last_login, settings]
+      required: [id, email, is_admin, is_active, last_login, settings]
 
     Occurrence:
       type: object
@@ -752,7 +743,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserMe'
+                $ref: '#/components/schemas/User'
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
