@@ -6,7 +6,7 @@ import type { ConfigKey, ConfigTranslations, ConfigValues } from "../features/co
 export type User = components["schemas"]["AdminUser"];
 export type Project = components["schemas"]["Project"];
 export type Task = components["schemas"]["Task"];
-export type Tag = components["schemas"]["AdminTag"];
+export type Tag = components["schemas"]["Tag"];
 export type Language = components["schemas"]["Language"];
 export type AdminLanguage = components["schemas"]["AdminLanguage"];
 

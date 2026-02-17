@@ -1031,25 +1031,25 @@ export default function UserDataView() {
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("id")}>
                                                     <div className="flex items-center gap-1">
                                                         ID
-                                                        <SortIcon field="id" currentField={tagSortField} direction={tagSortDirection} />
+                                                        <SortIcon field="id" currentField={tagSortField as string} direction={tagSortDirection} />
                                                     </div>
                                                 </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("name")}>
                                                     <div className="flex items-center gap-1">
                                                         Name
-                                                        <SortIcon field="name" currentField={tagSortField} direction={tagSortDirection} />
+                                                        <SortIcon field="name" currentField={tagSortField as string} direction={tagSortDirection} />
                                                     </div>
                                                 </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("created_at")}>
                                                     <div className="flex items-center gap-1">
                                                         Created At
-                                                        <SortIcon field="created_at" currentField={tagSortField} direction={tagSortDirection} />
+                                                        <SortIcon field="created_at" currentField={tagSortField as string} direction={tagSortDirection} />
                                                     </div>
                                                 </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("updated_at")}>
                                                     <div className="flex items-center gap-1">
                                                         Updated At
-                                                        <SortIcon field="updated_at" currentField={tagSortField} direction={tagSortDirection} />
+                                                        <SortIcon field="updated_at" currentField={tagSortField as string} direction={tagSortDirection} />
                                                     </div>
                                                 </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">Actions</th>
