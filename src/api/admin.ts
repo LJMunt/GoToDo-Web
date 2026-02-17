@@ -25,6 +25,18 @@ export async function updateUser(id: number, body: { is_admin?: boolean; is_acti
     });
 }
 
+export async function verifyUserEmail(id: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${id}/verify-email`, {
+        method: "POST",
+    });
+}
+
+export async function unverifyUserEmail(id: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${id}/unverify-email`, {
+        method: "POST",
+    });
+}
+
 export async function listUserProjects(userId: number, includeDeleted?: boolean): Promise<Project[]> {
     const query = includeDeleted ? "?include_deleted=true" : "";
     return apiFetch<Project[]>(`/v1/admin/users/${userId}/projects${query}`);

@@ -68,13 +68,7 @@ components:
           oneOf: [{type: string, format: date-time}, {type: "null"}]
         email_verified_at:
           oneOf: [{type: string, format: date-time}, {type: "null"}]
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-      required: [id, public_id, email, is_admin, is_active, last_login, email_verified_at, created_at, updated_at]
+      required: [id, email, is_admin, is_active, last_login, email_verified_at]
 
     Project:
       type: object

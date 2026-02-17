@@ -3383,6 +3383,7 @@ export interface components {
         AdminUser: {
             /** Format: int64 */
             id: number;
+            /** @description Public ULID exposed in API responses. */
             public_id: string;
             /** Format: email */
             email: string;
@@ -3408,6 +3409,7 @@ export interface components {
         Task: {
             /** Format: int64 */
             id: number;
+            /** @description User public_id. */
             user_id: string;
             /** Format: int64 */
             project_id: number;
@@ -3425,6 +3427,8 @@ export interface components {
             /** Format: date-time */
             recurrence_start_at?: string | null;
             /** Format: date-time */
+            next_due_at?: string | null;
+            /** Format: date-time */
             created_at: string;
             /** Format: date-time */
             updated_at: string;
@@ -3440,16 +3444,8 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
-        AdminTag: {
-            /** Format: int64 */
-            id: number;
-            name: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
         UserMe: {
+            /** @description Public ULID exposed in API responses. */
             public_id: string;
             /** Format: email */
             email: string;
@@ -3458,7 +3454,7 @@ export interface components {
             /** Format: date-time */
             last_login: string | null;
             /** Format: date-time */
-            email_verified_at: string | null;
+            email_verified_at?: string | null;
             settings: {
                 /** @enum {string} */
                 theme: "system" | "light" | "dark";
