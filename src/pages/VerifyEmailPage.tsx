@@ -24,12 +24,12 @@ export default function VerifyEmailPage() {
 
     useEffect(() => {
         if (tokenFromQuery) {
-            void handleVerify(tokenFromQuery, true);
+            void handleVerify(tokenFromQuery);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we intentionally run once per token change
     }, [tokenFromQuery]);
 
-    async function handleVerify(token: string, fromQuery = false) {
+    async function handleVerify(token: string) {
         if (!token) return;
         setStatus("verifying");
         setError(null);

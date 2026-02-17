@@ -274,8 +274,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** Format: int64 */
-                            id: number;
+                            public_id: string;
                             email: string;
                             token?: string;
                             verificationRequired: boolean;
@@ -661,7 +660,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"];
+                        "application/json": components["schemas"]["UserMe"];
                     };
                 };
                 401: components["responses"]["Unauthorized"];
@@ -760,7 +759,7 @@ export interface paths {
                             /** @description User's preferred language code (e.g., 'en', 'fr'). */
                             language?: string;
                         };
-                    } | unknown | unknown;
+                    };
                 };
             };
             responses: {
@@ -2302,7 +2301,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"][];
+                        "application/json": components["schemas"]["AdminUser"][];
                     };
                 };
                 401: components["responses"]["Unauthorized"];
@@ -2345,7 +2344,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"];
+                        "application/json": components["schemas"]["AdminUser"];
                     };
                 };
                 /** @description Invalid ID */
@@ -2458,7 +2457,7 @@ export interface paths {
                         is_admin?: boolean;
                         is_active?: boolean;
                         password?: string;
-                    };
+                    } | unknown | unknown | unknown;
                 };
             };
             responses: {
@@ -2497,6 +2496,217 @@ export interface paths {
                 500: components["responses"]["InternalServerError"];
             };
         };
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/email-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** Get user email verification status (Admin only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Email verification status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            email_verified_at?: string | null;
+                        };
+                    };
+                };
+                /** @description Invalid user ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "invalid user id"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "user not found"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify user email (Admin only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Email verified successfully */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid user ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "invalid user id"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "user not found"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/unverify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unverify user email (Admin only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Email unverified successfully */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid user ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "invalid user id"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "user not found"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin/users/{userId}/projects": {
@@ -3056,7 +3266,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Tag"][];
+                        "application/json": components["schemas"]["AdminTag"][];
                     };
                 };
                 /** @description Invalid ID */
@@ -3162,13 +3372,28 @@ export interface components {
             retryable?: boolean;
         };
         User: {
-            /** Format: int64 */
-            id: number;
+            public_id: string;
             /** Format: email */
             email: string;
             is_admin: boolean;
             is_active: boolean;
-            last_login: string;
+            last_login: string | null;
+            email_verified_at: string | null;
+        };
+        AdminUser: {
+            /** Format: int64 */
+            id: number;
+            public_id: string;
+            /** Format: email */
+            email: string;
+            is_admin: boolean;
+            is_active: boolean;
+            last_login: string | null;
+            email_verified_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         Project: {
             /** Format: int64 */
@@ -3183,8 +3408,7 @@ export interface components {
         Task: {
             /** Format: int64 */
             id: number;
-            /** Format: int64 */
-            user_id: number;
+            user_id: string;
             /** Format: int64 */
             project_id: number;
             title: string;
@@ -3216,15 +3440,25 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
-        UserMe: {
+        AdminTag: {
             /** Format: int64 */
             id: number;
+            name: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        UserMe: {
+            public_id: string;
             /** Format: email */
             email: string;
             is_admin: boolean;
             is_active: boolean;
             /** Format: date-time */
             last_login: string | null;
+            /** Format: date-time */
+            email_verified_at: string | null;
             settings: {
                 /** @enum {string} */
                 theme: "system" | "light" | "dark";

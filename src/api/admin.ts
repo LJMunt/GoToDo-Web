@@ -3,10 +3,10 @@ import type { components } from "./schema";
 
 import type { ConfigKey, ConfigTranslations, ConfigValues } from "../features/config/types";
 
-export type User = components["schemas"]["User"];
+export type User = components["schemas"]["AdminUser"];
 export type Project = components["schemas"]["Project"];
 export type Task = components["schemas"]["Task"];
-export type Tag = components["schemas"]["Tag"];
+export type Tag = components["schemas"]["AdminTag"];
 export type Language = components["schemas"]["Language"];
 export type AdminLanguage = components["schemas"]["AdminLanguage"];
 

@@ -34,9 +34,8 @@ components:
     User:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
+        public_id:
+          type: string
         email:
           type: string
           format: email
@@ -45,8 +44,37 @@ components:
         is_active:
           type: boolean
         last_login:
+          oneOf: [{type: string, format: date-time}, {type: "null"}]
+        email_verified_at:
+          oneOf: [{type: string, format: date-time}, {type: "null"}]
+      required: [public_id, email, is_admin, is_active, last_login, email_verified_at]
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        public_id:
           type: string
-      required: [id, email, is_admin, is_active, last_login]
+        email:
+          type: string
+          format: email
+        is_admin:
+          type: boolean
+        is_active:
+          type: boolean
+        last_login:
+          oneOf: [{type: string, format: date-time}, {type: "null"}]
+        email_verified_at:
+          oneOf: [{type: string, format: date-time}, {type: "null"}]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, public_id, email, is_admin, is_active, last_login, email_verified_at, created_at, updated_at]
 
     Project:
       type: object
@@ -73,8 +101,7 @@ components:
           type: integer
           format: int64
         user_id:
-          type: integer
-          format: int64
+          type: string
         project_id:
           type: integer
           format: int64
@@ -143,12 +170,27 @@ components:
           format: date-time
       required: [ id, name, color, created_at, updated_at ]
 
-    UserMe:
+    AdminTag:
       type: object
       properties:
         id:
           type: integer
           format: int64
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [ id, name, created_at, updated_at ]
+
+    UserMe:
+      type: object
+      properties:
+        public_id:
+          type: string
         email:
           type: string
           format: email
@@ -157,6 +199,9 @@ components:
         is_active:
           type: boolean
         last_login:
+          oneOf: [{type: string}, {type: "null"}]
+          format: date-time
+        email_verified_at:
           oneOf: [{type: string}, {type: "null"}]
           format: date-time
         settings:
@@ -170,7 +215,7 @@ components:
             language:
               type: string
           required: [theme, showCompletedDefault, language]
-      required: [id, email, is_admin, is_active, last_login, settings]
+      required: [public_id, email, is_admin, is_active, last_login, email_verified_at, settings]
 
     Occurrence:
       type: object
@@ -483,16 +528,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: integer
-                    format: int64
+                  public_id:
+                    type: string
                   email:
                     type: string
                   token:
                     type: string
                   verificationRequired:
                     type: boolean
-                required: [id, email, verificationRequired]
+                required: [public_id, email, verificationRequired]
         "400":
           description: Invalid request
           content:
@@ -693,7 +737,6 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: false
               properties:
                 currentPassword:
                   type: string
@@ -738,7 +781,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserMe'
         "401":
           $ref: '#/components/responses/Unauthorized'
         "404":
@@ -761,14 +804,12 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: false
               properties:
                 email:
                   type: string
                   format: email
                 settings:
                   type: object
-                  additionalProperties: false
                   properties:
                     theme:
                       type: string
@@ -780,9 +821,6 @@ paths:
                     language:
                       type: string
                       description: User's preferred language code (e.g., 'en', 'fr').
-              anyOf:
-                - required: [ email ]
-                - required: [ settings ]
       responses:
         "200":
           description: User updated
@@ -1547,7 +1585,6 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: false
               properties:
                 name:
                   type: string
@@ -1919,7 +1956,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: '#/components/schemas/AdminUser'
         "401":
           $ref: '#/components/responses/Unauthorized'
         "403":
@@ -1944,7 +1981,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AdminUser'
         "400":
           description: Invalid ID
           content:
@@ -1987,6 +2024,10 @@ paths:
                   type: boolean
                 password:
                   type: string
+              anyOf:
+                - required: [ is_admin ]
+                - required: [ is_active ]
+                - required: [ password ]
       responses:
         "204":
           description: User updated
@@ -2025,6 +2066,124 @@ paths:
           description: User deleted
         "400":
           description: Invalid ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid user id"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user not found"
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/admin/users/{id}/email-verification:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [Admin]
+      summary: Get user email verification status (Admin only)
+      responses:
+        "200":
+          description: Email verification status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email_verified_at:
+                    oneOf: [{type: string, format: date-time}, {type: "null"}]
+        "400":
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid user id"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user not found"
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/admin/users/{id}/verify-email:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    post:
+      tags: [Admin]
+      summary: Verify user email (Admin only)
+      responses:
+        "204":
+          description: Email verified successfully
+        "400":
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "invalid user id"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "user not found"
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/admin/users/{id}/unverify-email:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    post:
+      tags: [Admin]
+      summary: Unverify user email (Admin only)
+      responses:
+        "204":
+          description: Email unverified successfully
+        "400":
+          description: Invalid user ID
           content:
             application/json:
               schema:
@@ -2433,7 +2592,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Tag'
+                  $ref: '#/components/schemas/AdminTag'
         "400":
           description: Invalid ID
           content:
