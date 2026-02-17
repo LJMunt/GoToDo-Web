@@ -341,18 +341,51 @@ export default function ConfigManagement() {
                                                                 False
                                                             </button>
                                                         </div>
-                                                    ) : k.data_type === 'string' ? (
-                                                        <input
-                                                            type="text"
-                                                            value={String(editedValues[k.key] ?? "")}
-                                                            onChange={(e) => setEditedValues({
-                                                                ...editedValues,
-                                                                [k.key]: e.target.value
-                                                            })}
-                                                            className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"
-                                                            placeholder="Enter string value..."
-                                                        />
-                                                    ) : (
+                                                    ) : k.data_type === 'string' ? (() => {
+                                                        const enumMatch = k.description?.match(/([a-zA-Z0-9_-]+\|[a-zA-Z0-9_|_-]+)/);
+                                                        const options = enumMatch ? enumMatch[1].split('|').map(s => s.trim()) : null;
+
+                                                        if (options && options.length > 0) {
+                                                            const currentValue = String(editedValues[k.key] ?? "");
+                                                            return (
+                                                                <div className="relative">
+                                                                    <select
+                                                                        value={currentValue}
+                                                                        onChange={(e) => setEditedValues({
+                                                                            ...editedValues,
+                                                                            [k.key]: e.target.value
+                                                                        })}
+                                                                        className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all appearance-none cursor-pointer"
+                                                                    >
+                                                                        {!options.includes(currentValue) && currentValue !== "" && (
+                                                                            <option value={currentValue}>{currentValue} (Current)</option>
+                                                                        )}
+                                                                        {options.map(opt => (
+                                                                            <option key={opt} value={opt}>{opt}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                        </svg>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        return (
+                                                            <input
+                                                                type="text"
+                                                                value={String(editedValues[k.key] ?? "")}
+                                                                onChange={(e) => setEditedValues({
+                                                                    ...editedValues,
+                                                                    [k.key]: e.target.value
+                                                                })}
+                                                                className="w-full bg-surface-5 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/50 transition-all"
+                                                                placeholder="Enter string value..."
+                                                            />
+                                                        );
+                                                    })() : (
                                                         <input
                                                             type={k.data_type === 'number' ? 'number' : 'text'}
                                                             value={(() => {
