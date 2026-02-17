@@ -112,7 +112,8 @@ export default function UserManagement() {
     const filteredUsers = useMemo(() => {
         const filtered = users.filter(user => {
             const matchesSearch = user.email.toLowerCase().includes(search.toLowerCase()) || 
-                                 user.id.toString().includes(search);
+                                 user.id.toString().includes(search) ||
+                                 user.public_id.toLowerCase().includes(search.toLowerCase());
             const matchesAdmin = filterAdmin === "all" || 
                                 (filterAdmin === "admin" && user.is_admin) || 
                                 (filterAdmin === "user" && !user.is_admin);

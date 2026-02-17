@@ -21,26 +21,6 @@ function SortIcon({ field, currentField, direction }: { field: string, currentFi
     );
 }
 
-const tagColorClasses: Record<string, string> = {
-    slate: "bg-slate-500/10 text-text-muted/80 ring-slate-500/20",
-    gray: "bg-gray-500/10 text-gray-500/80 ring-gray-500/20",
-    red: "bg-red-500/10 text-red-500/80 ring-red-500/20",
-    orange: "bg-brand-500/10 text-brand-500/80 ring-brand-500/20",
-    amber: "bg-amber-500/10 text-amber-500/80 ring-amber-500/20",
-    yellow: "bg-yellow-500/10 text-yellow-500/80 ring-yellow-500/20",
-    lime: "bg-lime-500/10 text-lime-500/80 ring-lime-500/20",
-    green: "bg-green-500/10 text-green-500/80 ring-green-500/20",
-    emerald: "bg-emerald-500/10 text-emerald-500/80 ring-emerald-500/20",
-    teal: "bg-teal-500/10 text-teal-500/80 ring-teal-500/20",
-    cyan: "bg-cyan-500/10 text-cyan-500/80 ring-cyan-500/20",
-    sky: "bg-sky-500/10 text-sky-500/80 ring-sky-500/20",
-    blue: "bg-blue-500/10 text-blue-500/80 ring-blue-500/20",
-    indigo: "bg-indigo-500/10 text-indigo-500/80 ring-indigo-500/20",
-    violet: "bg-violet-500/10 text-violet-500/80 ring-violet-500/20",
-    purple: "bg-purple-500/10 text-purple-500/80 ring-purple-500/20",
-    pink: "bg-pink-500/10 text-pink-500/80 ring-pink-500/20",
-};
-
 export default function UserDataView() {
     const { userId, tab } = useParams<{ userId: string; tab: string }>();
     const [user, setUser] = useState<User | null>(null);
@@ -452,8 +432,9 @@ export default function UserDataView() {
         const filtered = tags.filter(tag => {
             const matchesSearch = 
                 tag.name.toLowerCase().includes(search.toLowerCase()) || 
-                tag.color.toLowerCase().includes(search.toLowerCase()) ||
-                tag.id.toString().includes(search);
+                tag.id.toString().includes(search) ||
+                tag.created_at.toLowerCase().includes(search.toLowerCase()) ||
+                tag.updated_at.toLowerCase().includes(search.toLowerCase());
             return matchesSearch;
         });
 
@@ -1059,16 +1040,16 @@ export default function UserDataView() {
                                                         <SortIcon field="name" currentField={tagSortField} direction={tagSortDirection} />
                                                     </div>
                                                 </th>
-                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("color")}>
-                                                    <div className="flex items-center gap-1">
-                                                        Color
-                                                        <SortIcon field="color" currentField={tagSortField} direction={tagSortDirection} />
-                                                    </div>
-                                                </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("created_at")}>
                                                     <div className="flex items-center gap-1">
                                                         Created At
                                                         <SortIcon field="created_at" currentField={tagSortField} direction={tagSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => toggleTagSort("updated_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Updated At
+                                                        <SortIcon field="updated_at" currentField={tagSortField} direction={tagSortDirection} />
                                                     </div>
                                                 </th>
                                                 <th className="px-4 py-3 uppercase tracking-wider text-[11px] text-right">Actions</th>
@@ -1087,16 +1068,16 @@ export default function UserDataView() {
                                                         <td className="px-4 py-4 font-mono text-xs text-text-muted">#{tag.id}</td>
                                                         <td className="px-4 py-4">
                                                             <div className="flex items-center gap-2">
-                                                                <span className={`px-2 py-0.5 rounded text-xs font-medium ring-1 ring-inset ${tagColorClasses[tag.color] || "bg-surface-10 text-text-muted ring-surface-20"}`}>
+                                                                <span className="px-2 py-0.5 rounded text-xs font-medium ring-1 ring-inset bg-surface-6 text-text-base ring-surface-20">
                                                                     {tag.name}
                                                                 </span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-4 text-text-muted italic">
-                                                            {tag.color}
-                                                        </td>
                                                         <td className="px-4 py-4 text-text-muted whitespace-nowrap">
                                                             {new Date(tag.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted whitespace-nowrap">
+                                                            {new Date(tag.updated_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                                                         </td>
                                                         <td className="px-4 py-4 text-right">
                                                             <div className="flex justify-end gap-2">

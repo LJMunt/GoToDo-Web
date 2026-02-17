@@ -274,8 +274,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** Format: int64 */
-                            id: number;
+                            public_id: string;
                             email: string;
                             token?: string;
                             verificationRequired: boolean;
@@ -760,7 +759,7 @@ export interface paths {
                             /** @description User's preferred language code (e.g., 'en', 'fr'). */
                             language?: string;
                         };
-                    } | unknown | unknown;
+                    };
                 };
             };
             responses: {
@@ -2302,7 +2301,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"][];
+                        "application/json": components["schemas"]["AdminUser"][];
                     };
                 };
                 401: components["responses"]["Unauthorized"];
@@ -2345,7 +2344,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"];
+                        "application/json": components["schemas"]["AdminUser"];
                     };
                 };
                 /** @description Invalid ID */
@@ -2458,7 +2457,7 @@ export interface paths {
                         is_admin?: boolean;
                         is_active?: boolean;
                         password?: string;
-                    };
+                    } | unknown | unknown | unknown;
                 };
             };
             responses: {
@@ -3267,7 +3266,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Tag"][];
+                        "application/json": components["schemas"]["AdminTag"][];
                     };
                 };
                 /** @description Invalid ID */
@@ -3373,6 +3372,15 @@ export interface components {
             retryable?: boolean;
         };
         User: {
+            public_id: string;
+            /** Format: email */
+            email: string;
+            is_admin: boolean;
+            is_active: boolean;
+            last_login: string | null;
+            email_verified_at: string | null;
+        };
+        AdminUser: {
             /** Format: int64 */
             id: number;
             /** @description Public ULID exposed in API responses. */
