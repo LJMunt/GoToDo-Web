@@ -93,7 +93,7 @@ export default function UserManagement() {
     };
 
     const handleUpdateStatus = async (user: User, active: boolean) => {
-        if (currentUser?.id === user.id && !active) {
+        if (currentUser?.public_id === user.public_id && !active) {
             alert("You cannot inactivate your own account.");
             return;
         }
@@ -262,7 +262,7 @@ export default function UserManagement() {
                                     <td className="px-4 py-4 font-medium text-text-base relative">
                                         <div className="flex items-center gap-2">
                                             {user.email}
-                                            {currentUser?.id === user.id && (
+                                            {currentUser?.public_id === user.public_id && (
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
                                                     {config.ui.you}
                                                 </span>
@@ -405,7 +405,7 @@ export default function UserManagement() {
 
                                 <label 
                                     className={`flex items-center gap-3 p-4 rounded-2xl border border-surface-8 transition-colors group ${
-                                        currentUser?.id === editingUser.id 
+                                        currentUser?.public_id === editingUser.public_id 
                                             ? "bg-surface-5/10 opacity-50 cursor-not-allowed" 
                                             : "bg-surface-5/30 cursor-pointer hover:bg-surface-5"
                                     }`}
@@ -416,7 +416,7 @@ export default function UserManagement() {
                                             name="user-status"
                                             className="hidden"
                                             checked={!editingUser.is_active}
-                                            disabled={currentUser?.id === editingUser.id}
+                                            disabled={currentUser?.public_id === editingUser.public_id}
                                             onChange={() => setEditingUser({ ...editingUser, is_active: false })}
                                         />
                                         {!editingUser.is_active && <div className="h-2 w-2 rounded-full bg-on-brand" />}
@@ -424,13 +424,13 @@ export default function UserManagement() {
                                     <span className={`font-medium ${!editingUser.is_active ? "text-text-base" : "text-text-muted"}`}>{config.ui.inactive}</span>
                                 </label>
 
-                                {currentUser?.id === editingUser.id && (
+                                {currentUser?.public_id === editingUser.public_id && (
                                     <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-medium">
                                         ℹ️ {config.ui.cannotInactivateSelf}
                                     </div>
                                 )}
 
-                                {!editingUser.is_active && currentUser?.id !== editingUser.id && (
+                                {!editingUser.is_active && currentUser?.public_id !== editingUser.public_id && (
                                     <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-medium animate-in fade-in slide-in-from-top-2">
                                         ⚠️ {config.ui.inactivateWarning}
                                     </div>
