@@ -661,7 +661,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"];
+                        "application/json": components["schemas"]["UserMe"];
                     };
                 };
                 401: components["responses"]["Unauthorized"];
@@ -3375,12 +3375,18 @@ export interface components {
         User: {
             /** Format: int64 */
             id: number;
+            /** @description Public ULID exposed in API responses. */
+            public_id: string;
             /** Format: email */
             email: string;
             is_admin: boolean;
             is_active: boolean;
             last_login: string | null;
             email_verified_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         Project: {
             /** Format: int64 */
@@ -3395,8 +3401,8 @@ export interface components {
         Task: {
             /** Format: int64 */
             id: number;
-            /** Format: int64 */
-            user_id: number;
+            /** @description User public_id. */
+            user_id: string;
             /** Format: int64 */
             project_id: number;
             title: string;
@@ -3412,6 +3418,8 @@ export interface components {
             repeat_unit?: "day" | "week" | "month" | "null";
             /** Format: date-time */
             recurrence_start_at?: string | null;
+            /** Format: date-time */
+            next_due_at?: string | null;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -3429,8 +3437,8 @@ export interface components {
             updated_at: string;
         };
         UserMe: {
-            /** Format: int64 */
-            id: number;
+            /** @description Public ULID exposed in API responses. */
+            public_id: string;
             /** Format: email */
             email: string;
             is_admin: boolean;
