@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme, type Theme } from "../features/theme/ThemeContext";
 import { useConfig } from "../features/config/ConfigContext";
@@ -53,26 +53,37 @@ export default function UserSettingsPage() {
         }
     }
 
+    const [stagedSettings, setStagedSettings] = useState<UserSettings | null>(null);
+
     async function updateSetting(key: string, value: string | boolean) {
         setSettingsError("");
-        setUpdatingSettings(true);
         if (key === "theme") {
             setTheme(value as Theme);
         }
-        try {
-            await updateMe({
-                settings: {
-                    ...settings,
-                    [key]: value,
-                } as UserSettings,
-            });
-            await refresh();
-        } catch (err: unknown) {
-            setSettingsError(err instanceof Error ? err.message : "Failed to update settings");
-        } finally {
-            setUpdatingSettings(false);
-        }
+        setStagedSettings((prev) => ({
+            ...(prev || settings),
+            [key]: value,
+        } as UserSettings));
     }
+
+    useEffect(() => {
+        if (!stagedSettings) return;
+
+        const t = setTimeout(async () => {
+            const toSend = stagedSettings;
+            setUpdatingSettings(true);
+            try {
+                await updateMe({ settings: toSend });
+                await refresh();
+                setStagedSettings((prev) => (prev === toSend ? null : prev));
+            } catch (err: unknown) {
+                setSettingsError(err instanceof Error ? err.message : "Failed to update settings");
+            } finally {
+                setUpdatingSettings(false);
+            }
+        }, 500);
+        return () => clearTimeout(t);
+    }, [stagedSettings, refresh]);
 
     async function handleEmailUpdate() {
         if (!isEditingEmail) {
