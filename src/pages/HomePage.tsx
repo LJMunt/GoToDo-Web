@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getAgenda } from "../api/agenda";
-import { listProjectTasks, listProjects } from "../api/projects";
-import { listTaskOccurrences, setOccurrenceCompletion, setTaskCompletion, getTaskTags } from "../api/tasks";
 import type { components } from "../api/schema";
 import { useAuth } from "../features/auth/AuthContext";
 import { useConfig } from "../features/config/ConfigContext";
+import { useTaskStore } from "../stores/taskStore";
 import { TaskEditModal } from "./TaskEditModal";
 import { TaskCreateModal } from "./TaskCreateModal";
 import { ProjectEditModal } from "./ProjectEditModal";
@@ -13,7 +11,6 @@ import { ProjectCreateModal } from "./ProjectCreateModal";
 import { TagsManagementModal } from "./TagsManagementModal";
 
 type AgendaItem = components["schemas"]["AgendaItem"];
-type Project = components["schemas"]["Project"];
 type Task = components["schemas"]["Task"];
 type Tag = components["schemas"]["Tag"];
 
@@ -111,17 +108,13 @@ export default function HomePage() {
     const { state } = useAuth();
     const { config, language } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
+    
+    const store = useTaskStore();
+    
     const [agendaDate, setAgendaDate] = useState(() => new Date());
     const agendaDay = useMemo(() => dayRange(agendaDate, language), [agendaDate, language]);
     const agendaDateInput = useMemo(() => formatInputDate(agendaDate), [agendaDate]);
 
-    const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
-    const [agendaLoading, setAgendaLoading] = useState(true);
-    const [agendaError, setAgendaError] = useState<string | null>(null);
-
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [projectsLoading, setProjectsLoading] = useState(true);
-    const [projectsError, setProjectsError] = useState<string | null>(null);
     const { projectId } = useParams();
     const nav = useNavigate();
     const selectedProjectId = useMemo(() => {
@@ -130,119 +123,46 @@ export default function HomePage() {
         return isNaN(id) ? null : id;
     }, [projectId]);
 
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [tasksLoading, setTasksLoading] = useState(false);
-    const [tasksError, setTasksError] = useState<string | null>(null);
-    const [expandedRecurring, setExpandedRecurring] = useState<Set<number>>(new Set());
-    const [taskOccurrences, setTaskOccurrences] = useState<
-        Record<number, { loading: boolean; error: string | null; items: components["schemas"]["Occurrence"][] }>
-    >({});
-
     const [completingKeys, setCompletingKeys] = useState<Set<string>>(new Set());
     const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
-    const [showCompletedAgenda, setShowCompletedAgenda] = useState(user?.settings?.showCompletedDefault ?? false);
-    const [showCompletedProjectTasks, setShowCompletedProjectTasks] = useState(user?.settings?.showCompletedDefault ?? false);
 
     useEffect(() => {
         if (user) {
-            setShowCompletedAgenda(user.settings?.showCompletedDefault ?? false);
-            setShowCompletedProjectTasks(user.settings?.showCompletedDefault ?? false);
+            store.setShowCompletedAgenda(user.settings?.showCompletedDefault ?? false);
+            store.setShowCompletedProjectTasks(user.settings?.showCompletedDefault ?? false);
         }
     }, [user?.settings?.showCompletedDefault]);
+    
     const [completedAgendaHistory, setCompletedAgendaHistory] = useState<AgendaItem[]>([]);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
-    const [tagsByTaskId, setTagsByTaskId] = useState<Record<number, Tag[]>>({});
     const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showProjectCreateModal, setShowProjectCreateModal] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
-    const [extraCompletedItems, setExtraCompletedItems] = useState<AgendaItem[]>([]);
-    const [isLoadingExtra, setIsLoadingExtra] = useState(false);
-
-    const loadAgenda = useCallback(async () => {
-        setAgendaLoading(true);
-        setAgendaError(null);
-        setAgendaItems([]);
-        setCompletedAgendaHistory([]);
-        try {
-            const data = await getAgenda({ from: agendaDay.startISO, to: agendaDay.endISO });
-            setAgendaItems(data);
-            void loadTagsForTasks(data.map(item => item.task_id));
-        } catch (err) {
-            setAgendaError(err instanceof Error ? err.message : "Failed to load agenda");
-        } finally {
-            setAgendaLoading(false);
-        }
-    }, [agendaDay.endISO, agendaDay.startISO]);
 
     useEffect(() => {
-        void loadAgenda();
-    }, [loadAgenda]);
+        void store.loadAgenda(agendaDay.startISO, agendaDay.endISO);
+        setCompletedAgendaHistory([]);
+    }, [agendaDay.startISO, agendaDay.endISO]);
 
-    const loadProjects = useCallback(async () => {
-        setProjectsLoading(true);
-        setProjectsError(null);
-        try {
-            const data = await listProjects();
-            setProjects(data);
-        } catch (err) {
-            setProjectsError(err instanceof Error ? err.message : "Failed to load projects");
-        } finally {
-            setProjectsLoading(false);
-        }
+    useEffect(() => {
+        void store.loadProjects();
     }, []);
 
     useEffect(() => {
-        void loadProjects();
-    }, [loadProjects]);
-
-    const loadTagsForTasks = useCallback(async (taskIds: number[], force = false) => {
-        const uniqueIds = [...new Set(taskIds)].filter(id => force || !tagsByTaskId[id]);
-        if (uniqueIds.length === 0) return;
-
-        try {
-            const results = await Promise.all(
-                uniqueIds.map(id => getTaskTags(id).then(tags => ({ id, tags })))
-            );
-            setTagsByTaskId(prev => {
-                const next = { ...prev };
-                results.forEach(({ id, tags }) => {
-                    next[id] = tags;
-                });
-                return next;
-            });
-        } catch (err) {
-            console.error("Failed to load task tags", err);
-        }
-    }, [tagsByTaskId]);
-
-    const loadTasks = useCallback(async () => {
-        if (selectedProjectId === null) return;
-        setTasksLoading(true);
-        setTasksError(null);
-        try {
-            const data = await listProjectTasks(selectedProjectId);
-            setTasks(data);
-            void loadTagsForTasks(data.map(t => t.id));
-        } catch (err) {
-            setTasksError(err instanceof Error ? err.message : "Failed to load tasks");
-        } finally {
-            setTasksLoading(false);
+        if (selectedProjectId !== null) {
+            void store.loadTasks(selectedProjectId);
         }
     }, [selectedProjectId]);
 
-    useEffect(() => {
-        void loadTasks();
-    }, [loadTasks]);
-
     const sortedAgenda = useMemo(
         () =>
-            [...agendaItems].sort(
+            [...store.agendaItems].sort(
                 (a, b) =>
                     new Date(a.due_at).getTime() -
                     new Date(b.due_at).getTime()
             ),
-        [agendaItems]
+        [store.agendaItems]
     );
 
     const agendaKey = (item: AgendaItem) =>
@@ -252,124 +172,42 @@ export default function HomePage() {
 
     const mergedAgenda = useMemo(() => {
         const map = new Map<string, AgendaItem>();
-        [...sortedAgenda, ...extraCompletedItems, ...completedAgendaHistory].forEach((item) => {
+        [...sortedAgenda, ...store.extraCompletedItems, ...completedAgendaHistory].forEach((item) => {
             const key = agendaKey(item);
             const existing = map.get(key);
             if (existing && isAgendaCompleted(existing)) return;
             map.set(key, item);
         });
         return Array.from(map.values());
-    }, [completedAgendaHistory, sortedAgenda, extraCompletedItems]);
+    }, [completedAgendaHistory, sortedAgenda, store.extraCompletedItems]);
 
     const projectNameMap = useMemo(() => {
         const map = new Map<number, string>();
-        projects.forEach((project) => map.set(project.id, project.name));
+        store.projects.forEach((project) => map.set(project.id, project.name));
         return map;
-    }, [projects]);
+    }, [store.projects]);
 
     const currentProject = useMemo(() =>
-        projects.find(p => p.id === selectedProjectId),
-    [projects, selectedProjectId]);
-
-    const fetchExtraCompletedItems = useCallback(async () => {
-        if (!showCompletedAgenda || projects.length === 0) {
-            setExtraCompletedItems([]);
-            return;
-        }
-
-        setIsLoadingExtra(true);
-        try {
-            // Fetch all tasks for all projects to find recurring ones and completed single tasks
-            const tasksByProject = await Promise.all(projects.map(p => listProjectTasks(p.id)));
-
-            const recurringTasks: { task: Task; projectId: number }[] = [];
-            const completedSingleTasks: AgendaItem[] = [];
-            const dayStart = new Date(agendaDay.startISO);
-            const dayEnd = new Date(agendaDay.endISO);
-
-            tasksByProject.forEach((pTasks, idx) => {
-                const pId = projects[idx].id;
-                pTasks.forEach(t => {
-                    if (t.repeat_every != null) {
-                        recurringTasks.push({ task: t, projectId: pId });
-                    } else if (t.completed_at && t.due_at) {
-                        const due = new Date(t.due_at);
-                        if (due >= dayStart && due <= dayEnd) {
-                            completedSingleTasks.push({
-                                kind: "task",
-                                task_id: t.id,
-                                project_id: pId,
-                                title: t.title,
-                                description: t.description,
-                                due_at: t.due_at,
-                                completed_at: t.completed_at
-                            } as AgendaItem);
-                        }
-                    }
-                });
-            });
-
-            // Fetch occurrences for recurring tasks for this specific day
-            const occurrencesResults = await Promise.all(
-                recurringTasks.map(rt =>
-                    listTaskOccurrences(rt.task.id, { from: agendaDay.startISO, to: agendaDay.endISO })
-                        .then(occs => ({ rt, occs }))
-                        .catch(() => ({ rt, occs: [] }))
-                )
-            );
-
-            const completedOccurrences: AgendaItem[] = [];
-            occurrencesResults.forEach(({ rt, occs }) => {
-                occs.forEach(occ => {
-                    if (occ.completed_at) {
-                        completedOccurrences.push({
-                            kind: "occurrence",
-                            task_id: rt.task.id,
-                            occurrence_id: occ.id,
-                            project_id: rt.projectId,
-                            title: rt.task.title,
-                            description: rt.task.description,
-                            due_at: occ.due_at,
-                            completed_at: occ.completed_at
-                        } as AgendaItem);
-                    }
-                });
-            });
-
-            setExtraCompletedItems([...completedSingleTasks, ...completedOccurrences]);
-            void loadTagsForTasks([...completedSingleTasks, ...completedOccurrences].map(item => item.task_id));
-        } catch (err) {
-            console.error("Failed to fetch extra completed items", err);
-        } finally {
-            setIsLoadingExtra(false);
-        }
-    }, [showCompletedAgenda, projects, agendaDay]);
+        store.projects.find(p => p.id === selectedProjectId),
+    [store.projects, selectedProjectId]);
 
     useEffect(() => {
-        if (showCompletedAgenda) {
-            void fetchExtraCompletedItems();
+        if (store.showCompletedAgenda) {
+            void store.fetchExtraCompletedItems(store.projects, agendaDay.startISO, agendaDay.endISO);
         } else {
-            setExtraCompletedItems([]);
+            store.resetAgendaDerived();
         }
-    }, [showCompletedAgenda, fetchExtraCompletedItems]);
+    }, [store.showCompletedAgenda, store.projects, agendaDay.startISO, agendaDay.endISO]);
 
     async function refreshAgendaAndTasks() {
         try {
-            const [agendaData, taskData] = await Promise.all([
-                getAgenda({ from: agendaDay.startISO, to: agendaDay.endISO }),
-                selectedProjectId ? listProjectTasks(selectedProjectId) : Promise.resolve(tasks),
+            await Promise.all([
+                store.loadAgenda(agendaDay.startISO, agendaDay.endISO),
+                selectedProjectId ? store.loadTasks(selectedProjectId) : Promise.resolve(),
             ]);
-            setAgendaItems(agendaData);
-            if (selectedProjectId) setTasks(taskData as Task[]);
 
-            const allTaskIds = [
-                ...agendaData.map(item => item.task_id),
-                ...(selectedProjectId ? (taskData as Task[]).map(t => t.id) : []),
-            ];
-            void loadTagsForTasks(allTaskIds, true);
-
-            if (showCompletedAgenda) {
-                void fetchExtraCompletedItems();
+            if (store.showCompletedAgenda) {
+                void store.fetchExtraCompletedItems(store.projects, agendaDay.startISO, agendaDay.endISO);
             }
         } catch (err) {
             console.warn("Refresh failed", err);
@@ -379,7 +217,7 @@ export default function HomePage() {
     async function handleToggleAgenda(item: AgendaItem) {
         const key = agendaKey(item);
         const completed = isAgendaCompleted(item);
-        const willVanish = !completed && !showCompletedAgenda;
+        const willVanish = !completed && !store.showCompletedAgenda;
 
         if (willVanish) {
             setRemovingKeys((prev) => new Set(prev).add(key));
@@ -387,11 +225,7 @@ export default function HomePage() {
 
         setCompletingKeys((prev) => new Set(prev).add(key));
         try {
-            if (item.kind === "occurrence" && item.occurrence_id != null) {
-                await setOccurrenceCompletion(item.task_id, item.occurrence_id, !completed);
-            } else {
-                await setTaskCompletion(item.task_id, !completed, tagsByTaskId[item.task_id] ?? []);
-            }
+            await store.toggleAgendaCompletion(item, store.tagsByTaskId[item.task_id] ?? []);
 
             if (willVanish) {
                 // Keep the item visible for the duration of the vanishing animation
@@ -437,14 +271,14 @@ export default function HomePage() {
         const completed = isTaskCompleted(task);
         if (task.repeat_every != null) return;
         
-        const willVanish = !completed && !showCompletedProjectTasks;
+        const willVanish = !completed && !store.showCompletedProjectTasks;
         if (willVanish) {
             setRemovingKeys((prev) => new Set(prev).add(key));
         }
 
         setCompletingKeys((prev) => new Set(prev).add(key));
         try {
-            await setTaskCompletion(task.id, !completed, tagsByTaskId[task.id] ?? []);
+            await store.toggleProjectTaskCompletion(task, store.tagsByTaskId[task.id] ?? []);
             
             if (willVanish) {
                 await new Promise((resolve) => setTimeout(resolve, 600));
@@ -477,12 +311,12 @@ export default function HomePage() {
     if (!user) return null;
 
     const filteredAgenda = mergedAgenda.filter(
-        (item) => showCompletedAgenda || !isAgendaCompleted(item) || removingKeys.has(agendaKey(item))
+        (item) => store.showCompletedAgenda || !isAgendaCompleted(item) || removingKeys.has(agendaKey(item))
     );
 
-    const filteredTasks = tasks.filter((task) => {
+    const filteredTasks = store.tasks.filter((task) => {
         if (task.repeat_every != null) return true; // always show recurring templates so their occurrences can be viewed
-        return showCompletedProjectTasks || !isTaskCompleted(task) || removingKeys.has(`project-task-${task.id}`);
+        return store.showCompletedProjectTasks || !isTaskCompleted(task) || removingKeys.has(`project-task-${task.id}`);
     });
 
     async function handleToggleOccurrence(taskId: number, occurrence: components["schemas"]["Occurrence"]) {
@@ -490,15 +324,7 @@ export default function HomePage() {
         const completed = Boolean(occurrence.completed_at);
         setCompletingKeys((prev) => new Set(prev).add(key));
         try {
-            await setOccurrenceCompletion(taskId, occurrence.id, !completed);
-            setTaskOccurrences((prev) => {
-                const current = prev[taskId];
-                if (!current) return prev;
-                const updated = current.items.map((item) =>
-                    item.id === occurrence.id ? { ...item, completed_at: !completed ? new Date().toISOString() : null } : item
-                );
-                return { ...prev, [taskId]: { ...current, items: updated } };
-            });
+            await store.toggleOccurrenceCompletion(taskId, occurrence.id, completed);
             await refreshAgendaAndTasks();
         } catch (err) {
             console.error("Unable to update occurrence", err);
@@ -513,34 +339,17 @@ export default function HomePage() {
 
     async function toggleRecurringExpansion(task: Task) {
         if (!task.repeat_every) return;
-        setExpandedRecurring((prev) => {
+        const isExpanding = !store.expandedRecurring.has(task.id);
+        
+        store.setExpandedRecurring((prev) => {
             const next = new Set(prev);
             if (next.has(task.id)) next.delete(task.id);
             else next.add(task.id);
             return next;
         });
 
-        // Always refresh on expansion so completed occurrences show up
-        setTaskOccurrences((prev) => ({
-            ...prev,
-            [task.id]: { loading: true, error: null, items: prev[task.id]?.items ?? [] },
-        }));
-
-        try {
-            const items = await listTaskOccurrences(task.id);
-            setTaskOccurrences((prev) => ({
-                ...prev,
-                [task.id]: { loading: false, error: null, items },
-            }));
-        } catch (err) {
-            setTaskOccurrences((prev) => ({
-                ...prev,
-                [task.id]: {
-                    loading: false,
-                    error: err instanceof Error ? err.message : "Failed to load occurrences",
-                    items: prev[task.id]?.items ?? [],
-                },
-            }));
+        if (isExpanding) {
+            void store.loadOccurrences(task.id);
         }
     }
 
@@ -584,33 +393,33 @@ export default function HomePage() {
                             </button>
                         </div>
                         <span className="rounded-full bg-surface-5 px-2 py-0.5 text-[10px] font-bold text-text-muted ring-1 ring-surface-10">
-                            {projects.length}
+                            {store.projects.length}
                         </span>
                     </div>
 
                     <div className="mt-4 space-y-1">
-                        {projectsLoading && (
+                        {store.projectsLoading && (
                             <div className="space-y-3 px-4 py-2">
                                 <div className="h-3 w-3/4 animate-pulse rounded bg-surface-5" />
                                 <div className="h-3 w-1/2 animate-pulse rounded bg-surface-5" />
                             </div>
                         )}
 
-                        {projectsError && (
+                        {store.projectsError && (
                             <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-400">
-                                {projectsError}
+                                {store.projectsError}
                             </div>
                         )}
 
-                        {!projectsLoading && !projectsError && projects.length === 0 && (
+                        {!store.projectsLoading && !store.projectsError && store.projects.length === 0 && (
                             <div className="px-4 py-3 text-sm text-text-muted italic">
                                 {config.ui.noProjectsYet}
                             </div>
                         )}
 
-                        {!projectsLoading &&
-                            !projectsError &&
-                            projects.map((project) => {
+                        {!store.projectsLoading &&
+                            !store.projectsError &&
+                            store.projects.map((project) => {
                                 const isActive = project.id === selectedProjectId;
                                 return (
                                     <button
@@ -663,7 +472,7 @@ export default function HomePage() {
                                     <p className="text-text-muted">
                                         {agendaDay.label} • {filteredAgenda.length} {config.ui.itemsCount}
                                     </p>
-                                    {isLoadingExtra && (
+                                    {store.isLoadingExtra && (
                                         <svg className="h-3 w-3 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     )}
                                 </div>
@@ -690,8 +499,8 @@ export default function HomePage() {
                                 <label className="allow-readonly flex cursor-pointer items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-sm text-text-300 transition-all hover:bg-surface-10 active:scale-95">
                                     <input
                                         type="checkbox"
-                                        checked={showCompletedAgenda}
-                                        onChange={(e) => setShowCompletedAgenda(e.target.checked)}
+                                        checked={store.showCompletedAgenda}
+                                        onChange={(e) => store.setShowCompletedAgenda(e.target.checked)}
                                         className="h-4 w-4 rounded border-surface-15 bg-transparent text-brand-500/70 focus:ring-0 focus:ring-offset-0"
                                     />
                                     <span className="select-none">{config.ui.showCompleted}</span>
@@ -707,7 +516,7 @@ export default function HomePage() {
                         </div>
 
                         <div className="space-y-4">
-                            {agendaLoading && (
+                            {store.agendaLoading && (
                                 <div className="space-y-4">
                                     {[1, 2, 3].map((i) => (
                                         <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
@@ -715,13 +524,13 @@ export default function HomePage() {
                                 </div>
                             )}
 
-                            {agendaError && (
+                            {store.agendaError && (
                                 <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-8 text-center">
-                                    <p className="text-red-400 font-medium">{agendaError}</p>
+                                    <p className="text-red-400 font-medium">{store.agendaError}</p>
                                 </div>
                             )}
 
-                            {!agendaLoading && !agendaError && filteredAgenda.length === 0 && (
+                            {!store.agendaLoading && !store.agendaError && filteredAgenda.length === 0 && (
                                 <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-surface-10 bg-surface-3 py-24 text-center">
                                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-3 text-text-muted">
                                         <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -731,8 +540,8 @@ export default function HomePage() {
                                 </div>
                             )}
 
-                            {!agendaLoading &&
-                                !agendaError &&
+                            {!store.agendaLoading &&
+                                !store.agendaError &&
                                 filteredAgenda.map((item) => {
                                     const projectName = projectNameMap.get(item.project_id) ?? config.ui.projectLabel;
                                     const key = agendaKey(item);
@@ -775,7 +584,7 @@ export default function HomePage() {
                                                 <h3 className={`mt-2 truncate text-lg font-bold tracking-tight transition-all ${completed ? "text-text-muted line-through" : "text-text-base group-hover:text-brand-600"}`}>
                                                     {item.title}
                                                 </h3>
-                                                <TaskTags tags={tagsByTaskId[item.task_id]} />
+                                                <TaskTags tags={store.tagsByTaskId[item.task_id]} />
                                             </div>
 
                                             <div className="flex flex-col items-end gap-3 flex-shrink-0 mt-1">
@@ -818,8 +627,8 @@ export default function HomePage() {
                                 <label className="allow-readonly flex cursor-pointer items-center gap-2 rounded-xl bg-surface-5 px-4 py-2 text-sm text-text-300 transition-all hover:bg-surface-10 active:scale-95">
                                     <input
                                         type="checkbox"
-                                        checked={showCompletedProjectTasks}
-                                        onChange={(e) => setShowCompletedProjectTasks(e.target.checked)}
+                                        checked={store.showCompletedProjectTasks}
+                                        onChange={(e) => store.setShowCompletedProjectTasks(e.target.checked)}
                                         className="h-4 w-4 rounded border-surface-15 bg-transparent text-brand-500/70 focus:ring-0 focus:ring-offset-0"
                                     />
                                     <span className="select-none">{config.ui.showCompleted}</span>
@@ -841,7 +650,7 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        {tasksLoading && (
+                        {store.tasksLoading && (
                             <div className="space-y-4">
                                 {[1, 2, 3].map((i) => (
                                     <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
@@ -849,20 +658,20 @@ export default function HomePage() {
                             </div>
                         )}
 
-                        {tasksError && (
+                        {store.tasksError && (
                             <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-8 text-center">
-                                <p className="text-red-400 font-medium">{tasksError}</p>
+                                <p className="text-red-400 font-medium">{store.tasksError}</p>
                             </div>
                         )}
 
-                        {!tasksLoading && !tasksError && filteredTasks.length === 0 && (
+                        {!store.tasksLoading && !store.tasksError && filteredTasks.length === 0 && (
                             <div className="flex flex-col items-center justify-center rounded-5xl border border-dashed border-surface-10 bg-surface-3 py-24 text-center">
                                 <h3 className="text-xl font-semibold text-text-200">{config.ui.noTasksFound}</h3>
                                 <p className="mt-2 text-text-muted">{config.ui.projectEmptyStateText}</p>
                             </div>
                         )}
 
-                        {!tasksLoading && !tasksError && filteredTasks.length > 0 && (
+                        {!store.tasksLoading && !store.tasksError && filteredTasks.length > 0 && (
                             <div className="space-y-4">
                                 {[...filteredTasks]
                                     .sort((a, b) => {
@@ -876,7 +685,7 @@ export default function HomePage() {
                                         const isVanishing = removingKeys.has(key);
                                         const isRecurring = task.repeat_every != null;
                                         const completed = isTaskCompleted(task);
-                                        const isExpanded = expandedRecurring.has(task.id);
+                                        const isExpanded = store.expandedRecurring.has(task.id);
                                         const showCompletedVisuals = completed || isVanishing;
 
                                         return (
@@ -918,7 +727,7 @@ export default function HomePage() {
                                                         <h3 className={`mt-1.5 truncate text-base font-medium tracking-tight transition-all ${completed ? "text-text-muted line-through" : "text-text-base group-hover:text-brand-600"}`}>
                                                             {task.title}
                                                         </h3>
-                                                        <TaskTags tags={tagsByTaskId[task.id]} />
+                                                        <TaskTags tags={store.tagsByTaskId[task.id]} />
                                                         {task.description && (
                                                             <p className={`mt-1 text-sm leading-relaxed transition-all ${completed ? "text-text-muted/60 line-through" : "text-text-muted group-hover:text-text-300"}`}>
                                                                 {task.description}
@@ -953,7 +762,7 @@ export default function HomePage() {
                                                         <OccurrenceList
                                                             taskId={task.id}
                                                             description={task.description}
-                                                            state={taskOccurrences[task.id]}
+                                                            state={store.taskOccurrences[task.id]}
                                                             completingKeys={completingKeys}
                                                             onToggle={handleToggleOccurrence}
                                                         />
@@ -975,7 +784,7 @@ export default function HomePage() {
                     onUpdated={(updatedTask) => {
                         void refreshAgendaAndTasks();
                         if (updatedTask) {
-                            void loadTagsForTasks([updatedTask.id], true);
+                            void store.loadTagsForTasks([updatedTask.id], true);
                         }
                     }}
                     onDeleted={refreshAgendaAndTasks}
@@ -989,7 +798,7 @@ export default function HomePage() {
                     onCreated={(newTask) => {
                         void refreshAgendaAndTasks();
                         if (newTask) {
-                            void loadTagsForTasks([newTask.id], true);
+                            void store.loadTagsForTasks([newTask.id], true);
                         }
                     }}
                 />
@@ -999,9 +808,9 @@ export default function HomePage() {
                 <ProjectEditModal
                     projectId={editingProjectId}
                     onClose={() => setEditingProjectId(null)}
-                    onUpdated={loadProjects}
+                    onUpdated={store.loadProjects}
                     onDeleted={() => {
-                        loadProjects();
+                        store.loadProjects();
                         if (selectedProjectId === editingProjectId) nav("/");
                     }}
                 />
@@ -1010,7 +819,7 @@ export default function HomePage() {
             {showProjectCreateModal && (
                 <ProjectCreateModal
                     onClose={() => setShowProjectCreateModal(false)}
-                    onCreated={loadProjects}
+                    onCreated={store.loadProjects}
                 />
             )}
 
@@ -1019,9 +828,9 @@ export default function HomePage() {
                     onClose={() => setShowTagsModal(false)}
                     onTagsUpdated={() => {
                         if (selectedProjectId) {
-                            void loadTasks();
+                            void store.loadTasks(selectedProjectId);
                         } else {
-                            void loadAgenda();
+                            void store.loadAgenda(agendaDay.startISO, agendaDay.endISO);
                         }
                     }}
                 />

@@ -62,7 +62,7 @@ interface TaskStoreState {
     toggleOccurrenceCompletion: (taskId: number, occurrenceId: number, completed: boolean) => Promise<void>;
 
     fetchExtraCompletedItems: (projects: Project[], fromISO: string, toISO: string) => Promise<void>;
-
+    loadOccurrences: (taskId: number) => Promise<void>;
     resetAgendaDerived: () => void;
 }
 
@@ -239,6 +239,35 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
             console.error("Failed to fetch extra completed items", err);
         } finally {
             set({ isLoadingExtra: false });
+        }
+    },
+
+    loadOccurrences: async (taskId: number) => {
+        set((s) => ({
+            taskOccurrences: {
+                ...s.taskOccurrences,
+                [taskId]: { loading: true, error: null, items: s.taskOccurrences[taskId]?.items ?? [] },
+            },
+        }));
+        try {
+            const items = await listTaskOccurrences(taskId);
+            set((s) => ({
+                taskOccurrences: {
+                    ...s.taskOccurrences,
+                    [taskId]: { loading: false, error: null, items },
+                },
+            }));
+        } catch (err) {
+            set((s) => ({
+                taskOccurrences: {
+                    ...s.taskOccurrences,
+                    [taskId]: {
+                        loading: false,
+                        error: err instanceof Error ? err.message : "Failed to load occurrences",
+                        items: s.taskOccurrences[taskId]?.items ?? [],
+                    },
+                },
+            }));
         }
     },
 
