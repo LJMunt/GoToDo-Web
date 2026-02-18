@@ -1,6 +1,14 @@
 # GoToDo Web
 
-GoToDo is a modern task management application. This repository contains the web frontend built with React, TypeScript, and Vite.
+GoToDo is a modern, privacy-focused task management application. This repository contains the web frontend built with **React 19**, **TypeScript**, and **Vite**.
+
+## ✨ Features
+
+- **Blazing Fast UI:** Built with React 19 and Tailwind CSS for a smooth, responsive experience.
+- **Type Safety:** Full TypeScript support with schema-first API client generated from OpenAPI.
+- **Modern Styling:** Clean, accessible UI with dark mode support.
+- **Flexible Deployment:** Easily configurable for local development or Docker-based production environments.
+- **Admin Dashboard:** Integrated tools for user management and system health monitoring.
 
 ## 🚀 Getting Started
 
@@ -11,71 +19,78 @@ GoToDo is a modern task management application. This repository contains the web
 
 ### Installation
 
+Clone the repository and install dependencies:
+
 ```bash
+git clone https://github.com/ljmunt/gotodo-web.git
+cd gotodo-web
 pnpm install
 ```
 
 ### Development
 
-Start the development server:
+Start the development server with Hot Module Replacement (HMR):
 
 ```bash
 pnpm dev
 ```
 
+The app will be available at `http://localhost:5173`.
+
 ### Build
 
-Build the production-ready bundle:
+Create a production-ready bundle in the `dist/` directory:
 
 ```bash
 pnpm build
 ```
 
-## 🔌 API Documentation
+## ⚙️ Configuration
 
-The API documentation for Todexia is available at: [https://docs.todexia.app](https://docs.todexia.app)
+### Frontend Configuration
 
-To generate TypeScript types from the OpenAPI schema:
+The frontend determines the API base URL at runtime in the following order:
+
+1.  `window.__CONFIG__.API_BASE` (set at runtime by Docker entrypoint via `API_BASE` env var)
+2.  `VITE_API_BASE` (defined at build-time in `.env` files)
+3.  `/api` (default fallback)
+
+#### Local Development Environment
+
+Create a `.env.local` file to configure your local development environment:
+
+```bash
+# Option A: Proxy through Vite (recommended for local dev)
+VITE_API_PROXY_TARGET=http://localhost:8081
+
+# Option B: Direct API calls (requires CORS configuration on backend)
+VITE_API_BASE=http://localhost:8081
+```
+
+### 🔌 API Documentation & Types
+
+The API follows the OpenAPI specification. The schema is located at `api/openapi.yml`.
+
+To regenerate TypeScript types from the schema:
 
 ```bash
 pnpm gen:api
 ```
 
-## ⚙️ API Configuration
+## 🐳 Docker Deployment
 
-The frontend reads the API base URL in this order:
+### Docker Compose (Full Stack)
 
-1. `window.__CONFIG__.API_BASE` (runtime, written by Docker entrypoint)
-2. `VITE_API_BASE` (build-time environment variable)
-3. `/api` (default)
+To run the complete GoToDo stack (Frontend, Backend, and Database) locally:
 
-### Local Development
-
-Use a `.env.local` file with one of the following:
-
-- `VITE_API_PROXY_TARGET=http://localhost:8081` — Proxies `/api/*` through Vite.
-- `VITE_API_BASE=http://localhost:8081` — Calls the API directly (requires CORS).
-
-See `.env.example` for defaults.
-
-### Docker Runtime
-
-The Docker entrypoint writes `window.__CONFIG__.API_BASE` using the `API_BASE` environment variable, allowing you to point the frontend at different backends without rebuilding:
-
-```bash
-API_BASE=https://api.todexia.app docker run ...
-```
-
-### Docker Compose
-
-To run the complete GoToDo stack (Frontend, Backend, and Database) using pre-built images:
-
-1. Create a `docker-compose.yaml` file with the following content:
+1. Use the provided `docker-compose.yml` file:
 
 ```yaml
 services:
   gotodo-web:
-    image: ghcr.io/ljmunt/gotodo-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:80"
     environment:
@@ -89,9 +104,23 @@ services:
   gotodo:
     image: ghcr.io/ljmunt/gotodo:latest
     environment:
+      # Required runtime settings
       - DATABASE_URL=postgres://gotodo:gotodo@db:5432/gotodo?sslmode=disable
       - PORT=8081
-      - JWT_SECRET=your_secret_here
+      - JWT_SECRET=your_jwt_secret_here
+      - JWT_ISSUER=gotodo
+      - JWT_AUDIENCE=gotodo-client
+      - SECRETS_MASTER_KEY_B64=base64-encoded-32-byte-key
+      
+      # Optional server hardening (Go time.Duration format, e.g. 10s, 1m)
+      # - HTTP_READ_HEADER_TIMEOUT=5s
+      # - HTTP_READ_TIMEOUT=20s
+      # - HTTP_WRITE_TIMEOUT=20s
+      # - HTTP_IDLE_TIMEOUT=60s
+      # - HTTP_SHUTDOWN_TIMEOUT=10s
+      
+      # Trusted proxy IPs/CIDRs for real client IP (comma-separated)
+      # - TRUSTED_PROXIES=10.0.0.0/8,192.168.0.0/16
     depends_on:
       db:
         condition: service_healthy
@@ -115,27 +144,43 @@ volumes:
   db-data:
 ```
 
-2. Run the application:
+2. Launch the stack:
 
 ```bash
 docker compose up -d
 ```
 
-### Connecting to a local backend
-If your backend is running on your host machine (not in Docker), the container needs to know how to reach it. 
+The web interface will be accessible at `http://localhost:8080`.
 
-1.  **Use `host.docker.internal`**: In `docker-compose.yml`, the `API_HOST` is set to `host.docker.internal`.
-2.  **Linux Users**: The `extra_hosts` mapping `host.docker.internal:host-gateway` is already included in `docker-compose.yml` to make this work on Linux.
-3.  **Ensure your API listens on all interfaces**: If your backend is bound only to `127.0.0.1`, the Docker container won't be able to reach it even with the correct hostname. Make sure it listens on `0.0.0.0`.
+### Docker Environment Variables
+
+#### Web Frontend (`gotodo-web`)
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `API_HOST` | Hostname of the GoToDo backend | `gotodo` |
+| `API_PORT` | Port of the GoToDo backend | `8081` |
+| `API_BASE` | Base path for API requests | `/api` |
+
+#### Backend (`gotodo`)
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | PostgreSQL connection string | `postgres://gotodo:gotodo@db:5432/gotodo?sslmode=disable` |
+| `PORT` | Backend listening port | `8081` |
+| `JWT_SECRET` | Secret key for signing JWT tokens | `your_jwt_secret_here` |
+| `JWT_ISSUER` | JWT Issuer claim | `gotodo` |
+| `JWT_AUDIENCE` | JWT Audience claim | `gotodo-client` |
+| `SECRETS_MASTER_KEY_B64` | Base64-encoded 32-byte key for encryption | `base64-encoded-32-byte-key` |
 
 ## 🛠️ Tech Stack
 
 - **Framework:** React 19
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
-- **Language:** TypeScript
+- **State Management:** Zustand
 - **Routing:** React Router 7
+- **Language:** TypeScript
 - **API Client:** OpenAPI TypeScript (Schema-first)
+- **Containerization:** Docker & Docker Compose
 
 ## 📄 License
 

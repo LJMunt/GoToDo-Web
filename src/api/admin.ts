@@ -134,3 +134,9 @@ export async function deleteLanguage(code: string): Promise<void> {
         method: "DELETE",
     });
 }
+
+export async function logoutUser(id: number): Promise<void> {
+    await apiFetch(`/v1/admin/users/${id}/logout`, {
+        method: "POST",
+    });
+}
