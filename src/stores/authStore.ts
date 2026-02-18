@@ -14,7 +14,7 @@ interface AuthStore {
     logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
     state: { status: "loading" },
     refresh: async () => {
         const token = getToken();
@@ -23,7 +23,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
             return;
         }
 
-        set({ state: { status: "loading" } });
+        const isCurrentlyAuthenticated = get().state.status === "authenticated";
+        if (!isCurrentlyAuthenticated) {
+            set({ state: { status: "loading" } });
+        }
+
         try {
             const me = await getMe();
             set({
@@ -32,10 +36,20 @@ export const useAuthStore = create<AuthStore>((set) => ({
                     user: me as components["schemas"]["UserMe"],
                 },
             });
-        } catch {
-            // token invalid/expired/etc
-            setToken(null);
-            set({ state: { status: "anonymous" } });
+        } catch (err) {
+            // Check if it's actually an auth error.
+            // apiFetch() clears the token on 401.
+            const currentToken = getToken();
+            if (!currentToken) {
+                set({ state: { status: "anonymous" } });
+            } else if (!isCurrentlyAuthenticated) {
+                // If it failed and we weren't logged in yet, we can't really proceed.
+                set({ state: { status: "anonymous" } });
+            } else {
+                // It was likely a network error or 500.
+                // Keep the current state if we were already authenticated.
+                console.warn("Auth refresh failed, but token still exists. Keeping current state.", err);
+            }
         }
     },
     logout: () => {

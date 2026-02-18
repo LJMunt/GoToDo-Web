@@ -33,7 +33,10 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
 useAuthStore.subscribe((state) => {
     if (state.state.status === "authenticated" && state.state.user.settings?.theme) {
         const theme = state.state.user.settings.theme as Theme;
-        useThemeStore.getState().setTheme(theme);
+        const currentTheme = useThemeStore.getState().theme;
+        if (theme !== currentTheme) {
+            useThemeStore.getState().setTheme(theme);
+        }
     }
 });
 
