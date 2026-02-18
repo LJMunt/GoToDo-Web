@@ -1,14 +1,6 @@
-import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-import { getToken, setToken } from "../../api/http";
-import { getMe } from "../../api/users";
+import React, { createContext, useContext, useEffect, useMemo } from "react";
 import type { components } from "../../api/schema";
+import { useAuthStore } from "../../stores/authStore";
 
 type AuthState =
     | { status: "loading" }
@@ -24,36 +16,9 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [state, setState] = useState<AuthState>({ status: "loading" });
-
-    const refresh = useCallback(async () => {
-        const token = getToken();
-        if (!token) {
-            setState({ status: "anonymous" });
-            return;
-        }
-
-        setState({ status: "loading" });
-        try {
-            const me = await getMe();
-            setState({
-                status: "authenticated",
-                user: me as components["schemas"]["UserMe"],
-            });
-        } catch {
-            // token invalid/expired/etc
-            setToken(null);
-            setState({ status: "anonymous" });
-        }
-    }, []);
-
-    const logout = useCallback(() => {
-        setToken(null);
-        setState({ status: "anonymous" });
-    }, []);
+    const { state, refresh, logout } = useAuthStore();
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- initial auth hydration requires a state update after verifying the token.
         void refresh();
     }, [refresh]);
 
