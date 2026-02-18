@@ -46,8 +46,14 @@ export async function signup(body: SignupReq): Promise<SignupRes> {
     return data;
 }
 
-export function logout() {
-    setToken(null);
+export async function logout(): Promise<void> {
+    try {
+        await apiFetch("/v1/auth/logout", { method: "POST" });
+    } catch {
+        // Ignore errors on logout – we still clear the token locally
+    } finally {
+        setToken(null);
+    }
 }
 
 export async function changePassword(body: PasswordChangeReq): Promise<void> {

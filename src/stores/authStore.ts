@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { getToken, setToken } from "../api/http";
 import { getMe } from "../api/users";
+import { logout as apiLogout } from "../api/auth";
 import type { components } from "../api/schema";
 
 type AuthState =
@@ -53,6 +54,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         }
     },
     logout: () => {
+        // Fire-and-forget server-side logout; clear local state immediately
+        void apiLogout().catch(() => {
+            // ignore errors
+        });
         setToken(null);
         set({ state: { status: "anonymous" } });
     },
