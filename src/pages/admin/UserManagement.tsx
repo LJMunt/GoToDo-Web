@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
-import { listUsers, updateUser, verifyUserEmail, unverifyUserEmail, logoutUser, type User } from "../../api/admin";
+import { listUsers, updateUser, verifyUserEmail, unverifyUserEmail, logoutUser, resetUserPassword, type User } from "../../api/admin";
 import { useAuth } from "../../features/auth/AuthContext";
 import { useConfig } from "../../features/config/ConfigContext";
+import { PasswordRequirements } from "../../components/PasswordRequirements";
 
 function SortIcon({ field, currentField, direction }: { field: keyof User, currentField: keyof User, direction: "asc" | "desc" }) {
     if (field !== currentField) {
@@ -39,7 +40,10 @@ export default function UserManagement() {
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [verifyingUser, setVerifyingUser] = useState<User | null>(null);
+    const [resettingUser, setResettingUser] = useState<User | null>(null);
+    const [newPassword, setNewPassword] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
+    const [successId, setSuccessId] = useState<number | null>(null);
 
     const handleVerifyEmail = async (user: User) => {
         setIsUpdating(true);
@@ -104,6 +108,27 @@ export default function UserManagement() {
             setEditingUser(null);
         } catch (e) {
             alert(e instanceof Error ? e.message : "Failed to update user");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleResetPassword = async () => {
+        if (!resettingUser || !newPassword) return;
+        if (newPassword.length < 8) {
+            alert("Password must be at least 8 characters long.");
+            return;
+        }
+        setIsUpdating(true);
+        try {
+            await resetUserPassword(resettingUser.id, { password: newPassword });
+            const id = resettingUser.id;
+            setResettingUser(null);
+            setNewPassword("");
+            setSuccessId(id);
+            setTimeout(() => setSuccessId(null), 3000);
+        } catch (e) {
+            alert(e instanceof Error ? e.message : "Failed to reset password");
         } finally {
             setIsUpdating(false);
         }
@@ -258,124 +283,202 @@ export default function UserManagement() {
                         </thead>
                         <tbody className="divide-y divide-surface-8">
                             {filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-surface-5/50 transition-colors group/row">
-                                    <td className="px-4 py-4 font-mono text-xs text-text-muted">#{user.id}</td>
-                                    <td className="px-4 py-4 font-medium text-text-base relative">
-                                        <div className="flex items-center gap-2">
-                                            {user.email}
-                                            {currentUser?.public_id === user.public_id && (
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
-                                                    {config.ui.you}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        {user.is_admin ? (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                                                {config.ui.adminRole}
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-text-muted border border-surface-20">
-                                                {config.ui.userRole}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <button 
-                                            onClick={() => setEditingUser(user)}
-                                            className="group/status focus:outline-none transition-all active:scale-95 cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-surface-10"
-                                            title="Change user status"
-                                        >
-                                            {user.is_active ? (
-                                                <span className="flex items-center gap-1.5 text-green-500 group-hover/status:text-green-400 transition-colors">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                                                    {config.ui.active}
+                                <Fragment key={user.id}>
+                                    <tr className={`hover:bg-surface-5/50 transition-colors group/row ${resettingUser?.id === user.id ? "bg-brand-500/5" : ""}`}>
+                                        <td className="px-4 py-4 font-mono text-xs text-text-muted">#{user.id}</td>
+                                        <td className="px-4 py-4 font-medium text-text-base relative">
+                                            <div className="flex items-center gap-2">
+                                                {user.email}
+                                                {currentUser?.public_id === user.public_id && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded-md border border-brand-500/20">
+                                                        {config.ui.you}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            {user.is_admin ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                                                    {config.ui.adminRole}
                                                 </span>
                                             ) : (
-                                                <span className="flex items-center gap-1.5 text-text-muted group-hover/status:text-red-400 transition-colors">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-current" />
-                                                    {config.ui.inactive}
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-text-muted border border-surface-20">
+                                                    {config.ui.userRole}
                                                 </span>
                                             )}
-                                        </button>
-                                    </td>
-                                    <td className="px-4 py-4 text-text-muted whitespace-nowrap">
-                                        {user.last_login ? new Date(user.last_login).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : (
-                                            <span className="italic text-text-muted/50">{config.ui.never}</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-4 whitespace-nowrap">
-                                        <button
-                                            onClick={() => setVerifyingUser(user)}
-                                            disabled={isUpdating}
-                                            className="text-xs font-medium focus:outline-none transition-all active:scale-95 cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-surface-10 disabled:opacity-50"
-                                            title={user.email_verified_at ? config.ui.unverifyEmail : config.ui.verifyEmail}
-                                        >
-                                            {user.email_verified_at ? (
-                                                <span className="text-brand-500 hover:text-brand-400">
-                                                    {new Date(user.email_verified_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
-                                                </span>
-                                            ) : (
-                                                <span className="italic text-text-muted/50 hover:text-text-muted">
-                                                    {config.ui.never}
-                                                </span>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <button 
+                                                onClick={() => setEditingUser(user)}
+                                                className="group/status focus:outline-none transition-all active:scale-95 cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-surface-10"
+                                                title="Change user status"
+                                            >
+                                                {user.is_active ? (
+                                                    <span className="flex items-center gap-1.5 text-green-500 group-hover/status:text-green-400 transition-colors">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                                        {config.ui.active}
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5 text-text-muted group-hover/status:text-red-400 transition-colors">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                        {config.ui.inactive}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-4 text-text-muted whitespace-nowrap">
+                                            {user.last_login ? new Date(user.last_login).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : (
+                                                <span className="italic text-text-muted/50">{config.ui.never}</span>
                                             )}
-                                        </button>
-                                    </td>
-                                    <td className="px-4 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             <button
-                                                onClick={() => navigate(`/admin/users/${user.id}/projects`)}
-                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer"
-                                                title="View Projects"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => navigate(`/admin/users/${user.id}/tasks`)}
-                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer"
-                                                title="View Tasks"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => navigate(`/admin/users/${user.id}/tags`)}
-                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer"
-                                                title="View Tags"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={async () => {
-                                                    setIsUpdating(true);
-                                                    try {
-                                                        await logoutUser(user.id);
-                                                    } catch (e) {
-                                                        alert(e instanceof Error ? e.message : "Failed to force logout user");
-                                                    } finally {
-                                                        setIsUpdating(false);
-                                                    }
-                                                }}
+                                                onClick={() => setVerifyingUser(user)}
                                                 disabled={isUpdating}
-                                                className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer disabled:opacity-50"
-                                                title="Force Logout"
+                                                className="text-xs font-medium focus:outline-none transition-all active:scale-95 cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-surface-10 disabled:opacity-50"
+                                                title={user.email_verified_at ? config.ui.unverifyEmail : config.ui.verifyEmail}
                                             >
-                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                                                    <polyline points="16 17 21 12 16 7"/>
-                                                    <line x1="21" y1="12" x2="9" y2="12"/>
-                                                </svg>
+                                                {user.email_verified_at ? (
+                                                    <span className="text-brand-500 hover:text-brand-400">
+                                                        {new Date(user.email_verified_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                    </span>
+                                                ) : (
+                                                    <span className="italic text-text-muted/50 hover:text-text-muted">
+                                                        {config.ui.never}
+                                                    </span>
+                                                )}
                                             </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            {successId === user.id ? (
+                                                <div className="flex items-center justify-end text-green-500 animate-in zoom-in duration-300">
+                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    <span className="ml-2 text-[10px] font-black uppercase tracking-widest">Done</span>
+                                                </div>
+                                            ) : (
+                                                <div className={`flex items-center justify-end gap-2 transition-opacity ${resettingUser?.id === user.id ? "opacity-100" : "opacity-0 group-hover/row:opacity-100"}`}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/admin/users/${user.id}/projects`);
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer active:scale-95"
+                                                        title="View Projects"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/admin/users/${user.id}/tasks`);
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer active:scale-95"
+                                                        title="View Tasks"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/admin/users/${user.id}/tags`);
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10 transition-all cursor-pointer active:scale-95"
+                                                        title="View Tags"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (resettingUser?.id === user.id) {
+                                                                setResettingUser(null);
+                                                            } else {
+                                                                setResettingUser(user);
+                                                                setNewPassword("");
+                                                            }
+                                                        }}
+                                                        className={`p-1.5 rounded-lg transition-all cursor-pointer active:scale-95 ${resettingUser?.id === user.id ? "bg-brand-500 text-white shadow-lg shadow-brand-500/20" : "bg-surface-5 text-text-muted hover:text-brand-500 hover:bg-brand-500/10"}`}
+                                                        title="Reset Password"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            setIsUpdating(true);
+                                                            try {
+                                                                await logoutUser(user.id);
+                                                            } catch (e) {
+                                                                alert(e instanceof Error ? e.message : "Failed to force logout user");
+                                                            } finally {
+                                                                setIsUpdating(false);
+                                                            }
+                                                        }}
+                                                        disabled={isUpdating}
+                                                        className="p-1.5 rounded-lg bg-surface-5 text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                                                        title="Force Logout"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                                            <polyline points="16 17 21 12 16 7"/>
+                                                            <line x1="21" y1="12" x2="9" y2="12"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                    {resettingUser?.id === user.id && (
+                                        <tr className="bg-brand-500/[0.03] border-t border-surface-8/50 animate-in slide-in-from-top-2 duration-300">
+                                            <td colSpan={7} className="px-8 py-6">
+                                                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                                                    <div className="w-full lg:w-80 shrink-0">
+                                                        <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-3 ml-1">New Password</label>
+                                                        <div className="relative group">
+                                                            <input
+                                                                type="password"
+                                                                placeholder="Minimum 8 characters"
+                                                                className="w-full bg-surface-4 border border-surface-10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 focus:ring-4 focus:ring-brand-500/5 text-text-base transition-all"
+                                                                value={newPassword}
+                                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                                autoFocus
+                                                            />
+                                                        </div>
+                                                        <div className="flex gap-3 mt-6">
+                                                            <button
+                                                                onClick={() => handleResetPassword()}
+                                                                disabled={isUpdating || newPassword.length < 8}
+                                                                className="flex-1 px-4 py-2.5 rounded-xl bg-brand-500 text-xs font-bold text-white hover:bg-brand-400 disabled:opacity-50 transition-all shadow-lg shadow-brand-500/20 active:scale-95"
+                                                            >
+                                                                {isUpdating ? "Resetting..." : "Reset Password"}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setResettingUser(null)}
+                                                                className="px-4 py-2.5 rounded-xl border border-surface-15 text-xs font-bold text-text-muted hover:text-text-base hover:bg-surface-8 transition-all active:scale-95"
+                                                            >
+                                                                {config.ui.cancel}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1 w-full pt-1">
+                                                        <PasswordRequirements password={newPassword} />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>
@@ -392,6 +495,7 @@ export default function UserManagement() {
                     </div>
                 )}
             </div>
+            
             
             {editingUser && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">

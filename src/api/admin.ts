@@ -140,3 +140,10 @@ export async function logoutUser(id: number): Promise<void> {
         method: "POST",
     });
 }
+
+export async function resetUserPassword(id: number, body: { password: string }): Promise<void> {
+    await apiFetch(`/v1/admin/users/${id}/reset-password`, {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
