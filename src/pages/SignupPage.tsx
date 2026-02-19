@@ -91,7 +91,9 @@ export default function SignupPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.auth.passwordLabel}</label>
+                                <div className="flex items-center justify-between ml-1">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{config.auth.passwordLabel}</label>
+                                </div>
                                 <input
                                     className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
                                     type="password"

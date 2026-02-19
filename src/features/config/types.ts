@@ -32,6 +32,8 @@ export interface AuthConfig {
     emailPlaceholder: string;
     passwordPlaceholder: string;
     signupPasswordPlaceholder: string;
+    serviceDownTitle: string;
+    serviceDownMessage: string;
 }
 
 export interface UIConfig {
@@ -237,6 +239,8 @@ export const DEFAULT_CONFIG: AppConfig = {
         emailPlaceholder: "name@example.com",
         passwordPlaceholder: "••••••••",
         signupPasswordPlaceholder: "Min 8 characters",
+        serviceDownTitle: "Service Unavailable",
+        serviceDownMessage: "The backend service is currently unreachable. Please try again later.",
     },
     ui: {
         agendaTitle: "Your Agenda",

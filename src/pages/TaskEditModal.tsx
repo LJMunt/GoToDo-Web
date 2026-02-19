@@ -49,6 +49,7 @@ export function TaskEditModal({
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [dueDate, setDueDate] = useState("");
+    const [dueTime, setDueTime] = useState("");
     const [newTag, setNewTag] = useState("");
 
     const isReadOnly = status?.instance.readOnly;
@@ -71,8 +72,9 @@ export function TaskEditModal({
                 if (taskData.due_at) {
                     const d = new Date(taskData.due_at);
                     const offset = d.getTimezoneOffset() * 60000;
-                    const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 16);
-                    setDueDate(localISOTime);
+                    const localISO = (new Date(d.getTime() - offset)).toISOString();
+                    setDueDate(localISO.slice(0, 10));
+                    setDueTime(localISO.slice(11, 16));
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load task");
@@ -101,7 +103,7 @@ export function TaskEditModal({
             await updateTask(taskId, {
                 title,
                 description: description || null,
-                due_at: dueDate ? new Date(dueDate).toISOString() : null,
+                due_at: dueDate ? new Date(`${dueDate}T${dueTime || "12:00"}`).toISOString() : null,
                 tag_ids: tagIds,
             });
 
@@ -227,12 +229,41 @@ export function TaskEditModal({
                         {!isRecurring && (
                             <div className="space-y-2.5">
                                 <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.ui.dueDateLabel}</label>
-                                <input
-                                    type="datetime-local"
-                                    className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium"
-                                    value={dueDate}
-                                    onChange={(e) => setDueDate(e.target.value)}
-                                />
+                                <div className="flex gap-3">
+                                    <input
+                                        type="date"
+                                        readOnly={isReadOnly}
+                                        className="flex-1 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium disabled:opacity-50"
+                                        value={dueDate}
+                                        onChange={(e) => {
+                                            setDueDate(e.target.value);
+                                            if (e.target.value && !dueTime) {
+                                                setDueTime("12:00");
+                                            }
+                                        }}
+                                    />
+                                    <input
+                                        type="time"
+                                        readOnly={isReadOnly}
+                                        className="w-32 rounded-2xl border border-surface-10 bg-surface-3 px-4 py-4 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 font-medium disabled:opacity-50"
+                                        value={dueTime}
+                                        onChange={(e) => setDueTime(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        disabled={isReadOnly}
+                                        onClick={() => {
+                                            const now = new Date();
+                                            const offset = now.getTimezoneOffset() * 60000;
+                                            const localISO = new Date(now.getTime() - offset).toISOString();
+                                            setDueDate(localISO.slice(0, 10));
+                                            if (!dueTime) setDueTime("12:00");
+                                        }}
+                                        className="allow-readonly rounded-2xl bg-surface-5 px-4 py-3 text-sm font-bold text-text-300 hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10 disabled:opacity-50"
+                                    >
+                                        {config.ui.today}
+                                    </button>
+                                </div>
                             </div>
                         )}
 
