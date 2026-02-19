@@ -1,6 +1,7 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login } from "../api/auth";
+import { checkHealth } from "../api/config";
 import { useAuth } from "../features/auth/AuthContext";
 import { useConfig } from "../features/config/ConfigContext";
 
@@ -11,12 +12,25 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isBackendDown, setIsBackendDown] = useState(false);
 
     const nav = useNavigate();
     const location = useLocation();
     const from = (location.state as { from?: string })?.from ?? "/";
     const { refresh } = useAuth();
 
+    useEffect(() => {
+        async function checkBackend() {
+            try {
+                await checkHealth();
+                setIsBackendDown(false);
+            } catch (err) {
+                console.error("Backend health check failed", err);
+                setIsBackendDown(true);
+            }
+        }
+        void checkBackend();
+    }, []);
 
     async function onSubmit(e: FormEvent) {
         e.preventDefault();
@@ -45,6 +59,22 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-bg-base text-text-base flex items-center justify-center px-6 selection:bg-brand-500/30">
             <div className="w-full max-w-105 animate-in fade-in zoom-in duration-700">
+                {isBackendDown && (
+                    <div className="mb-8 rounded-3xl border border-red-500/20 bg-red-500/10 p-6 shadow-2xl shadow-red-500/10 animate-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center gap-4 text-red-400">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-500/20">
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="font-black uppercase tracking-widest text-xs mb-1">{config.auth.serviceDownTitle}</h3>
+                                <p className="text-sm font-medium opacity-80">{config.auth.serviceDownMessage}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex flex-col items-center text-center mb-10">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-on-brand shadow-brand-500/40 shadow-lg mb-6">
                         <span className="text-2xl font-black italic">{config.branding.appLogoInitial}</span>
@@ -106,7 +136,7 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isBackendDown}
                             className="group relative w-full overflow-hidden rounded-2xl bg-brand-500 px-4 py-4 text-sm font-black uppercase tracking-widest text-on-brand shadow-xl shadow-brand-500/20 transition-all hover:scale-[1.02] hover:bg-brand-600 active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 cursor-pointer"
                         >
                             <div className="relative z-10 flex items-center justify-center gap-2">
@@ -126,9 +156,15 @@ export default function LoginPage() {
                         {status?.auth.allowSignup !== false && (
                             <p className="text-sm text-text-muted font-medium mb-6">
                                 {config.auth.noAccountPrompt}{" "}
-                                <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/signup">
-                                    {config.auth.createOneLink}
-                                </Link>
+                                {isBackendDown || status?.instance.readOnly ? (
+                                    <span className="text-text-muted/40 font-bold cursor-not-allowed">
+                                        {config.auth.createOneLink}
+                                    </span>
+                                ) : (
+                                    <Link className="text-brand-500 hover:text-brand-400 font-bold transition-colors" to="/signup">
+                                        {config.auth.createOneLink}
+                                    </Link>
+                                )}
                             </p>
                         )}
 

@@ -48,6 +48,9 @@ export default function UserSettingsPage() {
             setPasswordSuccess(true);
             setCurrentPassword("");
             setNewPassword("");
+            setTimeout(() => {
+                logout();
+            }, 1000);
         } catch (err: unknown) {
             setPasswordError(err instanceof Error ? err.message : "Failed to change password");
         }
