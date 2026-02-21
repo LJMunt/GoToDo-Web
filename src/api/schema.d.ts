@@ -567,6 +567,201 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password-reset/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request password reset
+         * @description Sends a password reset email if the user exists. Always returns 200.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: email
+                         * @example user@example.com
+                         */
+                        email: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Request processed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Password reset is disabled */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "reset_disabled"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate password reset token
+         * @description Checks if a password reset token is valid and not expired.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        selector: string;
+                        token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Validation result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            valid: boolean;
+                            /** Format: date-time */
+                            expiresAt?: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm password reset
+         * @description Sets a new password using a valid reset token.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        selector: string;
+                        token: string;
+                        newPassword: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Password reset successful */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "ok": true
+                         *     }
+                         */
+                        "application/json": {
+                            ok: boolean;
+                        };
+                    };
+                };
+                /** @description Password reset failed (invalid token or weak password) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok: boolean;
+                            error?: string;
+                        };
+                    };
+                };
+                /** @description Password reset is disabled */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "ok": false,
+                         *       "error": "reset_disabled"
+                         *     }
+                         */
+                        "application/json": {
+                            ok: boolean;
+                            error?: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/password-change": {
         parameters: {
             query?: never;
@@ -628,6 +823,45 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout (revoke current token)
+         * @description Revokes the current access token so it can no longer be used.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Logged out */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["Unauthorized"];
                 500: components["responses"]["InternalServerError"];
             };
         };
@@ -2498,6 +2732,147 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/admin/users/{id}/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout user (Admin only)
+         * @description Revokes all tokens for the user by bumping their token version.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description User logged out */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "invalid user id"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "user not found"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset user password (Admin only)
+         * @description Resets a user's password and forces logout by incrementing token version.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example newpassword123 */
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Password reset successfully */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users/{id}/email-verification": {
         parameters: {
             query?: never;
@@ -3383,7 +3758,6 @@ export interface components {
         AdminUser: {
             /** Format: int64 */
             id: number;
-            /** @description Public ULID exposed in API responses. */
             public_id: string;
             /** Format: email */
             email: string;
@@ -3409,7 +3783,6 @@ export interface components {
         Task: {
             /** Format: int64 */
             id: number;
-            /** @description User public_id. */
             user_id: string;
             /** Format: int64 */
             project_id: number;
@@ -3427,8 +3800,6 @@ export interface components {
             /** Format: date-time */
             recurrence_start_at?: string | null;
             /** Format: date-time */
-            next_due_at?: string | null;
-            /** Format: date-time */
             created_at: string;
             /** Format: date-time */
             updated_at: string;
@@ -3444,8 +3815,16 @@ export interface components {
             /** Format: date-time */
             updated_at: string;
         };
+        AdminTag: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
         UserMe: {
-            /** @description Public ULID exposed in API responses. */
             public_id: string;
             /** Format: email */
             email: string;
@@ -3454,7 +3833,7 @@ export interface components {
             /** Format: date-time */
             last_login: string | null;
             /** Format: date-time */
-            email_verified_at?: string | null;
+            email_verified_at: string | null;
             settings: {
                 /** @enum {string} */
                 theme: "system" | "light" | "dark";
@@ -3522,6 +3901,7 @@ export interface components {
             auth: {
                 allowSignup: boolean;
                 requireEmailVerification: boolean;
+                allowReset: boolean;
             };
             instance: {
                 readOnly: boolean;
