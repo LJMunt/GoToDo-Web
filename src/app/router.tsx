@@ -12,6 +12,8 @@ import UserManagement from "../pages/admin/UserManagement";
 import UserDataView from "../pages/admin/UserDataView";
 import ConfigManagement from "../pages/admin/ConfigManagement";
 import VerifyEmailPage from "../pages/VerifyEmailPage";
+import RequestPasswordResetPage from "../pages/RequestPasswordResetPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 
 export const router = createBrowserRouter([
     {
@@ -45,4 +47,6 @@ export const router = createBrowserRouter([
     { path: "/login", element: <LoginPage /> },
     { path: "/signup", element: <SignupPage /> },
     { path: "/verify-email", element: <VerifyEmailPage /> },
+    { path: "/request-password-reset", element: <RequestPasswordResetPage /> },
+    { path: "/reset-password", element: <ResetPasswordPage /> },
 ]);

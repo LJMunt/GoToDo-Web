@@ -34,6 +34,16 @@ export interface AuthConfig {
     signupPasswordPlaceholder: string;
     serviceDownTitle: string;
     serviceDownMessage: string;
+    forgotPasswordLink: string;
+    requestResetTitle: string;
+    requestResetSubtitle: string;
+    sendResetLinkButton: string;
+    resetPasswordTitle: string;
+    resetPasswordSubtitle: string;
+    resetPasswordButton: string;
+    backToLogin: string;
+    checkEmailTitle: string;
+    checkEmailMessage: string;
 }
 
 export interface UIConfig {
@@ -241,6 +251,16 @@ export const DEFAULT_CONFIG: AppConfig = {
         signupPasswordPlaceholder: "Min 8 characters",
         serviceDownTitle: "Service Unavailable",
         serviceDownMessage: "The backend service is currently unreachable. Please try again later.",
+        forgotPasswordLink: "Forgot password?",
+        requestResetTitle: "Reset password",
+        requestResetSubtitle: "Enter your email to receive a reset link.",
+        sendResetLinkButton: "Send reset link",
+        resetPasswordTitle: "New password",
+        resetPasswordSubtitle: "Enter a new password for your account.",
+        resetPasswordButton: "Update password",
+        backToLogin: "Back to login",
+        checkEmailTitle: "Check your email",
+        checkEmailMessage: "We've sent a password reset link to your email address.",
     },
     ui: {
         agendaTitle: "Your Agenda",

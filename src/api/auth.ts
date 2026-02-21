@@ -23,6 +23,19 @@ type VerifyEmailRes =
 type ResendVerificationReq =
     paths["/api/v1/auth/verify-email/resend"]["post"]["requestBody"]["content"]["application/json"];
 
+type RequestPasswordResetReq =
+    paths["/api/v1/auth/password-reset/request"]["post"]["requestBody"]["content"]["application/json"];
+
+type ValidatePasswordResetReq =
+    paths["/api/v1/auth/password-reset/validate"]["post"]["requestBody"]["content"]["application/json"];
+type ValidatePasswordResetRes =
+    paths["/api/v1/auth/password-reset/validate"]["post"]["responses"]["200"]["content"]["application/json"];
+
+type ConfirmPasswordResetReq =
+    paths["/api/v1/auth/password-reset/confirm"]["post"]["requestBody"]["content"]["application/json"];
+type ConfirmPasswordResetRes =
+    paths["/api/v1/auth/password-reset/confirm"]["post"]["responses"]["200"]["content"]["application/json"];
+
 // --- API functions ---
 export async function login(body: LoginReq): Promise<LoginRes> {
     const data = await apiFetch<LoginRes>("/v1/auth/login", {
@@ -91,4 +104,27 @@ export function resendVerificationEmail(email: ResendVerificationReq["email"]): 
         method: "POST",
         body: JSON.stringify({ email }),
     });
+}
+
+export function requestPasswordReset(body: RequestPasswordResetReq): Promise<void> {
+    return apiFetch<void>("/v1/auth/password-reset/request", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+
+export function validatePasswordResetToken(body: ValidatePasswordResetReq): Promise<ValidatePasswordResetRes> {
+    return apiFetch<ValidatePasswordResetRes>("/v1/auth/password-reset/validate", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+
+export async function confirmPasswordReset(body: ConfirmPasswordResetReq): Promise<ConfirmPasswordResetRes> {
+    const data = await apiFetch<ConfirmPasswordResetRes>("/v1/auth/password-reset/confirm", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+
+    return data;
 }
