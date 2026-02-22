@@ -572,7 +572,7 @@ export default function HomePage() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5">
                                                     <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
-                                                        {item.kind === "occurrence" ? config.ui.recurringLabel : config.ui.singleTaskLabel}
+                                                        {item.kind === "occurrence" ? `${config.ui.recurringLabel} #${item.occurrence_index}` : config.ui.singleTaskLabel}
                                                     </span>
                                                     <span className={`h-1 w-1 rounded-full bg-surface-10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
                                                     <span className="truncate text-[10px] font-black uppercase tracking-widest text-text-muted/60">
@@ -852,7 +852,7 @@ function OccurrenceList({
 }) {
     const { config, language } = useConfig();
     const items = useMemo(() => [...(state?.items ?? [])].sort(
-        (a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()
+        (a, b) => a.occurrence_index - b.occurrence_index
     ), [state?.items]);
 
     if (state?.loading && items.length === 0) {
@@ -916,7 +916,7 @@ function OccurrenceList({
                                     </p>
                                 )}
                                 <p className="text-[10px] font-black uppercase tracking-widest text-text-muted/60">
-                                    Occurrence #{occurrence.id}
+                                    Occurrence #{occurrence.occurrence_index}
                                 </p>
                             </div>
                         </div>

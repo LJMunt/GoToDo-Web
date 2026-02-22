@@ -227,6 +227,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
                             kind: "occurrence",
                             task_id: rt.task.id,
                             occurrence_id: occ.id,
+                            occurrence_index: occ.occurrence_index,
                             project_id: rt.projectId,
                             title: rt.task.title,
                             description: rt.task.description,
