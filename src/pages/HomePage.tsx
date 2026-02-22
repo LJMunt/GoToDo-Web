@@ -398,7 +398,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="mt-4 space-y-1">
-                        {store.projectsLoading && (
+                        {store.projectsLoading && store.projects.length === 0 && (
                             <div className="space-y-3 px-4 py-2">
                                 <div className="h-3 w-3/4 animate-pulse rounded bg-surface-5" />
                                 <div className="h-3 w-1/2 animate-pulse rounded bg-surface-5" />
@@ -417,8 +417,7 @@ export default function HomePage() {
                             </div>
                         )}
 
-                        {!store.projectsLoading &&
-                            !store.projectsError &&
+                        {!store.projectsError &&
                             store.projects.map((project) => {
                                 const isActive = project.id === selectedProjectId;
                                 return (
@@ -516,7 +515,7 @@ export default function HomePage() {
                         </div>
 
                         <div className="space-y-4">
-                            {store.agendaLoading && (
+                            {store.agendaLoading && store.agendaItems.length === 0 && (
                                 <div className="space-y-4">
                                     {[1, 2, 3].map((i) => (
                                         <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
@@ -540,8 +539,7 @@ export default function HomePage() {
                                 </div>
                             )}
 
-                            {!store.agendaLoading &&
-                                !store.agendaError &&
+                            {!store.agendaError &&
                                 filteredAgenda.map((item) => {
                                     const projectName = projectNameMap.get(item.project_id) ?? config.ui.projectLabel;
                                     const key = agendaKey(item);
@@ -650,7 +648,7 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        {store.tasksLoading && (
+                        {store.tasksLoading && store.tasks.length === 0 && (
                             <div className="space-y-4">
                                 {[1, 2, 3].map((i) => (
                                     <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
@@ -671,7 +669,7 @@ export default function HomePage() {
                             </div>
                         )}
 
-                        {!store.tasksLoading && !store.tasksError && filteredTasks.length > 0 && (
+                        {!store.tasksError && filteredTasks.length > 0 && (
                             <div className="space-y-4">
                                 {[...filteredTasks]
                                     .sort((a, b) => {
