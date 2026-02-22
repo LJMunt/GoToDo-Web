@@ -3846,6 +3846,8 @@ export interface components {
             id: number;
             /** Format: int64 */
             task_id: number;
+            /** Format: int64 */
+            occurrence_index: number;
             /** Format: date-time */
             due_at: string;
             /** Format: date-time */
@@ -3858,6 +3860,8 @@ export interface components {
             task_id: number;
             /** Format: int64 */
             occurrence_id?: number | null;
+            /** Format: int64 */
+            occurrence_index?: number | null;
             /** Format: int64 */
             project_id: number;
             title: string;

@@ -96,7 +96,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
     setExpandedRecurring: (updater) => set((s) => ({ expandedRecurring: updater(new Set(s.expandedRecurring)) })),
 
     loadAgenda: async (fromISO: string, toISO: string) => {
-        set({ agendaLoading: true, agendaError: null, agendaItems: [] });
+        set({ agendaLoading: true, agendaError: null });
         try {
             const data = await getAgenda({ from: fromISO, to: toISO });
             set({ agendaItems: data });
@@ -121,7 +121,11 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
     },
 
     loadTasks: async (projectId: number) => {
-        set({ tasksLoading: true, tasksError: null });
+        set((s) => ({
+            tasksLoading: true,
+            tasksError: null,
+            tasks: s.tasks.length > 0 && s.tasks[0].project_id === projectId ? s.tasks : [],
+        }));
         try {
             const data = await listProjectTasks(projectId);
             set({ tasks: data });
@@ -223,6 +227,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
                             kind: "occurrence",
                             task_id: rt.task.id,
                             occurrence_id: occ.id,
+                            occurrence_index: occ.occurrence_index,
                             project_id: rt.projectId,
                             title: rt.task.title,
                             description: rt.task.description,

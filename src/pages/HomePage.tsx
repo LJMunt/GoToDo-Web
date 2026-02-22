@@ -398,7 +398,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="mt-4 space-y-1">
-                        {store.projectsLoading && (
+                        {store.projectsLoading && store.projects.length === 0 && (
                             <div className="space-y-3 px-4 py-2">
                                 <div className="h-3 w-3/4 animate-pulse rounded bg-surface-5" />
                                 <div className="h-3 w-1/2 animate-pulse rounded bg-surface-5" />
@@ -417,8 +417,7 @@ export default function HomePage() {
                             </div>
                         )}
 
-                        {!store.projectsLoading &&
-                            !store.projectsError &&
+                        {!store.projectsError &&
                             store.projects.map((project) => {
                                 const isActive = project.id === selectedProjectId;
                                 return (
@@ -516,7 +515,7 @@ export default function HomePage() {
                         </div>
 
                         <div className="space-y-4">
-                            {store.agendaLoading && (
+                            {store.agendaLoading && store.agendaItems.length === 0 && (
                                 <div className="space-y-4">
                                     {[1, 2, 3].map((i) => (
                                         <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
@@ -540,8 +539,7 @@ export default function HomePage() {
                                 </div>
                             )}
 
-                            {!store.agendaLoading &&
-                                !store.agendaError &&
+                            {!store.agendaError &&
                                 filteredAgenda.map((item) => {
                                     const projectName = projectNameMap.get(item.project_id) ?? config.ui.projectLabel;
                                     const key = agendaKey(item);
@@ -574,7 +572,7 @@ export default function HomePage() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5">
                                                     <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity duration-300 ${item.kind === "occurrence" ? "text-brand-500" : "text-brand-500/40 opacity-0 group-hover:opacity-100"}`}>
-                                                        {item.kind === "occurrence" ? config.ui.recurringLabel : config.ui.singleTaskLabel}
+                                                        {item.kind === "occurrence" ? `${config.ui.recurringLabel} #${item.occurrence_index}` : config.ui.singleTaskLabel}
                                                     </span>
                                                     <span className={`h-1 w-1 rounded-full bg-surface-10 transition-opacity duration-300 ${item.kind === "task" ? "opacity-0 group-hover:opacity-100" : ""}`} />
                                                     <span className="truncate text-[10px] font-black uppercase tracking-widest text-text-muted/60">
@@ -650,7 +648,7 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        {store.tasksLoading && (
+                        {store.tasksLoading && store.tasks.length === 0 && (
                             <div className="space-y-4">
                                 {[1, 2, 3].map((i) => (
                                     <div key={i} className="h-24 animate-pulse rounded-3xl bg-surface-3" />
@@ -671,7 +669,7 @@ export default function HomePage() {
                             </div>
                         )}
 
-                        {!store.tasksLoading && !store.tasksError && filteredTasks.length > 0 && (
+                        {!store.tasksError && filteredTasks.length > 0 && (
                             <div className="space-y-4">
                                 {[...filteredTasks]
                                     .sort((a, b) => {
@@ -854,7 +852,7 @@ function OccurrenceList({
 }) {
     const { config, language } = useConfig();
     const items = useMemo(() => [...(state?.items ?? [])].sort(
-        (a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()
+        (a, b) => a.occurrence_index - b.occurrence_index
     ), [state?.items]);
 
     if (state?.loading && items.length === 0) {
@@ -918,7 +916,7 @@ function OccurrenceList({
                                     </p>
                                 )}
                                 <p className="text-[10px] font-black uppercase tracking-widest text-text-muted/60">
-                                    Occurrence #{occurrence.id}
+                                    Occurrence #{occurrence.occurrence_index}
                                 </p>
                             </div>
                         </div>
