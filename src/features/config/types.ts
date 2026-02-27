@@ -50,6 +50,7 @@ export interface AuthConfig {
     mfaCodePlaceholder: string;
     verifyMfaButton: string;
     verifyingMfa: string;
+    invalidMfaCode: string;
 }
 
 export interface UIConfig {
@@ -288,6 +289,7 @@ export const DEFAULT_CONFIG: AppConfig = {
         mfaCodePlaceholder: "000000",
         verifyMfaButton: "Verify",
         verifyingMfa: "Verifying...",
+        invalidMfaCode: "Invalid MFA code",
     },
     ui: {
         agendaTitle: "Your Agenda",

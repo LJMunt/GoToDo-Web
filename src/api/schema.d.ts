@@ -1127,9 +1127,9 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @description The base32 encoded secret. */
-                            secret?: string;
+                            secret: string;
                             /** @description The otpauth URL for QR codes. */
-                            url?: string;
+                            url: string;
                         };
                     };
                 };
