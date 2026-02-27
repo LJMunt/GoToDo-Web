@@ -363,6 +363,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             token?: string;
+                            mfa_required?: boolean;
                         };
                     };
                 };
@@ -407,6 +408,72 @@ export interface paths {
                          *       "retryable": false
                          *     }
                          */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/mfa/totp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify TOTP code */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description MFA token received from login */
+                        mfa_token: string;
+                        /** @description TOTP code from user's app */
+                        code: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Access token issued */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            token?: string;
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Invalid MFA token or TOTP code */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
@@ -1028,6 +1095,155 @@ export interface paths {
                 500: components["responses"]["InternalServerError"];
             };
         };
+        trace?: never;
+    };
+    "/api/v1/mfa/totp/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start TOTP enrollment
+         * @description Generates a new TOTP secret for the authenticated user.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description TOTP secret generated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description The base32 encoded secret. */
+                            secret: string;
+                            /** @description The otpauth URL for QR codes. */
+                            url: string;
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mfa/totp/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm TOTP enrollment
+         * @description Verifies a code from the user's app to confirm and enable TOTP.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description TOTP code from user's app */
+                        code: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description TOTP confirmed and enabled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status: string;
+                            backup_codes: string[];
+                        };
+                    };
+                };
+                /** @description Invalid code */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mfa/totp/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable TOTP
+         * @description Disables TOTP for the authenticated user.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description TOTP disabled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status?: string;
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/projects": {
@@ -3840,6 +4056,7 @@ export interface components {
                 showCompletedDefault: boolean;
                 language: string;
             };
+            mfa_enabled: boolean;
         };
         Occurrence: {
             /** Format: int64 */
@@ -3906,6 +4123,7 @@ export interface components {
                 allowSignup: boolean;
                 requireEmailVerification: boolean;
                 allowReset: boolean;
+                allowTOTP: boolean;
             };
             instance: {
                 readOnly: boolean;

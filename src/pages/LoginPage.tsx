@@ -39,7 +39,9 @@ export default function LoginPage() {
 
         try {
             const res = await login({ email, password });
-            if (res.token) {
+            if (res.mfa_required) {
+                nav("/mfa", { state: { mfa_token: res.token, from } });
+            } else if (res.token) {
                 await refresh();
                 nav(from, { replace: true });
             } else {
