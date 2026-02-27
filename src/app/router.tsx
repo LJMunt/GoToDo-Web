@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
 import LoginPage from "../pages/LoginPage";
+import MFAPage from "../pages/MFAPage";
 import SignupPage from "../pages/SignupPage";
 import RequireAuth from "../features/auth/RequireAuth";
 import RequireAdmin from "../features/auth/RequireAdmin";
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
         ],
     },
     { path: "/login", element: <LoginPage /> },
+    { path: "/mfa", element: <MFAPage /> },
     { path: "/signup", element: <SignupPage /> },
     { path: "/verify-email", element: <VerifyEmailPage /> },
     { path: "/request-password-reset", element: <RequestPasswordResetPage /> },

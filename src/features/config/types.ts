@@ -44,6 +44,12 @@ export interface AuthConfig {
     backToLogin: string;
     checkEmailTitle: string;
     checkEmailMessage: string;
+    mfaTitle: string;
+    mfaSubtitle: string;
+    mfaCodeLabel: string;
+    mfaCodePlaceholder: string;
+    verifyMfaButton: string;
+    verifyingMfa: string;
 }
 
 export interface UIConfig {
@@ -115,6 +121,21 @@ export interface UIConfig {
     save: string;
     settingsTitle: string;
     settingsSubtitle: string;
+    twoFactorAuth: string;
+    twoFactorAuthDescription: string;
+    setupMfa: string;
+    disableMfa: string;
+    disableMfaConfirmTitle: string;
+    disableMfaConfirmMessage: string;
+    disableMfaAgreement: string;
+    mfaEnrollmentTitle: string;
+    mfaEnrollmentSubtitle: string;
+    scanQrCode: string;
+    mfaCodeConfirmLabel: string;
+    mfaCodeConfirmButton: string;
+    mfaBackupCodesTitle: string;
+    mfaBackupCodesSubtitle: string;
+    doneButton: string;
     recurringTemplate: string;
     everyMonth: string;
     occurrences: string;
@@ -261,6 +282,12 @@ export const DEFAULT_CONFIG: AppConfig = {
         backToLogin: "Back to login",
         checkEmailTitle: "Check your email",
         checkEmailMessage: "We've sent a password reset link to your email address.",
+        mfaTitle: "Two-Factor Authentication",
+        mfaSubtitle: "Enter the 6-digit code from your authenticator app.",
+        mfaCodeLabel: "Verification Code",
+        mfaCodePlaceholder: "000000",
+        verifyMfaButton: "Verify",
+        verifyingMfa: "Verifying...",
     },
     ui: {
         agendaTitle: "Your Agenda",
@@ -331,6 +358,21 @@ export const DEFAULT_CONFIG: AppConfig = {
         save: "Save",
         settingsTitle: "Settings",
         settingsSubtitle: "Manage your workspace and security.",
+        twoFactorAuth: "Two-Factor Authentication",
+        twoFactorAuthDescription: "Add an extra layer of security to your account using TOTP.",
+        setupMfa: "Set up 2FA",
+        disableMfa: "Disable 2FA",
+        disableMfaConfirmTitle: "Disable 2FA?",
+        disableMfaConfirmMessage: "This will make your account less secure. You will no longer be prompted for a code when logging in.",
+        disableMfaAgreement: "I understand that my account will be less secure.",
+        mfaEnrollmentTitle: "Set up 2FA",
+        mfaEnrollmentSubtitle: "Scan the QR code with your authenticator app.",
+        scanQrCode: "Scan this QR code",
+        mfaCodeConfirmLabel: "Verification Code",
+        mfaCodeConfirmButton: "Enable 2FA",
+        mfaBackupCodesTitle: "Backup Codes",
+        mfaBackupCodesSubtitle: "Save these codes in a safe place. You can use them if you lose access to your authenticator app.",
+        doneButton: "Done",
         recurringTemplate: "Recurring Template",
         everyMonth: "Every 1 month",
         occurrences: "Occurences",
