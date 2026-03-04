@@ -1,4 +1,5 @@
 import { runtimeConfig } from "../config";
+import { useAuthStore } from "../stores/authStore";
 
 const API_BASE = runtimeConfig.apiBase;
 
@@ -19,6 +20,8 @@ export async function apiFetch<T>(
     init: RequestInit = {}
 ): Promise<T> {
     const token = getToken();
+    const authState = useAuthStore.getState().state;
+    const workspaceId = authState.status === "authenticated" ? authState.workspaceId : null;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
@@ -33,6 +36,7 @@ export async function apiFetch<T>(
                 "Content-Type": "application/json",
                 Accept: "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
             },
         });
     } finally {
