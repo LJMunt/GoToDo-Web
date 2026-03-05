@@ -5,7 +5,7 @@ import { useAuthStore } from "../../stores/authStore";
 type AuthState =
     | { status: "loading" }
     | { status: "anonymous" }
-    | { status: "authenticated"; user: components["schemas"]["UserMe"] };
+    | { status: "authenticated"; user: components["schemas"]["UserMe"]; workspaceId: string };
 
 type AuthContextValue = {
     state: AuthState;

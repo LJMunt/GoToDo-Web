@@ -124,11 +124,6 @@ export default function LoginPage() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between ml-1">
                                 <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{config.auth.passwordLabel}</label>
-                                {status?.auth.allowReset && (
-                                    <Link className="text-xs font-bold text-brand-500 hover:text-brand-400 transition-colors" to="/request-password-reset">
-                                        {config.auth.forgotPasswordLink}
-                                    </Link>
-                                )}
                             </div>
                             <input
                                 className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
@@ -139,6 +134,13 @@ export default function LoginPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
+                            {status?.auth.allowReset && (
+                                <div className="flex justify-end pr-1">
+                                    <Link className="text-xs font-bold text-brand-500 hover:text-brand-400 transition-colors" to="/request-password-reset">
+                                        {config.auth.forgotPasswordLink}
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
                         <button

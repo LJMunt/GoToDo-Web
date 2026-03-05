@@ -3999,7 +3999,7 @@ export interface components {
         Task: {
             /** Format: int64 */
             id: number;
-            user_id: string;
+            workspace_id: string;
             /** Format: int64 */
             project_id: number;
             title: string;
@@ -4057,6 +4057,12 @@ export interface components {
                 language: string;
             };
             mfa_enabled: boolean;
+            workspaces: components["schemas"]["Workspace"][];
+        };
+        Workspace: {
+            public_id: string;
+            /** @enum {string} */
+            type: "user" | "org";
         };
         Occurrence: {
             /** Format: int64 */

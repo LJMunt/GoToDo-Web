@@ -239,7 +239,7 @@ export function TagsManagementModal({
                                                             onClick={() => {
                                                                 setEditingTagId(tag.id);
                                                                 setEditName(tag.name);
-                                                                setEditColor(tag.color as Color);
+                                                                setEditColor((tag.color || "slate") as Color);
                                                             }}
                                                             className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-5 text-text-muted hover:text-text-base hover:bg-surface-10 border border-surface-10 transition-all"
                                                             title={config.ui.editTagTitle}

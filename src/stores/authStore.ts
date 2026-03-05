@@ -7,7 +7,7 @@ import type { components } from "../api/schema";
 type AuthState =
     | { status: "loading" }
     | { status: "anonymous" }
-    | { status: "authenticated"; user: components["schemas"]["UserMe"] };
+    | { status: "authenticated"; user: components["schemas"]["UserMe"]; workspaceId: string };
 
 interface AuthStore {
     state: AuthState;
@@ -31,10 +31,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         try {
             const me = await getMe();
+            const workspace = me.workspaces.find((w) => w.type === "user") || me.workspaces[0];
+            if (!workspace) {
+                throw new Error("No workspace found for user");
+            }
+
             set({
                 state: {
                     status: "authenticated",
                     user: me as components["schemas"]["UserMe"],
+                    workspaceId: workspace.public_id,
                 },
             });
         } catch (err) {
