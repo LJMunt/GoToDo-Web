@@ -826,9 +826,9 @@ export default function HomePage() {
                     onClose={() => setShowTagsModal(false)}
                     onTagsUpdated={() => {
                         if (selectedProjectId) {
-                            void store.loadTasks(selectedProjectId);
+                            void store.loadTasks(selectedProjectId, true);
                         } else {
-                            void store.loadAgenda(agendaDay.startISO, agendaDay.endISO);
+                            void store.loadAgenda(agendaDay.startISO, agendaDay.endISO, true);
                         }
                     }}
                 />

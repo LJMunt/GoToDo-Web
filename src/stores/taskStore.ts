@@ -52,9 +52,9 @@ interface TaskStoreState {
 
     setExpandedRecurring: (updater: (prev: Set<number>) => Set<number>) => void;
 
-    loadAgenda: (fromISO: string, toISO: string) => Promise<void>;
+    loadAgenda: (fromISO: string, toISO: string, forceTags?: boolean) => Promise<void>;
     loadProjects: () => Promise<void>;
-    loadTasks: (projectId: number) => Promise<void>;
+    loadTasks: (projectId: number, forceTags?: boolean) => Promise<void>;
     loadTagsForTasks: (taskIds: number[], force?: boolean) => Promise<void>;
 
     toggleAgendaCompletion: (item: AgendaItem, currentTags: Tag[]) => Promise<void>;
@@ -95,12 +95,12 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
 
     setExpandedRecurring: (updater) => set((s) => ({ expandedRecurring: updater(new Set(s.expandedRecurring)) })),
 
-    loadAgenda: async (fromISO: string, toISO: string) => {
+    loadAgenda: async (fromISO: string, toISO: string, forceTags = false) => {
         set({ agendaLoading: true, agendaError: null });
         try {
             const data = await getAgenda({ from: fromISO, to: toISO });
             set({ agendaItems: data });
-            void get().loadTagsForTasks(data.map((i) => i.task_id));
+            void get().loadTagsForTasks(data.map((i) => i.task_id), forceTags);
         } catch (err) {
             set({ agendaError: err instanceof Error ? err.message : "Failed to load agenda" });
         } finally {
@@ -120,7 +120,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
         }
     },
 
-    loadTasks: async (projectId: number) => {
+    loadTasks: async (projectId: number, forceTags = false) => {
         set((s) => ({
             tasksLoading: true,
             tasksError: null,
@@ -129,7 +129,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
         try {
             const data = await listProjectTasks(projectId);
             set({ tasks: data });
-            void get().loadTagsForTasks(data.map((t) => t.id));
+            void get().loadTagsForTasks(data.map((t) => t.id), forceTags);
         } catch (err) {
             set({ tasksError: err instanceof Error ? err.message : "Failed to load tasks" });
         } finally {
