@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme, type Theme } from "../features/theme/ThemeContext";
 import { useConfig } from "../features/config/ConfigContext";
-import { changePassword } from "../api/auth";
+import { changePassword, mfaTotpStart, mfaTotpConfirm, mfaTotpDisable } from "../api/auth";
 import { updateMe, deleteMe } from "../api/users";
 import type { components } from "../api/schema";
 import { PasswordRequirements } from "../components/PasswordRequirements";
@@ -13,7 +13,7 @@ type UserSettings = NonNullable<components["schemas"]["UserMe"]["settings"]>;
 export default function UserSettingsPage() {
     const { state, refresh, logout } = useAuth();
     const { setTheme } = useTheme();
-    const { language, setLanguage, config, availableLanguages } = useConfig();
+    const { language, setLanguage, config, status, availableLanguages } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
     const nav = useNavigate();
 
@@ -34,6 +34,19 @@ export default function UserSettingsPage() {
     const [deleteConfirmed, setDeleteConfirmed] = useState(false);
     const [deleteError, setDeleteError] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
+    
+    const [mfaEnrollmentStep, setMfaEnrollmentStep] = useState<null | "qr" | "backup">(null);
+    const [mfaSecret, setMfaSecret] = useState<string | null>(null);
+    const [mfaQrCode, setMfaQrCode] = useState<string | null>(null);
+    const [mfaBackupCodes, setMfaBackupCodes] = useState<string[] | null>(null);
+    const [mfaConfirmationCode, setMfaConfirmationCode] = useState("");
+    const [isConfirmingMfa, setIsConfirmingMfa] = useState(false);
+    const [mfaConfirmationError, setMfaConfirmationError] = useState<string | null>(null);
+
+    const [showMfaDisableModal, setShowMfaDisableModal] = useState(false);
+    const [mfaDisableConfirmed, setMfaDisableConfirmed] = useState(false);
+    const [isDisablingMfa, setIsDisablingMfa] = useState(false);
+    const [mfaDisableError, setMfaDisableError] = useState<string | null>(null);
 
     if (!user) return null;
 
@@ -126,6 +139,49 @@ export default function UserSettingsPage() {
         } catch (err: unknown) {
             setDeleteError(err instanceof Error ? err.message : "Failed to delete account");
             setIsDeleting(false);
+        }
+    }
+
+    async function handleStartMfaEnrollment() {
+        try {
+            const res = await mfaTotpStart();
+            setMfaSecret(res.secret);
+            setMfaQrCode(res.url);
+            setMfaEnrollmentStep("qr");
+            setMfaConfirmationCode("");
+            setMfaConfirmationError(null);
+        } catch (err: unknown) {
+            setSettingsError(err instanceof Error ? err.message : "Failed to start MFA enrollment");
+        }
+    }
+
+    async function handleConfirmMfa() {
+        setMfaConfirmationError(null);
+        setIsConfirmingMfa(true);
+        try {
+            const res = await mfaTotpConfirm({ code: mfaConfirmationCode });
+            setMfaBackupCodes(res.backup_codes);
+            setMfaEnrollmentStep("backup");
+            await refresh();
+        } catch (err: unknown) {
+            setMfaConfirmationError(err instanceof Error ? err.message : "Failed to confirm MFA");
+        } finally {
+            setIsConfirmingMfa(false);
+        }
+    }
+
+    async function handleDisableMfa() {
+        setMfaDisableError(null);
+        setIsDisablingMfa(true);
+        try {
+            await mfaTotpDisable();
+            await refresh();
+            setShowMfaDisableModal(false);
+            setMfaDisableConfirmed(false);
+        } catch (err: unknown) {
+            setMfaDisableError(err instanceof Error ? err.message : "Failed to disable MFA");
+        } finally {
+            setIsDisablingMfa(false);
         }
     }
 
@@ -347,7 +403,211 @@ export default function UserSettingsPage() {
                         )}
                     </div>
                 </form>
+                {status?.auth.allowTOTP && (
+                    <div className="bg-surface-3 border border-surface-8 rounded-4xl p-8 space-y-6 ring-1 ring-surface-10 shadow-sm mt-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div>
+                                <div className="font-bold text-lg text-text-base tracking-tight">{config.ui.twoFactorAuth}</div>
+                                <div className="text-xs text-text-muted mt-1.5 font-medium leading-relaxed max-w-xs">
+                                    {config.ui.twoFactorAuthDescription}
+                                </div>
+                            </div>
+                            {user.mfa_enabled ? (
+                                <button
+                                    onClick={() => setShowMfaDisableModal(true)}
+                                    className="px-8 py-3.5 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 font-black uppercase tracking-widest text-sm hover:bg-red-500/20 transition-all cursor-pointer"
+                                >
+                                    {config.ui.disableMfa}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleStartMfaEnrollment}
+                                    className="px-8 py-3.5 rounded-2xl bg-brand-500 text-on-brand font-black uppercase tracking-widest text-sm hover:bg-brand-600 transition-all shadow-xl shadow-brand-500/20 cursor-pointer"
+                                >
+                                    {config.ui.setupMfa}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
             </section>
+
+            {mfaEnrollmentStep && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-surface-10 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-surface-15">
+                        <div className="p-10">
+                            {mfaEnrollmentStep === "qr" && (
+                                <div className="space-y-8 text-center">
+                                    <div>
+                                        <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.mfaEnrollmentTitle}</h2>
+                                        <p className="text-text-muted mt-2 font-medium">{config.ui.mfaEnrollmentSubtitle}</p>
+                                    </div>
+                                    
+                                    <div className="flex flex-col items-center gap-6">
+                                        <div className="bg-white p-4 rounded-3xl shadow-2xl ring-4 ring-brand-500/20 transition-transform hover:scale-105 duration-500">
+                                            {mfaQrCode && (
+                                                <img 
+                                                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(mfaQrCode)}&size=200x200&bgcolor=ffffff&color=000000&margin=1`} 
+                                                    alt="MFA QR Code"
+                                                    className="w-48 h-48"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="space-y-2 w-full">
+                                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">{config.ui.scanQrCode}</div>
+                                            <div className="bg-surface-5 border border-surface-10 rounded-2xl px-4 py-3 font-mono text-sm tracking-widest text-brand-500 break-all select-all">
+                                                {mfaSecret}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 text-left">
+                                        <div className="space-y-2">
+                                            <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">{config.ui.mfaCodeConfirmLabel}</label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                maxLength={6}
+                                                required
+                                                value={mfaConfirmationCode}
+                                                onChange={(e) => setMfaConfirmationCode(e.target.value.replace(/\D/g, ""))}
+                                                className="w-full bg-surface-5 border border-surface-15 rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all text-text-base text-center text-2xl tracking-[0.5em] font-bold"
+                                                placeholder="000000"
+                                                autoFocus
+                                            />
+                                        </div>
+
+                                        {mfaConfirmationError && (
+                                            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-bold animate-in shake duration-500">
+                                                {mfaConfirmationError}
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-4 pt-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setMfaEnrollmentStep(null)}
+                                                className="flex-1 rounded-2xl px-6 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
+                                            >
+                                                {config.ui.cancel}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={mfaConfirmationCode.length !== 6 || isConfirmingMfa}
+                                                onClick={handleConfirmMfa}
+                                                className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-4 text-sm font-black uppercase tracking-widest text-on-brand shadow-xl shadow-brand-500/20 hover:bg-brand-600 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                                            >
+                                                {isConfirmingMfa ? (
+                                                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                ) : config.ui.mfaCodeConfirmButton}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {mfaEnrollmentStep === "backup" && (
+                                <div className="space-y-8">
+                                    <div className="text-center">
+                                        <h2 className="text-3xl font-bold text-text-base tracking-tight">{config.ui.mfaBackupCodesTitle}</h2>
+                                        <p className="text-text-muted mt-2 font-medium">{config.ui.mfaBackupCodesSubtitle}</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {mfaBackupCodes?.map((code, i) => (
+                                            <div key={i} className="bg-surface-5 border border-surface-10 rounded-2xl px-4 py-3 font-mono text-sm text-center text-text-base tracking-widest">
+                                                {code}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMfaEnrollmentStep(null)}
+                                            className="w-full rounded-2xl bg-brand-500 px-6 py-4 text-sm font-black uppercase tracking-widest text-on-brand shadow-xl shadow-brand-500/20 hover:bg-brand-600 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                                        >
+                                            {config.ui.doneButton}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showMfaDisableModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg overflow-hidden rounded-5xl border border-red-500/20 bg-bg-16 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-red-500/10">
+                        <div className="p-10">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 className="text-3xl font-bold text-red-500 tracking-tight">{config.ui.disableMfaConfirmTitle}</h2>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowMfaDisableModal(false);
+                                        setMfaDisableConfirmed(false);
+                                        setMfaDisableError(null);
+                                    }}
+                                    className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-5 text-text-muted hover:bg-surface-10 hover:text-text-base transition-all border border-surface-10"
+                                >
+                                    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+
+                            <p className="text-text-muted mb-8 font-medium leading-relaxed">
+                                {config.ui.disableMfaConfirmMessage}
+                            </p>
+
+                            <div className="space-y-8">
+                                <label className="flex items-center gap-4 cursor-pointer group">
+                                    <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all ${mfaDisableConfirmed ? "border-red-500 bg-red-500/10 text-red-500" : "border-surface-10 group-hover:border-surface-15"}`}>
+                                        <input
+                                            type="checkbox"
+                                            className="hidden"
+                                            checked={mfaDisableConfirmed}
+                                            onChange={(e) => setMfaDisableConfirmed(e.target.checked)}
+                                        />
+                                        {mfaDisableConfirmed && <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                                    </div>
+                                    <span className="text-sm font-bold text-text-muted group-hover:text-text-base transition-colors leading-tight">
+                                        {config.ui.disableMfaAgreement}
+                                    </span>
+                                </label>
+
+                                {mfaDisableError && (
+                                    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 font-bold animate-in shake duration-500">
+                                        {mfaDisableError}
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-4 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMfaDisableModal(false)}
+                                        className="flex-1 rounded-2xl px-8 py-4 text-sm font-bold text-text-muted hover:bg-surface-8 hover:text-text-base transition-all"
+                                    >
+                                        {config.ui.cancel}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleDisableMfa}
+                                        disabled={!mfaDisableConfirmed || isDisablingMfa}
+                                        className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-8 py-4 text-sm font-black uppercase tracking-widest text-on-brand shadow-xl shadow-red-500/20 hover:bg-red-600 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                                    >
+                                        {isDisablingMfa ? (
+                                            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        ) : config.ui.disableMfa}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-in fade-in duration-300">

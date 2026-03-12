@@ -7,6 +7,19 @@ type LoginReq =
 type LoginRes =
     paths["/api/v1/auth/login"]["post"]["responses"]["200"]["content"]["application/json"];
 
+type MfaTotpReq =
+    paths["/api/v1/auth/mfa/totp"]["post"]["requestBody"]["content"]["application/json"];
+type MfaTotpRes =
+    paths["/api/v1/auth/mfa/totp"]["post"]["responses"]["200"]["content"]["application/json"];
+
+type MfaTotpStartRes =
+    paths["/api/v1/mfa/totp/start"]["post"]["responses"]["200"]["content"]["application/json"];
+
+type MfaTotpConfirmReq =
+    paths["/api/v1/mfa/totp/confirm"]["post"]["requestBody"]["content"]["application/json"];
+type MfaTotpConfirmRes =
+    paths["/api/v1/mfa/totp/confirm"]["post"]["responses"]["200"]["content"]["application/json"];
+
 type SignupReq =
     paths["/api/v1/auth/signup"]["post"]["requestBody"]["content"]["application/json"];
 type SignupRes =
@@ -43,8 +56,39 @@ export async function login(body: LoginReq): Promise<LoginRes> {
         body: JSON.stringify(body),
     });
 
+    if (!data.mfa_required) {
+        setToken(data.token ?? null);
+    }
+    return data;
+}
+
+export async function verifyMfaTotp(body: MfaTotpReq): Promise<MfaTotpRes> {
+    const data = await apiFetch<MfaTotpRes>("/v1/auth/mfa/totp", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+
     setToken(data.token ?? null);
     return data;
+}
+
+export async function mfaTotpStart(): Promise<MfaTotpStartRes> {
+    return apiFetch<MfaTotpStartRes>("/v1/mfa/totp/start", {
+        method: "POST",
+    });
+}
+
+export async function mfaTotpConfirm(body: MfaTotpConfirmReq): Promise<MfaTotpConfirmRes> {
+    return apiFetch<MfaTotpConfirmRes>("/v1/mfa/totp/confirm", {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+
+export async function mfaTotpDisable(): Promise<void> {
+    await apiFetch("/v1/mfa/totp/disable", {
+        method: "POST",
+    });
 }
 
 export async function signup(body: SignupReq): Promise<SignupRes> {
