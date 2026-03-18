@@ -9,6 +9,7 @@ export default function SignupPage() {
     const { config, status, language, setLanguage, availableLanguages } = useConfig();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -18,6 +19,12 @@ export default function SignupPage() {
     async function onSubmit(e: FormEvent) {
         e.preventDefault();
         setError(null);
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
@@ -104,6 +111,19 @@ export default function SignupPage() {
                                     required
                                 />
                                 <PasswordRequirements password={password} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-text-muted ml-1">{config.auth.confirmPasswordLabel}</label>
+                                <input
+                                    className="w-full rounded-2xl border border-surface-10 bg-surface-3 px-4 py-3 text-text-base outline-none transition-all focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 placeholder:text-text-muted/40 font-medium"
+                                    type="password"
+                                    autoComplete="new-password"
+                                    placeholder={config.auth.confirmPasswordPlaceholder}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                />
                             </div>
 
                             <button

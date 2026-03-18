@@ -19,6 +19,7 @@ export interface AuthConfig {
     signupSubtitle: string;
     emailLabel: string;
     passwordLabel: string;
+    confirmPasswordLabel: string;
     currentPasswordLabel: string;
     newPasswordLabel: string;
     signInButton: string;
@@ -32,6 +33,7 @@ export interface AuthConfig {
     emailPlaceholder: string;
     passwordPlaceholder: string;
     signupPasswordPlaceholder: string;
+    confirmPasswordPlaceholder: string;
     serviceDownTitle: string;
     serviceDownMessage: string;
     forgotPasswordLink: string;
@@ -258,6 +260,7 @@ export const DEFAULT_CONFIG: AppConfig = {
         signupSubtitle: "Spin up a workspace that belongs to you.",
         emailLabel: "Email Address",
         passwordLabel: "Password",
+        confirmPasswordLabel: "Confirm Password",
         currentPasswordLabel: "Current Password",
         newPasswordLabel: "New Password",
         signInButton: "Sign in",
@@ -271,6 +274,7 @@ export const DEFAULT_CONFIG: AppConfig = {
         emailPlaceholder: "name@example.com",
         passwordPlaceholder: "••••••••",
         signupPasswordPlaceholder: "Min 8 characters",
+        confirmPasswordPlaceholder: "••••••••",
         serviceDownTitle: "Service Unavailable",
         serviceDownMessage: "The backend service is currently unreachable. Please try again later.",
         forgotPasswordLink: "Forgot password?",
