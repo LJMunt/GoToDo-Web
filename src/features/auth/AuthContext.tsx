@@ -10,19 +10,20 @@ type AuthState =
 type AuthContextValue = {
     state: AuthState;
     refresh: () => Promise<void>;
+    setWorkspace: (workspaceId: string) => void;
     logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const { state, refresh, logout } = useAuthStore();
+    const { state, refresh, logout, setWorkspace } = useAuthStore();
 
     useEffect(() => {
         void refresh();
     }, [refresh]);
 
-    const value = useMemo(() => ({ state, refresh, logout }), [logout, refresh, state]);
+    const value = useMemo(() => ({ state, refresh, logout, setWorkspace }), [logout, refresh, state, setWorkspace]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

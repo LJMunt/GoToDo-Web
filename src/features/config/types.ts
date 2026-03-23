@@ -224,6 +224,15 @@ export interface UIConfig {
     verifyEmailConfirmMessage: string;
     unverifyEmailConfirmTitle: string;
     unverifyEmailConfirmMessage: string;
+    organizations: string;
+    manageOrganizations: string;
+    createOrganization: string;
+    organizationName: string;
+    members: string;
+    addMember: string;
+    leaveOrganization: string;
+    workspace: string;
+    personalWorkspace: string;
 }
 
 export interface NavigationConfig {
@@ -238,6 +247,7 @@ export interface NavigationConfig {
     support: string;
     logout: string;
     userData: string;
+    organizations: string;
 }
 
 export interface AppConfig {
@@ -464,6 +474,15 @@ export const DEFAULT_CONFIG: AppConfig = {
         verifyEmailConfirmMessage: "Are you sure you want to mark this user's email as verified?",
         unverifyEmailConfirmTitle: "Unverify User Email",
         unverifyEmailConfirmMessage: "Are you sure you want to mark this user's email as unverified?",
+        organizations: "Organizations",
+        manageOrganizations: "Manage Organizations",
+        createOrganization: "Create Organization",
+        organizationName: "Organization Name",
+        members: "Members",
+        addMember: "Add Member",
+        leaveOrganization: "Leave Organization",
+        workspace: "Workspace",
+        personalWorkspace: "Personal Workspace",
     },
     navigation: {
         agenda: "Agenda",
@@ -477,5 +496,6 @@ export const DEFAULT_CONFIG: AppConfig = {
         support: "Support",
         logout: "Log out",
         userData: "User Data",
+        organizations: "Organizations",
     }
 };

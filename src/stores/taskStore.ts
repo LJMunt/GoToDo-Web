@@ -99,8 +99,9 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
         set({ agendaLoading: true, agendaError: null });
         try {
             const data = await getAgenda({ from: fromISO, to: toISO });
-            set({ agendaItems: data });
-            void get().loadTagsForTasks(data.map((i) => i.task_id), forceTags);
+            const items = data ?? [];
+            set({ agendaItems: items });
+            void get().loadTagsForTasks(items.map((i) => i.task_id), forceTags);
         } catch (err) {
             set({ agendaError: err instanceof Error ? err.message : "Failed to load agenda" });
         } finally {
@@ -112,7 +113,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
         set({ projectsLoading: true, projectsError: null });
         try {
             const data = await listProjects();
-            set({ projects: data });
+            set({ projects: data ?? [] });
         } catch (err) {
             set({ projectsError: err instanceof Error ? err.message : "Failed to load projects" });
         } finally {
@@ -128,8 +129,9 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
         }));
         try {
             const data = await listProjectTasks(projectId);
-            set({ tasks: data });
-            void get().loadTagsForTasks(data.map((t) => t.id), forceTags);
+            const tasks = data ?? [];
+            set({ tasks: tasks });
+            void get().loadTagsForTasks(tasks.map((t) => t.id), forceTags);
         } catch (err) {
             set({ tasksError: err instanceof Error ? err.message : "Failed to load tasks" });
         } finally {
@@ -255,7 +257,8 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
             },
         }));
         try {
-            const items = await listTaskOccurrences(taskId);
+            const data = await listTaskOccurrences(taskId);
+            const items = data ?? [];
             set((s) => ({
                 taskOccurrences: {
                     ...s.taskOccurrences,

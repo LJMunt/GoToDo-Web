@@ -12,6 +12,7 @@ type AuthState =
 interface AuthStore {
     state: AuthState;
     refresh: () => Promise<void>;
+    setWorkspace: (workspaceId: string) => void;
     logout: () => void;
 }
 
@@ -31,7 +32,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         try {
             const me = await getMe();
-            const workspace = me.workspaces.find((w) => w.type === "user") || me.workspaces[0];
+            const currentWorkspaceId = get().state.status === "authenticated" ? get().state.workspaceId : null;
+            
+            const workspaces = me.workspaces ?? [];
+            
+            // Validate if current workspace still exists in the list
+            const hasCurrentWorkspace = currentWorkspaceId && workspaces.some(w => w.public_id === currentWorkspaceId);
+            
+            const workspace = hasCurrentWorkspace 
+                ? workspaces.find(w => w.public_id === currentWorkspaceId)!
+                : (workspaces.find((w) => w.type === "user") || workspaces[0]);
+
             if (!workspace) {
                 throw new Error("No workspace found for user");
             }
@@ -39,7 +50,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             set({
                 state: {
                     status: "authenticated",
-                    user: me as components["schemas"]["UserMe"],
+                    user: { ...me, workspaces } as components["schemas"]["UserMe"],
                     workspaceId: workspace.public_id,
                 },
             });
@@ -57,6 +68,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
                 // Keep the current state if we were already authenticated.
                 console.warn("Auth refresh failed, but token still exists. Keeping current state.", err);
             }
+        }
+    },
+    setWorkspace: (workspaceId: string) => {
+        const currentState = get().state;
+        if (currentState.status === "authenticated") {
+            set({
+                state: {
+                    ...currentState,
+                    workspaceId,
+                },
+            });
         }
     },
     logout: () => {

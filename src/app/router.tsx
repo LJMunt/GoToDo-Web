@@ -15,6 +15,8 @@ import ConfigManagement from "../pages/admin/ConfigManagement";
 import VerifyEmailPage from "../pages/VerifyEmailPage";
 import RequestPasswordResetPage from "../pages/RequestPasswordResetPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import OrganizationsPage from "../pages/OrganizationsPage";
+import RequireOrganizations from "../features/config/RequireOrganizations";
 
 export const router = createBrowserRouter([
     {
@@ -28,6 +30,14 @@ export const router = createBrowserRouter([
             { index: true, element: <HomePage /> },
             { path: "projects/:projectId", element: <HomePage /> },
             { path: "settings", element: <UserSettingsPage /> },
+            {
+                path: "organizations",
+                element: (
+                    <RequireOrganizations>
+                        <OrganizationsPage />
+                    </RequireOrganizations>
+                ),
+            },
             {
                 path: "admin",
                 element: (

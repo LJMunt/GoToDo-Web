@@ -74,7 +74,7 @@ export function TagsManagementModal({
             setLoading(true);
             try {
                 const data = await listTags();
-                setTags(data);
+                setTags(data ?? []);
             } catch (err) {
                 setError(err instanceof Error ? err.message : config.ui.errorPrefix);
             } finally {

@@ -36,3 +36,7 @@ export async function deleteMe(currentPassword: string): Promise<void> {
         body: JSON.stringify({ currentPassword }),
     });
 }
+
+export async function searchUsers(email: string): Promise<components["schemas"]["User"][]> {
+    return apiFetch<components["schemas"]["User"][]>(`/v1/users/search?email=${encodeURIComponent(email)}`);
+}

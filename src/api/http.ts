@@ -47,6 +47,17 @@ export async function apiFetch<T>(
         // Clear token on 401 to preserve expected auth flow without backend changes
         if (res.status === 401) setToken(null);
 
+        // Handle deleted/removed from workspace (404)
+        if (res.status === 404 && workspaceId) {
+            const authStore = useAuthStore.getState();
+            if (authStore.state.status === "authenticated") {
+                const personalWorkspace = authStore.state.user.workspaces.find(w => w.type === "user");
+                if (personalWorkspace && authStore.state.workspaceId !== personalWorkspace.public_id) {
+                    authStore.setWorkspace(personalWorkspace.public_id);
+                }
+            }
+        }
+
         let msg = `HTTP ${res.status}`;
         try {
             const data: unknown = await res.json();

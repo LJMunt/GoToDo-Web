@@ -108,6 +108,7 @@ export default function HomePage() {
     const { state } = useAuth();
     const { config, language } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
+    const workspaceId = state.status === "authenticated" ? state.workspaceId : null;
     
     const store = useTaskStore();
     
@@ -141,19 +142,23 @@ export default function HomePage() {
     const [showTagsModal, setShowTagsModal] = useState(false);
 
     useEffect(() => {
-        void store.loadAgenda(agendaDay.startISO, agendaDay.endISO);
-        setCompletedAgendaHistory([]);
-    }, [agendaDay.startISO, agendaDay.endISO]);
+        if (workspaceId) {
+            void store.loadAgenda(agendaDay.startISO, agendaDay.endISO);
+            setCompletedAgendaHistory([]);
+        }
+    }, [agendaDay.startISO, agendaDay.endISO, workspaceId]);
 
     useEffect(() => {
-        void store.loadProjects();
-    }, []);
+        if (workspaceId) {
+            void store.loadProjects();
+        }
+    }, [workspaceId]);
 
     useEffect(() => {
-        if (selectedProjectId !== null) {
+        if (selectedProjectId !== null && workspaceId) {
             void store.loadTasks(selectedProjectId);
         }
-    }, [selectedProjectId]);
+    }, [selectedProjectId, workspaceId]);
 
     const sortedAgenda = useMemo(
         () =>
