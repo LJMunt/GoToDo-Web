@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useConfig } from "../features/config/ConfigContext";
 import { listOrganizations, createOrganization } from "../api/orgs";
 import type { components } from "../api/schema";
+import { useAuth } from "../features/auth/AuthContext";
+import { OrganizationManageModal } from "./OrganizationManageModal";
 
 type Organization = components["schemas"]["Organization"];
 
 export default function OrganizationsPage() {
     const { config } = useConfig();
+    const { refresh } = useAuth();
     const [orgs, setOrgs] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
     const [newName, setNewName] = useState("");
     const [creating, setCreating] = useState(false);
+    const [managingOrg, setManagingOrg] = useState<Organization | null>(null);
 
     useEffect(() => {
         loadOrgs();
@@ -28,7 +32,7 @@ export default function OrganizationsPage() {
         }
     }
 
-    async function handleCreate(e: React.FormEvent) {
+    async function handleCreate(e: FormEvent) {
         e.preventDefault();
         if (!newName.trim()) return;
 
@@ -37,6 +41,7 @@ export default function OrganizationsPage() {
             await createOrganization(newName.trim());
             setNewName("");
             setShowCreate(false);
+            await refresh();
             await loadOrgs();
         } catch (err) {
             console.error("Failed to create organization", err);
@@ -130,13 +135,28 @@ export default function OrganizationsPage() {
                                         <span className="rounded bg-surface-8 px-1.5 py-0.5">{org.workspace_id}</span>
                                     </div>
                                 </div>
-                                <div className="rounded-xl bg-surface-8 p-2 text-text-muted group-hover:text-brand-500 transition-colors">
-                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                </div>
+                                <button
+                                    onClick={() => setManagingOrg(org)}
+                                    className="rounded-xl bg-surface-8 p-2 text-text-muted transition hover:bg-surface-15 hover:text-brand-500 active:scale-95 cursor-pointer border border-surface-10"
+                                    title="Manage Organization"
+                                >
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
+            )}
+
+            {managingOrg && (
+                <OrganizationManageModal
+                    organization={managingOrg}
+                    onClose={() => setManagingOrg(null)}
+                    onUpdated={() => {
+                        loadOrgs();
+                        refresh();
+                    }}
+                />
             )}
         </div>
     );

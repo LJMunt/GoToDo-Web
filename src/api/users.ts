@@ -1,4 +1,4 @@
-import type { paths } from "./schema";
+import type { paths, components } from "./schema";
 import { apiFetch, getToken } from "./http";
 
 type MeRes =

@@ -2,6 +2,8 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useConfig } from "../features/config/ConfigContext";
+import { listOrganizations } from "../api/orgs";
+import type { components } from "../api/schema";
 
 export default function AppLayout() {
     const { state, logout, setWorkspace } = useAuth();
@@ -18,19 +20,50 @@ export default function AppLayout() {
     const isAdminPath = location.pathname.startsWith("/admin");
     const showOrgs = status?.features.organizations;
 
+    const [orgs, setOrgs] = useState<components["schemas"]["Organization"][]>([]);
+    const [loadingOrgs, setLoadingOrgs] = useState(false);
+
+    useEffect(() => {
+        if (showOrgs && user) {
+            setLoadingOrgs(true);
+            listOrganizations().then(data => {
+                setOrgs(data ?? []);
+                setLoadingOrgs(false);
+            }).catch(() => setLoadingOrgs(false));
+        }
+    }, [showOrgs, user, currentWorkspaceId]);
+
     const initials = useMemo(() => {
         if (!user) return "";
         return user.email.substring(0, 2);
     }, [user]);
 
+    const workspaces = useMemo(() => {
+        if (!user) return [];
+        const base = [...(user.workspaces ?? [])];
+        
+        // Merge in any organizations found via listOrganizations() that aren't in the user's workspace list
+        orgs.forEach(org => {
+            if (!base.find(w => w.public_id === org.workspace_id)) {
+                base.push({ public_id: org.workspace_id, type: "org" });
+            }
+        });
+        
+        return base;
+    }, [user, orgs]);
+
     const currentWorkspaceName = useMemo(() => {
         if (!user || !currentWorkspaceId) return "";
-        const ws = user.workspaces?.find(w => w.public_id === currentWorkspaceId);
+        const ws = workspaces.find(w => w.public_id === currentWorkspaceId);
         if (ws?.type === "user") return config.ui.personalWorkspace;
-        // Ideally we'd have the org name here, but Workspace DTO only has ID and type.
-        // For now, let's show the ID or "Organization" if it's an org.
-        return ws?.type === "org" ? config.ui.organizations : config.ui.workspace;
-    }, [user, currentWorkspaceId, config]);
+        
+        if (ws?.type === "org") {
+            const org = orgs.find(o => o.workspace_id === currentWorkspaceId);
+            return org?.name || config.ui.organizations;
+        }
+        
+        return config.ui.workspace;
+    }, [user, currentWorkspaceId, config, orgs, workspaces]);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -104,7 +137,7 @@ export default function AppLayout() {
                                                 {config.ui.workspace}
                                             </div>
                                             <div className="max-h-64 overflow-y-auto space-y-0.5">
-                                                {user.workspaces?.map((ws) => (
+                                                {workspaces.map((ws) => (
                                                     <button
                                                         key={ws.public_id}
                                                         onClick={() => {
@@ -122,7 +155,12 @@ export default function AppLayout() {
                                                         ) : (
                                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                                                         )}
-                                                        <span className="truncate">{ws.type === "user" ? config.ui.personalWorkspace : ws.public_id}</span>
+                                                        <span className="truncate">
+                                                            {ws.type === "user" 
+                                                                ? config.ui.personalWorkspace 
+                                                                : (orgs.find(o => o.workspace_id === ws.public_id)?.name || ws.public_id)
+                                                            }
+                                                        </span>
                                                     </button>
                                                 ))}
                                             </div>

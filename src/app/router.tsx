@@ -11,6 +11,8 @@ import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import UserManagement from "../pages/admin/UserManagement";
 import UserDataView from "../pages/admin/UserDataView";
+import OrganizationManagement from "../pages/admin/OrganizationManagement";
+import OrganizationDataView from "../pages/admin/OrganizationDataView";
 import ConfigManagement from "../pages/admin/ConfigManagement";
 import VerifyEmailPage from "../pages/VerifyEmailPage";
 import RequestPasswordResetPage from "../pages/RequestPasswordResetPage";
@@ -49,6 +51,8 @@ export const router = createBrowserRouter([
                     { index: true, element: <AdminDashboard /> },
                     { path: "users", element: <UserManagement /> },
                     { path: "users/:userId/:tab", element: <UserDataView /> },
+                    { path: "organizations", element: <OrganizationManagement /> },
+                    { path: "organizations/:orgId/:tab", element: <OrganizationDataView /> },
                     { path: "config", element: <ConfigManagement /> },
                     { path: "jobs", element: <div>Jobs</div> },
                 ],
