@@ -1,4 +1,4 @@
-import type { paths, components } from "./schema";
+import type { paths } from "./schema";
 import { apiFetch, getToken } from "./http";
 
 type MeRes =
@@ -37,6 +37,6 @@ export async function deleteMe(currentPassword: string): Promise<void> {
     });
 }
 
-export async function searchUsers(email: string): Promise<components["schemas"]["User"][]> {
-    return apiFetch<components["schemas"]["User"][]>(`/v1/users/search?email=${encodeURIComponent(email)}`);
+export async function searchUsers(email: string): Promise<{ public_id: string; email: string }> {
+    return apiFetch<{ public_id: string; email: string }>(`/v1/users/search?email=${encodeURIComponent(email)}`);
 }

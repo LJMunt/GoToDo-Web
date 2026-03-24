@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     },
     setWorkspace: (workspaceId: string) => {
         const currentState = get().state;
-        if (currentState.status === "authenticated") {
+        if (currentState.status === "authenticated" && currentState.workspaceId !== workspaceId) {
             set({
                 state: {
                     ...currentState,

@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useConfig } from "../features/config/ConfigContext";
+import { useTaskStore } from "../stores/taskStore";
 import { listOrganizations } from "../api/orgs";
 import type { components } from "../api/schema";
 
@@ -16,20 +17,18 @@ export default function AppLayout() {
     const wsRef = useRef<HTMLDivElement>(null);
     const user = state.status === "authenticated" ? state.user : null;
     const currentWorkspaceId = state.status === "authenticated" ? state.workspaceId : null;
+    const prevWorkspaceId = useRef<string | null>(currentWorkspaceId);
     const isReadOnly = status?.instance.readOnly;
     const isAdminPath = location.pathname.startsWith("/admin");
     const showOrgs = status?.features.organizations;
 
     const [orgs, setOrgs] = useState<components["schemas"]["Organization"][]>([]);
-    const [loadingOrgs, setLoadingOrgs] = useState(false);
 
     useEffect(() => {
         if (showOrgs && user) {
-            setLoadingOrgs(true);
             listOrganizations().then(data => {
                 setOrgs(data ?? []);
-                setLoadingOrgs(false);
-            }).catch(() => setLoadingOrgs(false));
+            }).catch(() => {});
         }
     }, [showOrgs, user, currentWorkspaceId]);
 
@@ -64,6 +63,22 @@ export default function AppLayout() {
         
         return config.ui.workspace;
     }, [user, currentWorkspaceId, config, orgs, workspaces]);
+
+    const clearTasks = useTaskStore(s => s.clear);
+
+    useEffect(() => {
+        if (prevWorkspaceId.current && currentWorkspaceId && prevWorkspaceId.current !== currentWorkspaceId) {
+            // If the workspace changed, we should clear the task store to avoid showing stale data.
+            clearTasks();
+
+            // If we are currently viewing a project, we must redirect to the agenda 
+            // to avoid loading a project that doesn't exist in the new workspace.
+            if (location.pathname.startsWith("/projects/")) {
+                nav("/", { replace: true });
+            }
+        }
+        prevWorkspaceId.current = currentWorkspaceId;
+    }, [currentWorkspaceId, location.pathname, nav, clearTasks]);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {

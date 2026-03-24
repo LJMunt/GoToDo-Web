@@ -64,6 +64,7 @@ interface TaskStoreState {
     fetchExtraCompletedItems: (projects: Project[], fromISO: string, toISO: string) => Promise<void>;
     loadOccurrences: (taskId: number) => Promise<void>;
     resetAgendaDerived: () => void;
+    clear: () => void;
 }
 
 export const useTaskStore = create<TaskStoreState>((set, get) => ({
@@ -90,10 +91,27 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
     extraCompletedItems: [],
     isLoadingExtra: false,
 
-    setShowCompletedAgenda: (v: boolean) => set({ showCompletedAgenda: v }),
-    setShowCompletedProjectTasks: (v: boolean) => set({ showCompletedProjectTasks: v }),
+    setShowCompletedAgenda: (v) => set({ showCompletedAgenda: v }),
+    setShowCompletedProjectTasks: (v) => set({ showCompletedProjectTasks: v }),
 
     setExpandedRecurring: (updater) => set((s) => ({ expandedRecurring: updater(new Set(s.expandedRecurring)) })),
+
+    clear: () => set({
+        agendaItems: [],
+        agendaLoading: false,
+        agendaError: null,
+        projects: [],
+        projectsLoading: false,
+        projectsError: null,
+        tasks: [],
+        tasksLoading: false,
+        tasksError: null,
+        tagsByTaskId: {},
+        expandedRecurring: new Set(),
+        taskOccurrences: {},
+        extraCompletedItems: [],
+        isLoadingExtra: false,
+    }),
 
     loadAgenda: async (fromISO: string, toISO: string, forceTags = false) => {
         set({ agendaLoading: true, agendaError: null });

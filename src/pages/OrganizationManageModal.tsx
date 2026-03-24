@@ -1,5 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
-import { useConfig } from "../features/config/ConfigContext";
+import { useState, useEffect, FormEvent, useCallback } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { 
     updateOrganization, 
@@ -22,7 +21,6 @@ interface Props {
 }
 
 export function OrganizationManageModal({ organization, onClose, onUpdated }: Props) {
-    const { config } = useConfig();
     const { state, refresh } = useAuth();
     const user = state.status === "authenticated" ? state.user : null;
     
@@ -37,14 +35,10 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
     const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
     const [inviteError, setInviteError] = useState<string | null>(null);
 
-    const myMember = members.find(m => m.user_id === user?.public_id);
+    const myMember = members.find(m => m.public_id === user?.public_id);
     const isAdmin = myMember?.role === "admin";
 
-    useEffect(() => {
-        loadMembers();
-    }, [organization.id]);
-
-    async function loadMembers() {
+    const loadMembers = useCallback(async () => {
         try {
             const data = await listOrgMembers(organization.id);
             setMembers(data ?? []);
@@ -53,7 +47,11 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
         } finally {
             setLoadingMembers(false);
         }
-    }
+    }, [organization.id]);
+
+    useEffect(() => {
+        loadMembers();
+    }, [loadMembers]);
 
     async function handleUpdateName(e: FormEvent) {
         e.preventDefault();
@@ -100,8 +98,7 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
         setSearchingUser(true);
         setInviteError(null);
         try {
-            const users = await searchUsers(emailSearch.trim());
-            const targetUser = users.find(u => u.email.toLowerCase() === emailSearch.trim().toLowerCase());
+            const targetUser = await searchUsers(emailSearch.trim());
             if (!targetUser) {
                 setInviteError("User not found");
                 return;
@@ -120,19 +117,21 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
     async function handleRemoveMember(member: OrgMember) {
         if (!confirm(`Remove ${member.email} from the organization?`)) return;
         try {
-            await removeOrgMember(organization.id, member.user_id);
+            await removeOrgMember(organization.id, member.public_id);
             loadMembers();
         } catch (err) {
             console.error("Failed to remove member", err);
+            alert(err instanceof Error ? err.message : "Failed to remove member");
         }
     }
 
     async function handleChangeRole(member: OrgMember, newRole: string) {
         try {
-            await addOrUpdateOrgMember(organization.id, member.user_id, newRole);
+            await addOrUpdateOrgMember(organization.id, member.public_id, newRole);
             loadMembers();
         } catch (err) {
             console.error("Failed to change role", err);
+            alert(err instanceof Error ? err.message : "Failed to change role");
         }
     }
 
@@ -205,7 +204,7 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
                                     />
                                     <select
                                         value={inviteRole}
-                                        onChange={(e) => setInviteRole(e.target.value as any)}
+                                        onChange={(e) => setInviteRole(e.target.value as "admin" | "member")}
                                         className="rounded-xl border border-surface-10 bg-surface-3 px-3 py-2 text-sm outline-none"
                                     >
                                         <option value="member">Member</option>
@@ -228,7 +227,7 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
                                 <div className="py-4 text-center text-sm text-text-muted animate-pulse">Loading members...</div>
                             ) : (
                                 members.map(member => (
-                                    <div key={member.user_id} className="flex items-center justify-between rounded-2xl border border-surface-5 bg-surface-3 p-4">
+                                    <div key={member.public_id} className="flex items-center justify-between rounded-2xl border border-surface-5 bg-surface-3 p-4">
                                         <div className="flex items-center gap-3">
                                             <div className="h-8 w-8 rounded-full bg-surface-10 flex items-center justify-center text-[10px] font-bold text-text-muted uppercase">
                                                 {member.email.substring(0, 2)}
@@ -241,7 +240,7 @@ export function OrganizationManageModal({ organization, onClose, onUpdated }: Pr
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {isAdmin && member.user_id !== user?.public_id ? (
+                                            {isAdmin && member.public_id !== user?.public_id ? (
                                                 <>
                                                     <select
                                                         value={member.role}

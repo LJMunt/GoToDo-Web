@@ -5,11 +5,15 @@ import {
     listOrgProjects, 
     listOrgTasks, 
     listOrgTags,
+    listOrgMembers,
     type Organization, 
     type Project, 
     type Task, 
     type Tag 
 } from "../../api/admin";
+import type { components } from "../../api/schema";
+
+type OrgMember = components["schemas"]["OrgMember"];
 
 function SortIcon({ field, currentField, direction }: { field: string, currentField: string, direction: "asc" | "desc" }) {
     if (field !== currentField) {
@@ -47,6 +51,11 @@ export default function OrganizationDataView() {
     const [tagsLoading, setTagsLoading] = useState(false);
     const [tagSortField, setTagSortField] = useState<keyof Tag>("id");
     const [tagSortDirection] = useState<"asc" | "desc">("asc");
+
+    const [members, setMembers] = useState<OrgMember[]>([]);
+    const [membersLoading, setMembersLoading] = useState(false);
+    const [memberSortField, setMemberSortField] = useState<keyof OrgMember>("public_id");
+    const [memberSortDirection] = useState<"asc" | "desc">("asc");
 
     const [showDeleted, setShowDeleted] = useState(false);
     const [search, setSearch] = useState("");
@@ -165,6 +174,26 @@ export default function OrganizationDataView() {
         }
     }, [tab, orgId]);
 
+    useEffect(() => {
+        if (tab === "members" && orgId) {
+            const fetchMembers = async () => {
+                const id = parseInt(orgId);
+                if (isNaN(id)) return;
+
+                setMembersLoading(true);
+                try {
+                    const data = await listOrgMembers(id);
+                    setMembers(data);
+                } catch (e) {
+                    console.error("Failed to fetch members:", e);
+                } finally {
+                    setMembersLoading(false);
+                }
+            };
+            fetchMembers();
+        }
+    }, [tab, orgId]);
+
     const tabs = [
         {
             id: "projects",
@@ -193,6 +222,16 @@ export default function OrganizationDataView() {
             icon: (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+            )
+        },
+        {
+            id: "members",
+            label: "Members",
+            path: `/admin/organizations/${orgId}/members`,
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
             )
         },
@@ -262,6 +301,27 @@ export default function OrganizationDataView() {
             return 0;
         });
     }, [tags, search, tagSortField, tagSortDirection]);
+
+    const filteredMembers = useMemo(() => {
+        const filtered = members.filter(member => {
+            const matchesSearch = 
+                member.email.toLowerCase().includes(search.toLowerCase()) || 
+                member.public_id.toLowerCase().includes(search.toLowerCase());
+            return matchesSearch;
+        });
+
+        return [...filtered].sort((a, b) => {
+            const valA = a[memberSortField];
+            const valB = b[memberSortField];
+
+            if (valA === null || valA === undefined) return memberSortDirection === "asc" ? -1 : 1;
+            if (valB === null || valB === undefined) return memberSortDirection === "asc" ? 1 : -1;
+
+            if (valA < valB) return memberSortDirection === "asc" ? -1 : 1;
+            if (valA > valB) return memberSortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [members, search, memberSortField, memberSortDirection]);
 
     return (
         <div className="space-y-6">
@@ -588,6 +648,93 @@ export default function OrganizationDataView() {
                                                         <td className="px-4 py-4 font-medium text-text-base">{tag.name}</td>
                                                         <td className="px-4 py-4 text-text-muted whitespace-nowrap">
                                                             {new Date(tag.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {tab === "members" && (
+                        <div className="space-y-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="relative w-full md:w-80">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search members..."
+                                        className="w-full bg-surface-3 border border-surface-8 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 text-text-base placeholder:text-text-muted/50 transition-colors"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {membersLoading && <div className="text-xs text-text-muted animate-pulse">Loading members...</div>}
+                                </div>
+                            </div>
+
+                            <div className="overflow-hidden rounded-xl border border-surface-8 bg-surface-3">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-surface-5 text-text-muted font-medium border-b border-surface-8">
+                                            <tr>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => setMemberSortField("public_id")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Public ID
+                                                        <SortIcon field="public_id" currentField={memberSortField} direction={memberSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => setMemberSortField("email")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Email
+                                                        <SortIcon field="email" currentField={memberSortField} direction={memberSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => setMemberSortField("role")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Role
+                                                        <SortIcon field="role" currentField={memberSortField} direction={memberSortDirection} />
+                                                    </div>
+                                                </th>
+                                                <th className="px-4 py-3 uppercase tracking-wider text-[11px] cursor-pointer hover:text-text-base transition-colors group" onClick={() => setMemberSortField("joined_at")}>
+                                                    <div className="flex items-center gap-1">
+                                                        Joined At
+                                                        <SortIcon field="joined_at" currentField={memberSortField} direction={memberSortDirection} />
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-surface-8">
+                                            {filteredMembers.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className="px-4 py-8 text-center text-text-muted">
+                                                        {membersLoading ? "Loading members..." : "No members found."}
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredMembers.map((member) => (
+                                                    <tr key={member.public_id} className="group hover:bg-surface-5/50 transition-colors">
+                                                        <td className="px-4 py-4 font-mono text-xs text-text-muted">{member.public_id}</td>
+                                                        <td className="px-4 py-4 font-medium text-text-base">{member.email}</td>
+                                                        <td className="px-4 py-4">
+                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${
+                                                                member.role === 'admin' 
+                                                                    ? 'bg-brand-500/10 text-brand-500 border-brand-500/20' 
+                                                                    : 'bg-surface-10 text-text-muted border-surface-20'
+                                                            }`}>
+                                                                {member.role}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-text-muted whitespace-nowrap">
+                                                            {new Date(member.joined_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                                                         </td>
                                                     </tr>
                                                 ))

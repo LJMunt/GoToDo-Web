@@ -15,8 +15,9 @@ export async function listUsers(): Promise<User[]> {
     return apiFetch<User[]>("/v1/admin/users");
 }
 
-export async function listOrganizations(): Promise<Organization[]> {
-    return apiFetch<Organization[]>("/v1/admin/orgs");
+export async function listOrganizations(includeDeleted?: boolean): Promise<Organization[]> {
+    const query = includeDeleted ? "?include_deleted=true" : "";
+    return apiFetch<Organization[]>(`/v1/admin/orgs${query}`);
 }
 
 export async function getOrganization(id: number): Promise<Organization> {

@@ -39,7 +39,7 @@ export default function OrganizationManagement() {
     useEffect(() => {
         const fetchOrgs = async () => {
             try {
-                const data = await listOrganizations();
+                const data = await listOrganizations(true);
                 setOrgs(data);
             } catch (e) {
                 setError(e instanceof Error ? e.message : "Failed to fetch organizations");
@@ -92,7 +92,7 @@ export default function OrganizationManagement() {
         try {
             await restoreOrganization(org.id);
             // Refresh to get updated deleted_at
-            const data = await listOrganizations();
+            const data = await listOrganizations(true);
             setOrgs(data);
         } catch (e) {
             alert(e instanceof Error ? e.message : "Failed to restore organization");
