@@ -23,10 +23,8 @@ export function OrganizationCreateModal({
         setError(null);
         try {
             const org = await createOrg(name);
-            const wsId = org.workspace_id || 
-                (org as unknown as { workspaceId?: string }).workspaceId || 
-                (org as unknown as { public_id?: string }).public_id;
-            if (wsId && wsId !== "null" && wsId !== "undefined") {
+            const wsId = org.workspace_id;
+            if (wsId) {
                 onCreated(wsId);
             } else {
                 onCreated(""); 

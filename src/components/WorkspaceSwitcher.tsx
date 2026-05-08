@@ -1,29 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../features/auth/AuthContext";
-import { getOrgs, type Organization } from "../api/orgs";
 import { useConfig } from "../features/config/ConfigContext";
 import { useTaskStore } from "../stores/taskStore";
 import { useNavigate } from "react-router-dom";
 import { OrganizationCreateModal } from "./OrganizationCreateModal";
 
 export function WorkspaceSwitcher() {
-    const { state, setWorkspaceId } = useAuth();
+    const { state, setWorkspaceId, refresh } = useAuth();
     const { status } = useConfig();
     const { clearAll } = useTaskStore();
     const nav = useNavigate();
-    const [orgs, setOrgs] = useState<Organization[]>([]);
     const [menuOpen, setMenuOpen] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const user = state.status === "authenticated" ? state.user : null;
     const activeWorkspaceId = state.status === "authenticated" ? state.workspaceId : null;
-
-    useEffect(() => {
-        if (state.status === "authenticated" && status?.features.organizations) {
-            getOrgs().then(data => setOrgs(data.filter(o => !o.deleted_at))).catch(console.error);
-        }
-    }, [state.status, status?.features.organizations]);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -36,27 +28,17 @@ export function WorkspaceSwitcher() {
 
     if (!user || !status?.features.organizations) return null;
 
-    const personalWorkspace = user.workspaces.find(w => w.type === "user") || user.workspaces[0];
-    const activeOrg = orgs.find(o => {
-        const wsId = o.workspace_id || (o as unknown as { workspaceId?: string }).workspaceId || (o as unknown as { public_id?: string }).public_id;
-        return wsId === activeWorkspaceId;
-    });
+    const workspaces = user.workspaces || [];
+    const personalWorkspace = workspaces.find(w => w.type === "user") || workspaces[0];
+    const orgWorkspaces = workspaces.filter(w => w.type === "org");
     
-    const isPersonal = activeWorkspaceId === null || (personalWorkspace && activeWorkspaceId === personalWorkspace.public_id) || activeWorkspaceId === "null" || activeWorkspaceId === "undefined";
-    const currentWorkspace = isPersonal
-        ? { name: "Personal Workspace", id: personalWorkspace?.public_id ?? "personal", type: "user" }
-        : activeOrg
-            ? { 
-                name: activeOrg.name, 
-                id: activeOrg.workspace_id || 
-                    (activeOrg as unknown as { workspaceId?: string }).workspaceId || 
-                    (activeOrg as unknown as { public_id?: string }).public_id || 
-                    activeWorkspaceId!, 
-                type: "org" 
-            }
-            : activeWorkspaceId && activeWorkspaceId !== "null" && activeWorkspaceId !== "undefined"
-                ? { name: "Organization Workspace", id: activeWorkspaceId, type: "org" }
-                : { name: "Personal Workspace", id: "personal", type: "user" };
+    const activeWorkspace = workspaces.find(w => w.public_id === activeWorkspaceId);
+    const isPersonal = !activeWorkspaceId || activeWorkspaceId === personalWorkspace?.public_id;
+    
+    const currentWorkspace = {
+        name: isPersonal ? "Personal Workspace" : (activeWorkspace?.name || "Organization Workspace"),
+        type: isPersonal ? "user" : "org" as const
+    };
 
     function handleSwitch(workspaceId: string) {
         let targetId: string | null = workspaceId;
@@ -118,25 +100,18 @@ export function WorkspaceSwitcher() {
                         Personal Workspace
                     </button>
 
-                    {orgs.length > 0 && (
+                    {orgWorkspaces.length > 0 && (
                         <>
                             <div className="mt-2 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-text-muted">
                                 Organizations
                             </div>
                             <div className="space-y-0.5 max-h-60 overflow-y-auto">
-                                {orgs.map(org => {
-                                    const wsId = org.workspace_id || 
-                                        (org as unknown as { workspaceId?: string }).workspaceId || 
-                                        (org as unknown as { public_id?: string }).public_id;
-                                    const isSelected = wsId ? activeWorkspaceId === wsId : false;
+                                {orgWorkspaces.map(ws => {
+                                    const isSelected = activeWorkspaceId === ws.public_id;
                                     return (
                                         <button
-                                            key={org.id}
-                                            onClick={() => {
-                                                if (wsId) {
-                                                    handleSwitch(wsId);
-                                                }
-                                            }}
+                                            key={ws.public_id}
+                                            onClick={() => handleSwitch(ws.public_id)}
                                             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition cursor-pointer ${
                                                 isSelected 
                                                     ? "bg-brand-500/10 text-brand-500 font-bold" 
@@ -144,7 +119,7 @@ export function WorkspaceSwitcher() {
                                             }`}
                                         >
                                             <div className={`h-2 w-2 rounded-full ${isSelected ? "bg-brand-500" : "bg-transparent"}`} />
-                                            <span className="truncate">{org.name}</span>
+                                            <span className="truncate">{ws.name}</span>
                                         </button>
                                     );
                                 })}
@@ -170,9 +145,9 @@ export function WorkspaceSwitcher() {
                 <OrganizationCreateModal
                     onClose={() => setShowCreateModal(false)}
                     onCreated={(workspaceId) => {
-                        handleSwitch(workspaceId);
-                        // Refresh orgs list
-                        getOrgs().then(data => setOrgs(data.filter(o => !o.deleted_at))).catch(console.error);
+                        refresh().then(() => {
+                            handleSwitch(workspaceId);
+                        });
                     }}
                 />
             )}

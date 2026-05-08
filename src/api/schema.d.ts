@@ -4808,6 +4808,7 @@ export interface components {
             /** Format: int64 */
             id: number;
             name: string;
+            /** @description 26-character ULID identifying the organization's workspace. */
             workspace_id: string;
             deleted_at?: string | null;
             /** Format: date-time */
@@ -4838,6 +4839,7 @@ export interface components {
         Task: {
             /** Format: int64 */
             id: number;
+            /** @description 26-character ULID of the workspace this task belongs to. */
             workspace_id: string;
             /** Format: int64 */
             project_id: number;
@@ -4899,9 +4901,11 @@ export interface components {
             workspaces: components["schemas"]["Workspace"][];
         };
         Workspace: {
+            /** @description 26-character ULID identifying the workspace. */
             public_id: string;
             /** @enum {string} */
             type: "user" | "org";
+            name: string;
         };
         Occurrence: {
             /** Format: int64 */
