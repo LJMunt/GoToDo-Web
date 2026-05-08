@@ -36,3 +36,51 @@ export async function deleteMe(currentPassword: string): Promise<void> {
         body: JSON.stringify({ currentPassword }),
     });
 }
+
+export function searchUserByEmail(email: string): Promise<paths["/api/v1/users/search"]["get"]["responses"]["200"]["content"]["application/json"]> {
+    return apiFetch<paths["/api/v1/users/search"]["get"]["responses"]["200"]["content"]["application/json"]>(`/v1/users/search?email=${encodeURIComponent(email)}`, {
+        skipWorkspace: true,
+    });
+}
+
+export interface UserSearchResult {
+    public_id: string;
+    email: string;
+}
+
+export async function searchUsers(query: string): Promise<UserSearchResult[]> {
+    // Attempt search by email (exact match) as per openapi.yml
+    try {
+        const res = await apiFetch<any>(`/v1/users/search?email=${encodeURIComponent(query)}`, {
+            skipWorkspace: true,
+        });
+        if (res && (res.public_id || res.id)) {
+            return [{
+                public_id: res.public_id || res.id,
+                email: res.email
+            }];
+        }
+    } catch (err) {
+        // Fallback to q parameter if email search fails, or if backend supports q for partial match
+        try {
+            const resQ = await apiFetch<any>(`/v1/users/search?q=${encodeURIComponent(query)}`, {
+                skipWorkspace: true,
+            });
+            if (Array.isArray(resQ)) {
+                return resQ.map((u: any) => ({
+                    public_id: u.public_id || u.id,
+                    email: u.email
+                }));
+            }
+            if (resQ && (resQ.public_id || resQ.id)) {
+                return [{
+                    public_id: resQ.public_id || resQ.id,
+                    email: resQ.email
+                }];
+            }
+        } catch (err2) {
+            console.error("Search failed:", err2);
+        }
+    }
+    return [];
+}

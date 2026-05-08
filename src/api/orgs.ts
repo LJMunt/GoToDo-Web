@@ -22,6 +22,26 @@ export function getOrgMembers(id: number): Promise<OrgMember[]> {
     return apiFetch<OrgMember[]>(`/v1/orgs/${id}/members`);
 }
 
+export function updateOrg(id: number, name: string): Promise<void> {
+    return apiFetch<void>(`/v1/orgs/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+    });
+}
+
+export function addOrgMember(id: number, publicId: string, role: OrgMember["role"] = "member"): Promise<void> {
+    return apiFetch<void>(`/v1/orgs/${id}/members`, {
+        method: "POST",
+        body: JSON.stringify({ public_id: publicId, role }),
+    });
+}
+
+export function removeOrgMember(id: number, userId: string): Promise<void> {
+    return apiFetch<void>(`/v1/orgs/${id}/members/${userId}`, {
+        method: "DELETE",
+    });
+}
+
 export function deleteOrg(id: number): Promise<void> {
     return apiFetch<void>(`/v1/orgs/${id}`, {
         method: "DELETE",

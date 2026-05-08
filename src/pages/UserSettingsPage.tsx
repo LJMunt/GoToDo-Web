@@ -47,6 +47,26 @@ export default function UserSettingsPage() {
     const [mfaDisableConfirmed, setMfaDisableConfirmed] = useState(false);
     const [isDisablingMfa, setIsDisablingMfa] = useState(false);
     const [mfaDisableError, setMfaDisableError] = useState<string | null>(null);
+    const [stagedSettings, setStagedSettings] = useState<UserSettings | null>(null);
+
+    useEffect(() => {
+        if (!stagedSettings) return;
+
+        const t = setTimeout(async () => {
+            const toSend = stagedSettings;
+            setUpdatingSettings(true);
+            try {
+                await updateMe({ settings: toSend });
+                await refresh();
+                setStagedSettings((prev) => (prev === toSend ? null : prev));
+            } catch (err: unknown) {
+                setSettingsError(err instanceof Error ? err.message : "Failed to update settings");
+            } finally {
+                setUpdatingSettings(false);
+            }
+        }, 500);
+        return () => clearTimeout(t);
+    }, [stagedSettings, refresh]);
 
     if (!user) return null;
 
@@ -69,8 +89,6 @@ export default function UserSettingsPage() {
         }
     }
 
-    const [stagedSettings, setStagedSettings] = useState<UserSettings | null>(null);
-
     async function updateSetting(key: string, value: string | boolean) {
         setSettingsError("");
         if (key === "theme") {
@@ -81,25 +99,6 @@ export default function UserSettingsPage() {
             [key]: value,
         } as UserSettings));
     }
-
-    useEffect(() => {
-        if (!stagedSettings) return;
-
-        const t = setTimeout(async () => {
-            const toSend = stagedSettings;
-            setUpdatingSettings(true);
-            try {
-                await updateMe({ settings: toSend });
-                await refresh();
-                setStagedSettings((prev) => (prev === toSend ? null : prev));
-            } catch (err: unknown) {
-                setSettingsError(err instanceof Error ? err.message : "Failed to update settings");
-            } finally {
-                setUpdatingSettings(false);
-            }
-        }, 500);
-        return () => clearTimeout(t);
-    }, [stagedSettings, refresh]);
 
     async function handleEmailUpdate() {
         if (!isEditingEmail) {

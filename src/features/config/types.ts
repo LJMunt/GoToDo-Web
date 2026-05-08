@@ -98,6 +98,7 @@ export interface UIConfig {
     webVersion: string;
     backendVersion: string;
     totalUsers: string;
+    totalOrganizations: string;
     databaseMetrics: string;
     databaseSize: string;
     activeConnections: string;
@@ -238,6 +239,7 @@ export interface NavigationConfig {
     support: string;
     logout: string;
     userData: string;
+    organizations: string;
 }
 
 export interface AppConfig {
@@ -338,6 +340,7 @@ export const DEFAULT_CONFIG: AppConfig = {
         webVersion: "Web Version",
         backendVersion: "Backend Version",
         totalUsers: "Total Users",
+        totalOrganizations: "Total Organizations",
         databaseMetrics: "Database Metrics",
         databaseSize: "Database Size",
         activeConnections: "Active Connections",
@@ -477,5 +480,6 @@ export const DEFAULT_CONFIG: AppConfig = {
         support: "Support",
         logout: "Log out",
         userData: "User Data",
+        organizations: "Organizations",
     }
 };

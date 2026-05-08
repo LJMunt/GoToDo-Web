@@ -4,6 +4,8 @@ import type { components } from "./schema";
 import type { ConfigKey, ConfigTranslations, ConfigValues } from "../features/config/types";
 
 export type User = components["schemas"]["AdminUser"];
+export type Organization = components["schemas"]["Organization"];
+export type OrgMember = components["schemas"]["OrgMember"];
 export type Project = components["schemas"]["Project"];
 export type Task = components["schemas"]["Task"];
 export type Tag = components["schemas"]["Tag"];
@@ -12,6 +14,52 @@ export type AdminLanguage = components["schemas"]["AdminLanguage"];
 
 export async function listUsers(): Promise<User[]> {
     return apiFetch<User[]>("/v1/admin/users");
+}
+
+export async function listOrganizations(includeDeleted?: boolean): Promise<Organization[]> {
+    const query = includeDeleted ? "?include_deleted=true" : "";
+    return apiFetch<Organization[]>(`/v1/admin/orgs${query}`);
+}
+
+export async function getOrganization(id: number): Promise<Organization> {
+    return apiFetch<Organization>(`/v1/admin/orgs/${id}`);
+}
+
+export async function updateOrganization(id: number, body: { name: string }): Promise<void> {
+    await apiFetch(`/v1/admin/orgs/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
+
+export async function deleteOrganizationPermanent(id: number): Promise<void> {
+    await apiFetch(`/v1/admin/orgs/${id}`, {
+        method: "DELETE",
+    });
+}
+
+export async function restoreOrganization(id: number): Promise<void> {
+    await apiFetch(`/v1/admin/orgs/${id}/restore`, {
+        method: "POST",
+    });
+}
+
+export async function listOrganizationProjects(orgId: number, includeDeleted?: boolean): Promise<Project[]> {
+    const query = includeDeleted ? "?include_deleted=true" : "";
+    return apiFetch<Project[]>(`/v1/admin/orgs/${orgId}/projects${query}`);
+}
+
+export async function listOrganizationTasks(orgId: number, includeDeleted?: boolean): Promise<Task[]> {
+    const query = includeDeleted ? "?include_deleted=true" : "";
+    return apiFetch<Task[]>(`/v1/admin/orgs/${orgId}/tasks${query}`);
+}
+
+export async function listOrganizationTags(orgId: number): Promise<Tag[]> {
+    return apiFetch<Tag[]>(`/v1/admin/orgs/${orgId}/tags`);
+}
+
+export async function listOrganizationMembers(orgId: number): Promise<OrgMember[]> {
+    return apiFetch<OrgMember[]>(`/v1/admin/orgs/${orgId}/members`);
 }
 
 export async function getUser(id: number): Promise<User> {

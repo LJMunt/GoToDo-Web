@@ -3,7 +3,7 @@ import { apiFetch } from "../../api/http";
 import { useConfig } from "../../features/config/ConfigContext";
 
 import type { components } from "../../api/schema";
-import { listUsers } from "../../api/admin";
+import { listUsers, listOrganizations } from "../../api/admin";
 
 type HealthStatus = "loading" | "healthy" | "unhealthy" | "error";
 
@@ -102,6 +102,7 @@ export default function AdminDashboard() {
     const [healthStatus, setHealthStatus] = useState<HealthStatus>("loading");
     const [readyStatus, setReadyStatus] = useState<HealthStatus>("loading");
     const [userCount, setUserCount] = useState<number | "loading" | "error">("loading");
+    const [orgCount, setOrgCount] = useState<number | "loading" | "error">("loading");
     const [metrics, setMetrics] = useState<DatabaseMetrics | null>(null);
     const [metricsError, setMetricsError] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -148,6 +149,16 @@ export default function AdminDashboard() {
             }
         };
 
+        const fetchOrgCount = async () => {
+            try {
+                const data = await listOrganizations();
+                setOrgCount(data.length);
+            } catch (e) {
+                setOrgCount("error");
+                console.error("Error fetching organization count:", e);
+            }
+        };
+
         const fetchMetrics = async () => {
             try {
                 const data = await apiFetch<DatabaseMetrics>("/v1/admin/metrics");
@@ -164,6 +175,7 @@ export default function AdminDashboard() {
             checkReady(),
             fetchVersion(),
             fetchUserCount(),
+            fetchOrgCount(),
             fetchMetrics(),
         ]);
         setIsRefreshing(false);
@@ -232,6 +244,12 @@ export default function AdminDashboard() {
                         <span className="text-sm font-bold text-text-200 uppercase tracking-widest">{config.ui.totalUsers}</span>
                         <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/20 uppercase tracking-tighter">
                             {userCount === "loading" ? "..." : userCount === "error" ? config.ui.errorPrefix : userCount}
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between p-6 rounded-3xl border border-surface-8 bg-surface-3 ring-1 ring-surface-10 shadow-sm">
+                        <span className="text-sm font-bold text-text-200 uppercase tracking-widest">{config.ui.totalOrganizations}</span>
+                        <span className="text-xs font-mono font-black px-3 py-1.5 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/20 uppercase tracking-tighter">
+                            {orgCount === "loading" ? "..." : orgCount === "error" ? config.ui.errorPrefix : orgCount}
                         </span>
                     </div>
                 </div>

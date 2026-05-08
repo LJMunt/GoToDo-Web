@@ -109,6 +109,14 @@ export default function AppLayout() {
                                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                             {config.navigation.userSettings}
                                         </Link>
+                                        <Link
+                                            to="/organizations"
+                                            onClick={() => setMenuOpen(false)}
+                                            className="allow-readonly flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-300 transition hover:bg-surface-5 hover:text-text-base cursor-pointer"
+                                        >
+                                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                                            Organizations
+                                        </Link>
                                         {user.is_admin && (
                                             <Link
                                                 to="/admin"
