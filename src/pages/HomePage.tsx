@@ -108,6 +108,7 @@ export default function HomePage() {
     const { state } = useAuth();
     const { config, language } = useConfig();
     const user = state.status === "authenticated" ? state.user : null;
+    const activeWorkspaceId = state.status === "authenticated" ? state.workspaceId : null;
     
     const store = useTaskStore();
     
@@ -131,7 +132,7 @@ export default function HomePage() {
             store.setShowCompletedAgenda(user.settings?.showCompletedDefault ?? false);
             store.setShowCompletedProjectTasks(user.settings?.showCompletedDefault ?? false);
         }
-    }, [user?.settings?.showCompletedDefault]);
+    }, [user?.settings?.showCompletedDefault, activeWorkspaceId]);
     
     const [completedAgendaHistory, setCompletedAgendaHistory] = useState<AgendaItem[]>([]);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
@@ -143,11 +144,11 @@ export default function HomePage() {
     useEffect(() => {
         void store.loadAgenda(agendaDay.startISO, agendaDay.endISO);
         setCompletedAgendaHistory([]);
-    }, [agendaDay.startISO, agendaDay.endISO]);
+    }, [agendaDay.startISO, agendaDay.endISO, activeWorkspaceId]);
 
     useEffect(() => {
         void store.loadProjects();
-    }, []);
+    }, [activeWorkspaceId]);
 
     useEffect(() => {
         if (selectedProjectId !== null) {
@@ -421,10 +422,10 @@ export default function HomePage() {
                             store.projects.map((project) => {
                                 const isActive = project.id === selectedProjectId;
                                 return (
-                                    <button
+                                    <div
                                         key={project.id}
                                         onClick={() => nav(`/projects/${project.id}`)}
-                                        className={`allow-readonly group flex w-full flex-col rounded-2xl px-5 py-4 text-left transition-all ${
+                                        className={`allow-readonly group flex w-full flex-col rounded-2xl px-5 py-4 text-left transition-all cursor-pointer ${
                                             isActive
                                                 ? "bg-surface-8 ring-1 ring-surface-15 shadow-sm"
                                                 : "text-text-muted hover:bg-surface-5 hover:text-text-base"
@@ -452,7 +453,7 @@ export default function HomePage() {
                                                 {project.description}
                                             </p>
                                         )}
-                                    </button>
+                                    </div>
                                 );
                             })}
                     </div>

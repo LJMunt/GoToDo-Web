@@ -8,7 +8,7 @@ export type UpdateMeReq =
     paths["/api/v1/users/me"]["patch"]["requestBody"]["content"]["application/json"];
 
 export function getMe(): Promise<MeRes> {
-    return apiFetch<MeRes>("/v1/users/me");
+    return apiFetch<MeRes>("/v1/users/me", { skipWorkspace: true });
 }
 
 export async function updateMe(body: UpdateMeReq): Promise<MeRes> {

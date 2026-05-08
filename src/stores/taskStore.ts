@@ -64,6 +64,7 @@ interface TaskStoreState {
     fetchExtraCompletedItems: (projects: Project[], fromISO: string, toISO: string) => Promise<void>;
     loadOccurrences: (taskId: number) => Promise<void>;
     resetAgendaDerived: () => void;
+    clearAll: () => void;
 }
 
 export const useTaskStore = create<TaskStoreState>((set, get) => ({
@@ -139,7 +140,7 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
 
     loadTagsForTasks: async (taskIds: number[], force = false) => {
         const { tagsByTaskId } = get();
-        const uniqueIds = [...new Set(taskIds)].filter((id) => force || !tagsByTaskId[id]);
+        const uniqueIds = [...new Set(taskIds)].filter((id) => id > 0 && (force || !tagsByTaskId[id]));
         if (uniqueIds.length === 0) return;
         try {
             const results = await Promise.all(uniqueIds.map((id) => getTaskTags(id).then((tags) => ({ id, tags }))));
@@ -277,4 +278,13 @@ export const useTaskStore = create<TaskStoreState>((set, get) => ({
     },
 
     resetAgendaDerived: () => set({ extraCompletedItems: [] }),
+    clearAll: () => set({
+        agendaItems: [],
+        projects: [],
+        tasks: [],
+        tagsByTaskId: {},
+        expandedRecurring: new Set(),
+        taskOccurrences: {},
+        extraCompletedItems: [],
+    }),
 }));

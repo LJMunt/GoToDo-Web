@@ -1,28 +1,23 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react";
-import type { components } from "../../api/schema";
-import { useAuthStore } from "../../stores/authStore";
-
-type AuthState =
-    | { status: "loading" }
-    | { status: "anonymous" }
-    | { status: "authenticated"; user: components["schemas"]["UserMe"]; workspaceId: string };
+import { useAuthStore, type AuthState } from "../../stores/authStore";
 
 type AuthContextValue = {
     state: AuthState;
     refresh: () => Promise<void>;
     logout: () => void;
+    setWorkspaceId: (workspaceId: string | null) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const { state, refresh, logout } = useAuthStore();
+    const { state, refresh, logout, setWorkspaceId } = useAuthStore();
 
     useEffect(() => {
         void refresh();
     }, [refresh]);
 
-    const value = useMemo(() => ({ state, refresh, logout }), [logout, refresh, state]);
+    const value = useMemo(() => ({ state, refresh, logout, setWorkspaceId }), [logout, refresh, state, setWorkspaceId]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

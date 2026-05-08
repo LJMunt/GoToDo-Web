@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "../features/auth/AuthContext";
 import { useConfig } from "../features/config/ConfigContext";
+import { WorkspaceSwitcher } from "../components/WorkspaceSwitcher";
 
 export default function AppLayout() {
     const { state, logout } = useAuth();
@@ -25,8 +26,8 @@ export default function AppLayout() {
             if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
         }
 
-        document.addEventListener("pointerdown", handleClickOutside);
-        return () => document.removeEventListener("pointerdown", handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     function handleLogout() {
@@ -65,8 +66,11 @@ export default function AppLayout() {
                         </span>
                     </Link>
 
-                    {user && (
-                        <div ref={menuRef} className="relative">
+                    <div className="flex items-center gap-6">
+                        <WorkspaceSwitcher />
+
+                        {user && (
+                            <div ref={menuRef} className="relative">
                             <button
                                 onClick={() => setMenuOpen((open) => !open)}
                                 className="group allow-readonly flex items-center gap-3 rounded-xl border border-surface-8 bg-surface-3 px-4 py-2 text-sm font-medium text-text-200 transition hover:bg-surface-8 hover:border-surface-15 active:scale-95 cursor-pointer"
@@ -135,6 +139,7 @@ export default function AppLayout() {
                             )}
                         </div>
                     )}
+                    </div>
                 </div>
             </header>
 

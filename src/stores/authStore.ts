@@ -4,16 +4,19 @@ import { getMe } from "../api/users";
 import { logout as apiLogout } from "../api/auth";
 import type { components } from "../api/schema";
 
-type AuthState =
+export type AuthState =
     | { status: "loading" }
     | { status: "anonymous" }
-    | { status: "authenticated"; user: components["schemas"]["UserMe"]; workspaceId: string };
+    | { status: "authenticated"; user: components["schemas"]["UserMe"]; workspaceId: string | null };
 
-interface AuthStore {
+export interface AuthStore {
     state: AuthState;
     refresh: () => Promise<void>;
     logout: () => void;
+    setWorkspaceId: (workspaceId: string | null) => void;
 }
+
+const WORKSPACE_ID_KEY = "activeWorkspaceId";
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
     state: { status: "loading" },
@@ -31,16 +34,30 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         try {
             const me = await getMe();
-            const workspace = me.workspaces.find((w) => w.type === "user") || me.workspaces[0];
-            if (!workspace) {
+            const savedWorkspaceId = localStorage.getItem(WORKSPACE_ID_KEY);
+            const personalWorkspace = me.workspaces.find((w) => w.type === "user") || me.workspaces[0];
+            if (!personalWorkspace) {
                 throw new Error("No workspace found for user");
+            }
+
+            let workspaceId: string | null = null;
+            if (savedWorkspaceId && savedWorkspaceId !== "null" && savedWorkspaceId !== "undefined" && savedWorkspaceId !== personalWorkspace.public_id) {
+                // Workspace IDs are 26-char strings (public_id). If it looks like a numeric ID, it's invalid.
+                const isNumeric = /^\d+$/.test(savedWorkspaceId);
+                if (!isNumeric) {
+                    workspaceId = savedWorkspaceId;
+                } else {
+                    localStorage.removeItem(WORKSPACE_ID_KEY);
+                }
+            } else if (savedWorkspaceId === "null" || savedWorkspaceId === "undefined") {
+                localStorage.removeItem(WORKSPACE_ID_KEY);
             }
 
             set({
                 state: {
                     status: "authenticated",
                     user: me as components["schemas"]["UserMe"],
-                    workspaceId: workspace.public_id,
+                    workspaceId: workspaceId,
                 },
             });
         } catch (err) {
@@ -65,6 +82,39 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             // ignore errors
         });
         setToken(null);
+        localStorage.removeItem(WORKSPACE_ID_KEY);
         set({ state: { status: "anonymous" } });
+    },
+    setWorkspaceId: (workspaceId: string | null) => {
+        set((s) => {
+            const state = s.state;
+            if (state.status !== "authenticated") return s;
+
+            const personal = state.user.workspaces.find(w => w.type === "user") || state.user.workspaces[0];
+            
+            let finalWorkspaceId = workspaceId;
+            if (finalWorkspaceId === personal?.public_id || !finalWorkspaceId || finalWorkspaceId === "null" || finalWorkspaceId === "undefined") {
+                finalWorkspaceId = null;
+            }
+
+            // Prevent setting numeric IDs as workspace IDs
+            if (finalWorkspaceId && /^\d+$/.test(finalWorkspaceId)) {
+                console.warn(`Attempted to set numeric workspace ID: ${finalWorkspaceId}. Ignoring.`);
+                finalWorkspaceId = null;
+            }
+
+            if (finalWorkspaceId && typeof finalWorkspaceId === "string") {
+                localStorage.setItem(WORKSPACE_ID_KEY, finalWorkspaceId);
+            } else {
+                localStorage.removeItem(WORKSPACE_ID_KEY);
+            }
+
+            return {
+                state: {
+                    ...state,
+                    workspaceId: finalWorkspaceId,
+                },
+            };
+        });
     },
 }));
